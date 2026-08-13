@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EVO Studio はじめてガイド</title>
+
+<style>
+:root {
+  --bg:       #ffffff;
+  --text:     #1a1a1a;
+  --muted:    #555;
+  --light:    #888;
+  --border:   #e0e0e0;
+  --accent:   #1a4b8c;
+  --green:    #2a7a40;
+  --amber:    #b56800;
+  --tip-bg:   #f0f7ff;
+  --warn-bg:  #fff8f0;
+  --step-num: #1a4b8c;
+  --chat-bg:  #f0f7ff;
+  --chat-ai:  #f5f0ff;
+  --tag-bg:   #e8ecf4;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.85;
+  font-size: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1.4rem 6rem;
+  transition: background 0.3s ease;
+}
+
+/* ── Header ── */
+.page-header {
+  text-align: center;
+  padding: 2.4rem 1rem 2rem;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 2.8rem;
+}
+.page-header .eyebrow {
+  font-size: 0.78rem;
+  letter-spacing: .1em;
+  color: var(--light);
+  text-transform: uppercase;
+  margin-bottom: 0.7rem;
+}
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--accent);
+  line-height: 1.3;
+  margin-bottom: 0.6rem;
+}
+.page-header .tagline {
+  font-size: 1rem;
+  color: var(--muted);
+}
+.page-header .badges {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: .04em;
+}
+.badge-blue  { background: #dde8f5; color: #1a4b8c; }
+.badge-green { background: #d8f0e0; color: #1a6a30; }
+.badge-amber { background: #fef3dc; color: #8a5500; }
+
+/* ── Section heading ── */
+h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 1rem 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+h2 .sec-icon { font-size: 1.4rem; }
+
+h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 1.8rem 0 0.7rem;
+}
+
+p { margin-bottom: 1rem; color: var(--muted); }
+
+/* ── Big step ── */
+.steps { margin: 1.2rem 0 2rem; }
+.big-step {
+  display: flex;
+  gap: 1.1rem;
+  margin-bottom: 1.6rem;
+  align-items: flex-start;
+}
+.big-num {
+  flex-shrink: 0;
+  width: 40px; height: 40px;
+  background: var(--step-num);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 0.1rem;
+  box-shadow: 0 2px 8px rgba(26,75,140,.25);
+}
+.big-body { flex: 1; }
+.big-body .step-title {
+  font-size: 1.0rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+.big-body p { margin-bottom: 0.5rem; font-size: 0.93rem; }
+
+/* ── Info boxes ── */
+.tip, .warn, .good {
+  border-left: 3px solid;
+  padding: 0.85rem 1.1rem;
+  margin: 1.2rem 0;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.93rem;
+}
+.tip  { background: var(--tip-bg);  border-color: var(--accent); }
+.warn { background: var(--warn-bg); border-color: #c97a00; }
+.good { background: #f0fff4;        border-color: var(--green); }
+.box-label {
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.tip  .box-label { color: var(--accent); }
+.warn .box-label { color: var(--amber); }
+.good .box-label { color: var(--green); }
+
+/* ── Chat bubbles ── */
+.chat { margin: 1.2rem 0; }
+.chat-row {
+  display: flex;
+  gap: 0.7rem;
+  margin-bottom: 0.9rem;
+  align-items: flex-start;
+}
+.chat-row.ai { flex-direction: row-reverse; }
+.chat-avatar {
+  flex-shrink: 0;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  background: #e8ecf4;
+  margin-top: 2px;
+}
+.chat-row.ai .chat-avatar { background: #ede8f8; }
+.chat-bubble {
+  max-width: 82%;
+  background: var(--chat-bg);
+  border-radius: 0 14px 14px 14px;
+  padding: 0.7rem 1rem;
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.7;
+  border: 1px solid #d4e4f7;
+}
+.chat-row.ai .chat-bubble {
+  background: var(--chat-ai);
+  border-radius: 14px 0 14px 14px;
+  border-color: #ddd4f7;
+  color: #2d1a6e;
+}
+.chat-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  color: var(--light);
+  margin-bottom: 0.2rem;
+}
+
+/* ── Example prompt card ── */
+.prompt-card {
+  border: 1.5px solid var(--accent);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 1.2rem 0;
+}
+.prompt-card-header {
+  background: var(--accent);
+  color: #fff;
+  padding: 0.4rem 1rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+}
+.prompt-card-body {
+  padding: 0.85rem 1.1rem;
+  font-size: 0.88rem;
+  color: #1a1a1a;
+  line-height: 1.8;
+  background: #f8fbff;
+}
+.prompt-card-body .placeholder {
+  display: inline-block;
+  background: #fff3cd;
+  border: 1px dashed #c97a00;
+  border-radius: 3px;
+  padding: 0 5px;
+  font-weight: 700;
+  color: #7a4800;
+}
+
+/* ── Model idea cards ── */
+.idea-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.85rem;
+  margin: 1rem 0 1.5rem;
+}
+.idea-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  background: #fafafa;
+  transition: box-shadow .15s;
+}
+.idea-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+.idea-card .ic-emoji { font-size: 1.5rem; margin-bottom: 0.3rem; }
+.idea-card .ic-title { font-size: 0.88rem; font-weight: 700; margin-bottom: 0.2rem; }
+.idea-card .ic-desc  { font-size: 0.78rem; color: var(--light); line-height: 1.5; }
+
+/* ── Table ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin: 1rem 0 1.5rem;
+  background: #fff;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 0.6rem 0.85rem;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #f5f5f5; font-weight: 700; font-size: 0.82rem; }
+td:first-child { font-weight: 700; color: #b91c1c; font-size: 0.85rem; width: 25%; }
+td ul { margin: 0 0 0 1.2rem; padding: 0; }
+td li { margin-bottom: 0.3rem; color: var(--muted); }
+
+/* ── kbd & UI Labels ── */
+kbd {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8em;
+  background: #fff;
+  border: 1.5px solid #b0b8cc;
+  border-bottom: 3px solid #8090aa;
+  border-radius: 4px;
+  padding: 1px 6px;
+  color: #1e3a6e;
+}
+.ui {
+  display: inline-block;
+  background: #e8ecf4;
+  border: 1px solid #c0c8d8;
+  border-radius: 3px;
+  padding: 0px 6px;
+  font-size: 0.82em;
+  font-weight: 600;
+  color: #1e3a6e;
+  white-space: nowrap;
+}
+
+/* ── Divider ── */
+hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+
+/* ── TOC ── */
+.toc {
+  background: #f8fbff;
+  border: 1px solid #d4e4f7;
+  border-radius: 8px;
+  padding: 1.1rem 1.4rem;
+  margin: 0 0 2.5rem;
+  font-size: 0.9rem;
+}
+.toc-title { font-weight: 800; font-size: 0.85rem; color: var(--accent); margin-bottom: 0.6rem; letter-spacing: .05em; }
+.toc ol { padding-left: 1.3rem; }
+.toc li { margin-bottom: 0.25rem; }
+.toc a { color: var(--accent); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+
+/* ── Footer ── */
+.footer {
+  margin-top: 3rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--light);
+  text-align: center;
+}
+.footer a { color: var(--accent); text-decoration: none; }
+
+/* ── flow arrow ── */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 1rem 0 1.4rem;
+}
+.flow-step {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.flow-arrow { color: #aaa; font-size: 1.1rem; }
+
+/* ── Slide Mode Button & Controls ── */
+#toggle-slide-mode {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(26, 75, 140, 0.3);
+  transition: transform 0.2s, background 0.2s;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+#toggle-slide-mode:hover { background: #143a6d; transform: translateY(-2px); }
+
+#slide-controls {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(26, 75, 140, 0.95);
+  padding: 0.6rem 1.5rem;
+  border-radius: 30px;
+  display: none;
+  gap: 1.5rem;
+  align-items: center;
+  z-index: 1000;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  color: #fff;
+  font-weight: 700;
+  backdrop-filter: blur(5px);
+}
+#slide-controls button {
+  background: none; border: none; color: #fff; font-size: 1.2rem;
+  cursor: pointer; padding: 0.3rem 0.8rem; border-radius: 4px; transition: background 0.2s;
+}
+#slide-controls button:hover { background: rgba(255, 255, 255, 0.2); }
+#slide-counter { font-family: 'IBM Plex Mono', monospace; font-size: 1.1rem; min-width: 70px; text-align: center; }
+#exit-slide { font-size: 0.95rem !important; border-left: 1px solid rgba(255,255,255,0.3) !important; padding-left: 1.2rem !important; margin-left: 0.5rem; }
+
+/* ── Slide Mode Overrides ── */
+body.is-slide-mode {
+  background: #e5e7eb;
+  max-width: 100%; padding: 0; overflow: hidden;
+  display: flex; justify-content: center; align-items: center; height: 100vh;
+}
+body.is-slide-mode #toggle-slide-mode,
+body.is-slide-mode .footer,
+body.is-slide-mode hr { display: none; }
+
+.slide-section { margin-bottom: 2rem; }
+
+body.is-slide-mode .slide-section {
+  display: none;
+  background: var(--bg);
+  width: 90vw; max-width: 1200px; height: 85vh;
+  padding: 3rem 4rem; border-radius: 12px;
+  box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+  overflow-y: auto; font-size: 1.2rem; margin-bottom: 0;
+}
+body.is-slide-mode .slide-section.active {
+  display: block; animation: slideFadeIn 0.4s ease forwards;
+}
+@keyframes slideFadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Scaling up for presentation */
+body.is-slide-mode .page-header { border-bottom: none; margin-top: 8vh; }
+body.is-slide-mode .page-header h1 { font-size: 3.2rem; margin-bottom: 1.5rem; line-height: 1.3; }
+body.is-slide-mode .page-header .tagline { font-size: 1.4rem; }
+body.is-slide-mode h2 { font-size: 2.0rem; margin: 0 0 1.5rem; border-bottom: 3px solid var(--border); padding-bottom: 0.8rem; }
+body.is-slide-mode h2 .sec-icon { font-size: 2.2rem; }
+body.is-slide-mode h3 { font-size: 1.4rem; margin-top: 2rem; }
+body.is-slide-mode .toc { margin-top: 4vh; border: none; background: transparent; padding: 0; font-size: 1.3rem; }
+body.is-slide-mode .toc-title { font-size: 1.6rem; margin-bottom: 1rem; }
+body.is-slide-mode .toc ol { padding-left: 2.5rem; line-height: 2.0; }
+body.is-slide-mode p, body.is-slide-mode li { line-height: 1.7; }
+body.is-slide-mode .big-step { margin-bottom: 1.5rem; }
+body.is-slide-mode .big-num { width: 45px; height: 45px; font-size: 1.3rem; }
+body.is-slide-mode .big-body .step-title { font-size: 1.2rem; }
+body.is-slide-mode .big-body p { font-size: 1.05rem; }
+body.is-slide-mode .tip, body.is-slide-mode .warn, body.is-slide-mode .good { font-size: 1.05rem; padding: 1.2rem 1.5rem; }
+body.is-slide-mode table { font-size: 1.05rem; }
+body.is-slide-mode th, body.is-slide-mode td { padding: 0.8rem 1rem; }
+body.is-slide-mode .chat-bubble { font-size: 1.05rem; max-width: 90%; }
+</style>
+</head>
+<body>
+
+<button id="toggle-slide-mode" title="スライドモードで表示する" onclick="toggleSlideMode()">
+  <span>📊</span> スライド表示
+</button>
+
+<div id="slide-controls">
+  <button id="prev-slide" title="前のスライド (左矢印キー)" onclick="prevSlide()">◀</button>
+  <span id="slide-counter">1 / 1</span>
+  <button id="next-slide" title="次のスライド (右矢印/スペースキー)" onclick="nextSlide()">▶</button>
+  <button id="exit-slide" title="通常モードに戻る (Escキー)" onclick="toggleSlideMode()">✕ 閉じる</button>
+</div>
+
+<div class="slide-section">
+  <div class="page-header">
+    <div class="eyebrow">EVO Studio ガイド</div>
+    <h1>プログラミングなしで<br>「進化」を体験しよう</h1>
+    <p class="tagline">遺伝的アルゴリズム（GA）で答えを進化させる．生成AI に頼んで，貼って，実行するだけ．</p>
+    <div class="badges">
+      <span class="badge badge-blue">コーディング不要</span>
+      <span class="badge badge-green">EVO Studio v1.0 対応</span>
+      <span class="badge badge-amber">生成AI 無料版 OK</span>
+    </div>
+  </div>
+</div>
+
+<div class="slide-section">
+  <div class="toc">
+    <div class="toc-title">もくじ</div>
+    <ol>
+      <li><a href="#what">EVO Studio って何？</a></li>
+      <li><a href="#flow">全体の流れ（3ステップ）</a></li>
+      <li><a href="#builtin">まずビルトインモデルを動かしてみよう</a></li>
+      <li><a href="#view">最良だけ／集団全体を見る</a></li>
+      <li><a href="#modify">動いているモデルを改変しよう</a></li>
+      <li><a href="#gemini">生成AI に新しいモデルを作ってもらおう</a></li>
+      <li><a href="#localai">生成AI の API に直接つないで生成する（ローカル / クラウド）</a></li>
+      <li><a href="#ideas">どんな問題が解ける？ アイデア集</a></li>
+      <li><a href="#trouble">うまくいかないときは</a></li>
+      <li><a href="#refs">参考文献・出典</a></li>
+      <li><a href="#thanks">謝辞</a></li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide-section">
+  <h2 id="what"><span class="sec-icon">🤔</span> EVO Studio って何？</h2>
+  <p>EVO Studio は，<strong>ブラウザで動く「進化（進化計算）」の実験ツールです．</strong>インストール不要．ファイルをダブルクリックするだけで使えます．</p>
+  <p>遺伝的アルゴリズム（GA）というのは，生物の進化をまねた問題の解き方です．「個体（候補となる答え）の集団」を用意し，<strong>評価 → 選択 → 交叉（組み換え）→ 突然変異 → 次世代</strong>をくり返すと，世代を重ねるごとに「良い答え」が自然に磨かれていきます．</p>
+  <p>EVO Studio では，GA のしくみ（選択・交叉・突然変異・エリート保存）は<strong>エンジンが全部やってくれます</strong>．あなたが決めるのは「遺伝子の形」「良し悪しの測り方（評価関数）」「絵の描き方」の3つだけ．しかもそれは <strong>生成AI に作ってもらって貼り付けるだけ</strong>でかまいません．</p>
+  <div class="tip">
+    <span class="box-label">このツールのねらい（考え方）</span>
+    近年の生成AIの進展は，複雑系や人工生命の「<strong>作って理解する</strong>（構成論的）」モデリングを大きく変えつつあります．プロンプトで骨子を与えれば，完全な仕様でなくても様々なモデルを自動生成でき，必要に応じて AI に説明してもらって理解したり，対話しながらアイデアを洗練したりできます．ただし，全部を AI に任せると出来上がるものがバラバラになりがちです．<br>
+    ALifeCoreStudio（ABM・EVO・IEC の3スタジオ）は，<strong>モデル構築・可視化・分析の共通の枠組みを固定</strong>したうえで，モデルの<strong>本質的な部分だけ</strong>を生成AIで生み出せるようにした道具です．これにより，<strong>プログラミング未経験の初心者が発想を自由に形にする</strong>／<strong>学生が AI と協働してモデルを育てる</strong>／<strong>研究者が素早くプロトタイプを作る</strong>，といった使い方ができます．<br>
+    枠組みの中で<strong>可能なモデルを自由に生み出す</strong>ことを通じて，<strong>構成論的アプローチによる科学的理解を加速</strong>し，「どんな世界がありうるか」を思い描いて動かす<strong>楽しさ</strong>を広げたい——それがこのツールのねらいです．
+  </div>
+  <div class="good">
+    <span class="box-label">これだけあれば OK</span>
+    EVO Studio（HTML ファイル）を開いたブラウザ ＋ 生成AIサービス（<a href="https://chatgpt.com" target="_blank">ChatGPT</a>・<a href="https://gemini.google.com" target="_blank">Gemini</a>・<a href="https://claude.ai" target="_blank">Claude</a> など，無料版で十分）
+  </div>
+  <div class="tip">
+    <span class="box-label">ABM Studio との違い</span>
+    ABM Studio は「個体のルールから現象が生まれる」のを<strong>観察</strong>する道具．EVO Studio は「良い答えを<strong>進化で探す</strong>」道具です．Evo では <strong>評価関数（fitness）＝大きいほど良い値</strong>を決めるのがいちばん大事なポイントになります．
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="flow"><span class="sec-icon">🗺️</span> 全体の流れ（3ステップ）</h2>
+  <div class="flow">
+    <div class="flow-step">① 生成AI に頼む</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">② コードをコピー</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">③ EVO Studio に貼る</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">▶ 進化開始！</div>
+  </div>
+  <p>これだけです．コードを読む必要も書く必要もありません．まずは最初から入っているモデルで，進化が進む様子を体験しましょう．</p>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="builtin"><span class="sec-icon">▶️</span> まずビルトインモデルを動かしてみよう</h2>
+  <p>EVO Studio には最初からモデルが入っています．まずそれを動かしてみましょう．</p>
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">モデルを選ぶ</div>
+        <p>画面下のコードバーにあるドロップダウン（「── モデルを選択 ──」）からモデルを選びます．</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title"><span class="ui">▶ 進化開始</span> を押す</div>
+        <p>世代が進み，グラフの適応度（最良・平均）が上がっていきます．もう一度押すと一時停止．<span class="ui">⏭ 1世代</span> で 1 世代ずつ進めることもできます．<span class="ui">⟳ 初期化</span> でランダムな初期集団からやり直せます．<strong>「最大世代」に達すると自動的に止まります</strong>（既定は <span class="ui">⏹ 停止のみ</span>。右のセレクタを <span class="ui">🔁 ループ</span> に切り替えると、その世代で初期化して繰り返します）．</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <span class="box-label">おすすめの見方</span>
+    まず「⑤ 巡回セールスマン問題（TSP）」を選び，<span class="ui">▶ 進化開始</span>．最初はぐちゃぐちゃだった巡回路が，世代を追うごとに短くスッキリした経路に整っていきます．<strong>実行速度（世代/秒）を下げると</strong>，改善のようすがよく見えます．
+  </div>
+
+  <div class="good">
+    <span class="box-label">知っておくと得な機能</span>
+    <ul style="margin:.3rem 0 0 1.2rem;line-height:1.8">
+      <li><strong>実行速度：</strong>左の「実行速度」スライダーは <strong>世代/秒</strong>．下げるとゆっくり，上げると一気に進みます．</li>
+      <li><strong>結果をくらべる：</strong>少し進化させて <span class="ui">📸 現在を保存</span> を押すと，グラフに重ねて残せます．</li>
+      <li><strong>データを保存：</strong>グラフの <span class="ui">💾</span> / <span class="ui">⬇ CSV保存</span> で結果を Excel 用 CSV に保存．</li>
+      <li><strong>📦 一式DL：</strong>「実験の保存・比較」の <span class="ui">📦 一式DL</span> で，初期化以降のデータを <b>ZIP</b> にまとめて保存できます．中身は実験設定（パラメータ・停止条件・<b>乱数シード</b> 等）を書いた <code>metadata.json</code>，世代ごとの適応度の <code>.csv</code>，全データの <code>data.json</code>，そして<b>モデルのコードそのもの</b> <code>model.js</code> です．あとから分析・再現するのに使えます．<br>
+      さらに <span class="ui">状態を記録（追っかけ再生・再生用）</span> をオンにしてから実行すると，各世代の状態が <code>frames.jsonl</code> に保存されます（観察するだけなら<b>オフのまま</b>でOK・高速）．書き出した ZIP をリポジトリ直下の <code>ALifeCoreStudio_Viewer.html</code> にドロップすると，記録した各世代を<b>そのモデル自身の絵で再生</b>できます（組み込み・改変・新規どれでも動作）．</li>
+      <li><strong>走らせながら見返す：</strong>状態の記録が始まると，実行ボタンの下にタイムラインが出ます．<span class="ui">LIVE</span> は既定でオンで，表示は最新の世代を追います．バーを動かす（または <span class="ui">LIVE</span> のチェックを外す）と，<b>裏で進化を続けたまま，過去の任意の世代へ戻れます</b>（ライブ配信のシークバーと同じ感覚です）．<span class="ui">▶</span> で記録した分を連続再生でき，各グラフには現在地を示す<b>琥珀色のマーカー</b>が出ます．<span class="ui">LIVE</span> に再びチェックすると最新に戻ります．どこまで遡れるかは間隔の隣の <span class="ui">上限</span>（既定 500 MB，<b>無制限</b>まで）で決まります．
+      <li><strong>重いとき：</strong>「個体数」を下げる，生物モデルなら「評価ステップ数」を下げると軽くなります．</li>
+      <li><strong>💾 HTML出力：</strong>コードバーのボタンで，いま動かしているモデルだけを実行できる単体HTMLファイルとして書き出せます．編集UIなしのシンプルな画面になるので，配布・提出・発表用の保存に．</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide-section">
+  <h3>ビルトインモデル一覧</h3>
+  <div class="idea-grid">
+    <div class="idea-card">
+      <div class="ic-emoji">📈</div>
+      <div class="ic-title">① 関数最適化（ビット列GA）</div>
+      <div class="ic-desc">ビット列を実数 x, y にして関数の最小点を探す．GA の基本が一目でわかる．</div>
+    </div>
+    <div class="idea-card">
+      <div class="ic-emoji">🚗</div>
+      <div class="ic-title">② 質点バネ生物（2D）</div>
+      <div class="ic-desc">質点とバネ（筋肉）でできた生き物が，右へ遠くまで進むよう進化する．</div>
+    </div>
+    <div class="idea-card">
+      <div class="ic-emoji">🧬</div>
+      <div class="ic-title">③ ソフトボディ生物</div>
+      <div class="ic-desc">5×5 ボクセルの形と動きが一緒に進化．</div>
+    </div>
+    <div class="idea-card">
+      <div class="ic-emoji">🎒</div>
+      <div class="ic-title">④ ナップザック問題</div>
+      <div class="ic-desc">容量を超えない範囲で価値合計を最大化．採用/不採用のビット列を進化．</div>
+    </div>
+    <div class="idea-card">
+      <div class="ic-emoji">🗺️</div>
+      <div class="ic-title">⑤ 巡回セールスマン問題</div>
+      <div class="ic-desc">全都市を1回ずつ回る最短ルートを探す．巡回路がどんどん短くなる．</div>
+    </div>
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="view"><span class="sec-icon">👁️</span> 最良だけ／集団全体を見る</h2>
+  <p>画面に大きく表示されるのは，その世代の<strong>最良個体（いちばん成績が良かった1体）</strong>です．たくさんの個体が裏で競争していて，その勝者を見せている，というイメージです．</p>
+  <p>でも「集団全体のばらつき」を見るのも，進化を理解するうえで大切です．再生コントロールの下にある <span class="ui">表示</span> トグルで切り替えられます．</p>
+  
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title"><span class="ui">最良のみ</span>（既定）</div>
+        <p>最良個体だけを大きく表示．生物モデルなら歩く様子がアニメーションで見えます．</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title"><span class="ui">全個体</span></div>
+        <p>集団の<strong>上位の個体を適応度順にタイル表示</strong>します（左上の ★ が最良）．隣に出る <span class="ui">表示数</span> スライダーで，何個体を並べるか（4〜36）を選べます．世代が進むと各タイルの中身も更新されます．</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <span class="box-label">使い分けのコツ</span>
+    普段は「最良のみ」で進め，ときどき「全個体」に切り替えて<strong>多様性（いろいろな形・経路が共存しているか）</strong>を確認すると，進化が「収束しすぎ」か「まだ探索中」かが分かります．タイルが小さいと感じたら表示数を 9 などに減らすと大きく見えます．
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="modify"><span class="sec-icon">✏️</span> 動いているモデルを改変しよう</h2>
+  <p>ビルトインや自作のモデルを「もう少し変えたい」と思ったら，<strong>「✏️ 改変プロンプト」ボタン</strong>を使います．現在のコードと改変指示がセットでコピーされます．</p>
+  <div class="tip">
+    <span class="box-label">📖 説明プロンプト と モデル名</span>
+    いま動かしているモデルの「仕組み」を知りたいときは <span class="ui">📖 説明プロンプト</span> を押します．現在のコードを含む説明依頼がコピーされるので，生成AI に貼ると<strong>概要・アルゴリズムの説明・疑似コード</strong>で丁寧に解説してくれます．また生成・改変されたコードには <code>const TITLE = 'モデル名'</code> が付き，ブラウザのタブ名・「説明」の見出し・<span class="ui">💾 .js保存</span> のファイル名（例 <code>質点バネ生物.js</code>）に反映されます．
+  </div>
+
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">「✏️ 改変プロンプト」を押す</div>
+        <p>コードバーにあります．現在のコードが自動的にプロンプトに含まれます．</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">生成AI に貼り付けて「変えたいこと」を書く</div>
+        <p>貼り付けたプロンプトの<strong>末尾にある【改変したい内容】</strong>に，変えたい内容を日本語で箇条書きするだけです．</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">3</div>
+      <div class="big-body">
+        <div class="step-title">返ってきたコードを全部入れ替える</div>
+        <p>コード欄で全選択（<kbd>Ctrl</kbd>+<kbd>A</kbd>）して貼り付け（<kbd>Ctrl</kbd>+<kbd>V</kbd>）し，「▶ 適用」を押します．</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>改変リクエストの例 💬</h3>
+  <p>【改変したい内容】の箇条書きに，以下のようなアイデアを書いてみましょう．</p>
+  <table>
+    <tr>
+      <th>ベースモデル</th>
+      <th>生成AIへの改変指示のアイデア</th>
+    </tr>
+    <tr>
+      <td>① 関数最適化</td>
+      <td>
+        <ul>
+          <li>評価関数を Rastrigin から Sphere 関数に変えて，最低値が 0 になるようにして．</li>
+          <li>変数の数を 2 次元から 3 次元（x，y，z）に増やして．</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td>② 質点バネ生物</td>
+      <td>
+        <ul>
+          <li>fitness を「右への距離」から「ジャンプの最高到達点」に変えて．</li>
+          <li>重力スライダーを追加して．</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td>③ ソフトボディ生物</td>
+      <td>
+        <ul>
+          <li>fitness を「移動速度」から「体の重心の高さ」に変えて．</li>
+          <li>地面に障害物を置いて，それを乗り越えるようにして．</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td>④ ナップザック</td>
+      <td>
+        <ul>
+          <li>品物を 50 個に増やして，重さと価値をもっとばらつかせて．</li>
+          <li>容量を変えるスライダーの範囲を広げて．</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td>⑤ 巡回セールスマン</td>
+      <td>
+        <ul>
+          <li>都市の数を 40 に増やして．</li>
+          <li>都市を円周上に並べて（最短路が円になるはず）．</li>
+        </ul>
+      </td>
+    </tr>
+  </table>
+
+  <div class="good">
+    <span class="box-label">改変のコツ</span>
+    一度に大きく変えようとすると失敗しやすいです．<strong>小さな変更を 1〜2 個ずつ</strong>頼んで，動くたびに確認していくのがおすすめです．
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="gemini"><span class="sec-icon">✨</span> 生成AI に新しいモデルを作ってもらおう</h2>
+  <p>EVO Studio には「✨ 新規作成プロンプト」ボタンがあります．これを押すと，生成AI に渡すための仕様書がクリップボードにコピーされます．</p>
+
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">「✨ 新規作成プロンプト」を押す</div>
+        <p>画面下部のコードバーにあります．「コピーしました」と出れば OK．</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">生成AI に貼り付けて書き換える</div>
+        <p>生成AI のチャット欄に貼り付け，<strong>【実装する題材】</strong>という欄を解きたい問題に書き換えて送信します．</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">3</div>
+      <div class="big-body">
+        <div class="step-title">コードをコピーして EVO Studio に貼る</div>
+        <p>生成AI が出力したコードブロック（```javascript ... ```）の中身だけをコピーして，EVO Studio のコード欄に貼り付け「▶ 適用」を押します．</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>こんなふうに頼むと伝わりやすい 💬</h3>
+  <p>GA では「<strong>何を遺伝子にして，何を最大化（最小化）したいか</strong>」を伝えるのがコツです．</p>
+
+  <div class="chat">
+    <div class="chat-row">
+      <div class="chat-avatar">🙋</div>
+      <div>
+        <div class="chat-label">学生の入力例</div>
+        <div class="chat-bubble">
+          実数の遺伝子で f(x,y)=sin(x)+cos(y)−0.1(x²+y²) を<strong>最大化</strong>するモデルを作って．<br>探索のようすを x–y 平面に点で描いてほしい．
+        </div>
+      </div>
+    </div>
+    <div class="chat-row">
+      <div class="chat-avatar">🙋</div>
+      <div>
+        <div class="chat-label">学生の入力例</div>
+        <div class="chat-bubble">
+          棒人間のような生き物を，関節の角度の周期運動で<strong>できるだけ右へ歩く</strong>ように進化させたい．<br>最良個体が歩くアニメーションも見たいです．
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prompt-card">
+    <div class="prompt-card-header">📋 生成AI へのリクエスト例（【実装する題材】欄に書く内容）</div>
+    <div class="prompt-card-body">
+      <span class="placeholder">解きたい問題（例：最短経路・関数最適化・歩く生物）</span> を進化で解くモデルを作ってください．<br><br>
+      遺伝子（候補の答え）は <span class="placeholder">何か（例：各都市の順番・実数のパラメータ・形と動き）</span>．<br>
+      評価関数（大きいほど良い）は <span class="placeholder">何を最大化したいか（例：−経路長・関数値・進んだ距離）</span>．<br><br>
+      スライダーで変えたいパラメータ：<span class="placeholder">例：個体数・突然変異率・都市数</span>（なければ省略 OK）<br>
+      最良個体を動かして見せたい場合はその旨も書いてください．
+    </div>
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="localai"><span class="sec-icon">🤖</span> 生成AI の API に直接つないで生成する（ローカル / クラウド）</h2>
+  <p>生成AI にコピー＆ペーストする代わりに，<strong>自分のPCで動く LLM（LM Studio など）に直接つないで</strong>，改変や新規作成を Studio の中だけで完結させることもできます．コードを貼ったり戻したりする手間がなく，ネットに送らず手元で動かせるのが利点です．<strong>OpenAI 互換 API なら何でも</strong>使えます（LM Studio・Ollama・OpenAI など）．</p>
+  <div class="tip">
+    <span class="box-label">必要なもの</span>
+    LM Studio（無料）などの OpenAI 互換サーバ．モデルを1つロードし，ローカルサーバを起動しておきます．
+  </div>
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">LM Studio でサーバを起動する</div>
+        <p>モデルをロード →「Local Server」を Start．<strong>Server Settings で「Enable CORS」を ON</strong> にしておきます（ブラウザから接続するために必須）．</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">「🤖 AI生成」を押す</div>
+        <p>画面下部のコードバーにあります．設定パネルが開くので，エンドポイント（既定 <code>http://localhost:1234</code>）とモデル名を確認します．モデル名は <span class="ui">🔄 一覧取得</span> で選べます．設定は記憶されるので次回からは不要です．</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">3</div>
+      <div class="big-body">
+        <div class="step-title">「改変／新規作成」を選び，指示を書いて ▶ 送信</div>
+        <p>「✏️ 既存コードを改変」か「✨ 新規作成」を選び，やりたいことを書いて送信します．生成されたコードは<strong>自動でコード欄に入ります</strong>．内容を確認して <span class="ui">▶ 適用</span> で実行します．</p>
+      </div>
+    </div>
+  </div>
+  <div class="tip">
+    <span class="box-label">うまく繋がらないとき</span>
+    「Failed to fetch」はサーバ未起動・CORS 未設定・URL 違いが主な原因です．まずブラウザで <code>http://localhost:1234/v1/models</code> を直接開いて JSON が出るか確認してください．出れば LM Studio 側は正常です．モデル名は手入力でも送信できます．
+  </div>
+
+  <h3>クラウドの生成AIサービスを使う（OpenRouter・DeepInfra・OpenAI など）</h3>
+  <p>ローカルだけでなく，OpenAI 互換のクラウド API も<strong>同じパネルから</strong>使えます．自分でサーバを立てる必要はなく，「エンドポイント」に各サービスのベースURL，「API キー」に発行したキー，モデル名を入れるだけです．</p>
+  <table>
+    <tr><th>サービス</th><th>エンドポイント（Base URL）</th><th>モデル名の例</th></tr>
+    <tr><td>OpenRouter</td><td><code>https://openrouter.ai/api/v1</code></td><td><code>openai/gpt-4o-mini</code>，<code>deepseek/deepseek-chat</code> など</td></tr>
+    <tr><td>DeepInfra</td><td><code>https://api.deepinfra.com/v1/openai</code></td><td><code>meta-llama/Meta-Llama-3.1-8B-Instruct</code> など</td></tr>
+    <tr><td>OpenAI</td><td><code>https://api.openai.com/v1</code></td><td><code>gpt-4o-mini</code> など</td></tr>
+  </table>
+  <div class="tip">
+    <span class="box-label">クラウド利用の注意</span>
+    これらは <strong>API キーが必須</strong>で，多くは<strong>従量課金</strong>です．キーは各サービスのダッシュボードで発行し，コードに書かず「API キー」欄に入れてください．モデル名は <span class="ui">🔄 一覧取得</span> でも選べます（OpenRouter は数百種類出ます）．ブラウザから直接呼べるかは各サービスの CORS 対応によります（OpenRouter・DeepInfra は対応。サービスによっては <code>Failed to fetch</code> になり，その場合はブラウザからは使えません）．
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="ideas"><span class="sec-icon">💡</span> どんな問題が解ける？ アイデア集</h2>
+  <p>「最適化したいもの」がある問題なら，たいてい GA で扱えます．自分の分野に引き寄せて頼むと，授業のレポートにもなります．</p>
+
+  <div class="idea-grid">
+    <div class="idea-card"><div class="ic-emoji">🗺️</div><div class="ic-title">最短経路・配送計画</div><div class="ic-desc">巡回セールスマン，配送ルート最適化．順番を遺伝子にする．</div></div>
+    <div class="idea-card"><div class="ic-emoji">📅</div><div class="ic-title">スケジューリング</div><div class="ic-desc">時間割・シフト表．制約違反を減らしつつ希望を満たす．</div></div>
+    <div class="idea-card"><div class="ic-emoji">📈</div><div class="ic-title">関数の最適化</div><div class="ic-desc">多変数関数の最大・最小．山登りでは抜け出せない谷も探索．</div></div>
+    <div class="idea-card"><div class="ic-emoji">🧠</div><div class="ic-title">ニューラルネットの重み</div><div class="ic-desc">小さなネットの重みを進化させ，簡単な制御課題を解く．</div></div>
+    <div class="idea-card"><div class="ic-emoji">🤖</div><div class="ic-title">歩く・泳ぐ生物</div><div class="ic-desc">関節やバネの動きを進化させて移動を獲得（ソフトボディ生物／質点バネ生物）．</div></div>
+    <div class="idea-card"><div class="ic-emoji">🎨</div><div class="ic-title">配色・レイアウト</div><div class="ic-desc">見やすさ・コントラストなどを評価関数にして配色を進化．</div></div>
+    <div class="idea-card"><div class="ic-emoji">🎒</div><div class="ic-title">ナップザック・部分和</div><div class="ic-desc">制約つき組合せ最適化の定番．採用ビット列を進化．</div></div>
+    <div class="idea-card"><div class="ic-emoji">🧩</div><div class="ic-title">数式の当てはめ</div><div class="ic-desc">データに合う式の係数を進化させて関係を発見（記号回帰）．</div></div>
+    <div class="idea-card"><div class="ic-emoji">📡</div><div class="ic-title">形状の最適化</div><div class="ic-desc">アンテナ形状・トラス構造など，性能を評価して形を進化．</div></div>
+  </div>
+
+  <div class="tip">
+    <span class="box-label">自分の専門に引き寄せるコツ</span>
+    「<strong>遺伝子＝○○，評価＝△△を最大化</strong>」の形に整理してから 生成AI に頼むとうまくいきます．完全に正確でなくて大丈夫．あとで改変できます．
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="trouble"><span class="sec-icon">🔧</span> うまくいかないときは</h2>
+
+  <table>
+    <tr><th>症状</th><th>対処法</th></tr>
+    <tr>
+      <td>エラーが出て動かない</td>
+      <td>原因の<strong>行番号とヒント</strong>が日本語で表示されます．まず読む．直らなければ赤いエラー文をそのまま 生成AI に貼って「直して」と頼む．右上の <span class="ui">❔ ヘルプ</span> に使えない書き方の一覧もあります．</td>
+    </tr>
+    <tr>
+      <td>何も表示されない</td>
+      <td><span class="ui">▶ 適用</span> を押したか確認．押してから <span class="ui">▶ 進化開始</span> の順番です．</td>
+    </tr>
+    <tr>
+      <td>適応度（グラフ）が伸びない</td>
+      <td>「突然変異率」を少し上げて探索を広げる，「選択圧（トーナメント）」を上げて良い個体を残しやすくする，「個体数」を増やす，をそれぞれ試す．問題が難しすぎる場合は規模を小さく．</td>
+    </tr>
+    <tr>
+      <td>すぐ収束して同じ答えばかり</td>
+      <td>「突然変異率」を上げる／「エリート保存」を下げる／「個体数」を増やすと多様性が保てます．<span class="ui">全個体</span> 表示でばらつきを確認．</td>
+    </tr>
+    <tr>
+      <td>速すぎて見えない</td>
+      <td>「実行速度（世代/秒）」を下げる．1 世代ずつ見たいときは <span class="ui">⏭ 1世代</span>．</td>
+    </tr>
+    <tr>
+      <td>重い・カクつく</td>
+      <td>「個体数」を下げる．生物モデルは「評価ステップ数」を下げる．<span class="ui">全個体</span> 表示中なら「表示数」を減らす．</td>
+    </tr>
+    <tr>
+      <td>生成AI のコードが動かない</td>
+      <td>「仕様書に従って修正してください．<code>document.*</code>・<code>import</code>・<code>class</code> は使わないでください」と再依頼．</td>
+    </tr>
+    <tr>
+      <td>無料版でコードが途中で切れる／説明文が混ざる</td>
+      <td><strong>コードブロックの中身だけ</strong>を貼る．途中で切れたら「続きを出して」と促す，または再依頼．プロンプトには「1ブロックだけ・省略せず全文出力」の指示が入っています．</td>
+    </tr>
+  </table>
+
+  <div class="warn">
+    <span class="box-label">コードを貼るときの注意</span>
+    生成AI の返答全体ではなく，<strong>コードブロック（```javascript ... ```）の中身だけ</strong>をコピーしてください．コードブロック右上の「コピー」ボタンを使うと自動的に中身だけになります．
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="refs"><span class="sec-icon">📚</span> 参考文献・出典</h2>
+  <p>ビルトインモデルが題材にしている代表的な原典です。コードはすべて本プロジェクトによる独自実装です（ソフトボディ生物は下記のとおり既存研究の着想を参考に、コードは独自に実装しています）。</p>
+  <ul>
+    <li><strong>遺伝的アルゴリズム（GA）</strong>：Holland, J. H. (1975). <em>Adaptation in Natural and Artificial Systems</em>. University of Michigan Press.／Goldberg, D. E. (1989). <em>Genetic Algorithms in Search, Optimization, and Machine Learning</em>. Addison-Wesley.</li>
+    <li><strong>質点バネ生物（仮想生物の進化）</strong>：Sims, K. (1994). Evolving virtual creatures. <em>SIGGRAPH '94</em>, 15–22. — 仮想生物を進化させる研究の原点です。Sims が扱ったのは<b>関節でつながれた立体ブロックからなる3次元の生物</b>とその神経制御器であり、本ツールのモデルはその再実装ではなく、同じ流れに着想を得てはるかに単純な<b>2次元の質点バネ系</b>として独自に実装したものです。</li>
+    <li><strong>ソフトボディ生物（ボクセル）</strong>：Bhatia, J., Jackson, H., Tian, Y., Xu, J., &amp; Matusik, W. (2021). Evolution Gym: A large-scale benchmark for evolving soft robots. <em>NeurIPS 2021</em>. — 「ボクセルでソフトロボットを進化させる」という着想を Evolution Gym（<a href="https://github.com/EvolutionGym/evogym" target="_blank">github.com/EvolutionGym/evogym</a>, MIT License）から得たものです。物理モデル（位置ベース動力学）を含むコードはすべて独自に実装しており、EvoGym のソースコードは使用していません。</li>
+    <li><strong>ナップザック問題・巡回セールスマン問題（TSP）</strong>：いずれも組合せ最適化の古典的問題です（標準的な教科書を参照）。</li>
+  </ul>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="thanks"><span class="sec-icon">🙏</span> 謝辞</h2>
+  <p>本ツールは <a href="https://www.netlogo.org/" target="_blank">NetLogo</a>（Wilensky, U., 1999, Center for Connected Learning and Computer-Based Modeling, Northwestern University）から大きな影響を受けています。著者はこれまで NetLogo を自身の理解や授業に活用しており、その経験が本ツールの着想と設計の土台になっています。ここに記して深く感謝します。</p>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <div class="footer" style="border: none; padding-top: 2vh;">
+    <p>
+      <a href="Evo_Studio_ja.html">EVO Studio を開く</a>
+      &nbsp;|&nbsp;
+      <a href="Evo_Studio_Manual_ja.html">詳しいマニュアル（上級）</a>
+      &nbsp;|&nbsp;
+      <a href="ABM_Studio_FirstSteps_ja.html">ABM Studio ガイド</a>
+      &nbsp;|&nbsp;
+      <a href="IEC_Studio_FirstSteps_ja.html">IEC Studio ガイド</a>
+    </p>
+  </div>
+</div>
+
+<script>
+  let isSlideMode = false;
+  let currentSlide = 0;
+  let slides = [];
+
+  function initSlideMode() {
+    slides = document.querySelectorAll('.slide-section');
+  }
+
+  function toggleSlideMode() {
+    if (slides.length === 0) initSlideMode();
+    isSlideMode = !isSlideMode;
+    const body = document.body;
+    const controls = document.getElementById('slide-controls');
+    
+    if (isSlideMode) {
+      body.classList.add('is-slide-mode');
+      controls.style.display = 'flex';
+      // Reset all and show current
+      slides.forEach(s => s.classList.remove('active'));
+      currentSlide = 0;
+      updateSlideView();
+    } else {
+      body.classList.remove('is-slide-mode');
+      controls.style.display = 'none';
+      // Make all visible for standard web view
+      slides.forEach(s => s.classList.remove('active'));
+    }
+  }
+
+  function updateSlideView() {
+    if (!isSlideMode) return;
+    slides.forEach((slide, index) => {
+      if (index === currentSlide) {
+        slide.classList.add('active');
+        // Small delay to trigger animation
+        slide.style.animation = 'none';
+        slide.offsetHeight; /* trigger reflow */
+        slide.style.animation = null; 
+      } else {
+        slide.classList.remove('active');
+      }
+    });
+    document.getElementById('slide-counter').innerText = `${currentSlide + 1} / ${slides.length}`;
+  }
+
+  function nextSlide() {
+    if (currentSlide < slides.length - 1) {
+      currentSlide++;
+      updateSlideView();
+    }
+  }
+
+  function prevSlide() {
+    if (currentSlide > 0) {
+      currentSlide--;
+      updateSlideView();
+    }
+  }
+
+  // Keyboard navigation
+  window.addEventListener('keydown', (e) => {
+    if (!isSlideMode) return;
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault();
+      nextSlide();
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault();
+      prevSlide();
+    } else if (e.key === 'Escape') {
+      toggleSlideMode();
+    }
+  });
+
+  // Initialize on DOM load
+  window.addEventListener('DOMContentLoaded', initSlideMode);
+</script>
+
+</body>
+</html>

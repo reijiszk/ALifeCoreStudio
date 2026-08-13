@@ -1,0 +1,6 @@
+.claude/
+.DS_Store
+paper/
+
+# build artifacts
+*.zip

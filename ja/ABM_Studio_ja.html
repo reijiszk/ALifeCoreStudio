@@ -1,0 +1,4207 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABM Studio v1.0 — エージェントベースモデリングスタジオ</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@700;800&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+html{font-size:13pt}            /* 既定で標準(12pt)より1ポイント大きい */
+.fs-ctrl{display:inline-flex;align-items:center;gap:4px;margin-right:4px}
+.fs-ctrl .fs-btn{padding:3px 7px}
+.fs-val{font-family:'IBM Plex Mono',monospace;font-size:.66rem;color:var(--muted);min-width:36px;text-align:center}
+
+:root {
+  --bg:      #f4f6f9;
+  --surface: #ffffff;
+  --panel:   #f0f2f6;
+  --border:  #d4d9e3;
+  --accent:  #0284c7;
+  --amber:   #b45309;
+  --good:    #047857;
+  --bad:     #dc2626;
+  --violet:  #6d28d9;
+  --green:   #15803d;
+  --text:    #1e293b;
+  --muted:   #64748b;
+  --code-bg: #f8fafc;
+  --glow-g:  0 0 0 2px rgba(21,128,61,.25), 0 0 10px rgba(21,128,61,.12);
+  --glow-h:  0 0 8px rgba(2,132,199,.15);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;
+     display:flex;flex-direction:column;overflow:hidden}
+
+/* ── Header ── */
+header{border-bottom:1px solid var(--border);padding:8px 18px;display:flex;
+       align-items:center;gap:12px;background:var(--surface);
+       flex-shrink:0;z-index:20;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+header h1{font-family:'Syne',sans-serif;font-size:1.05rem;letter-spacing:.06em;
+          color:var(--text);white-space:nowrap}
+header h1 em{color:var(--accent);font-style:normal}
+.tick-badge{font-family:'IBM Plex Mono',monospace;font-size:.75rem;padding:3px 9px;
+            border:1px solid var(--border);border-radius:4px;color:var(--accent);
+            background:rgba(2,132,199,.07);white-space:nowrap;min-width:86px;text-align:center}
+.run-badge{font-family:'IBM Plex Mono',monospace;font-size:.67rem;padding:2px 7px;
+           border-radius:3px;background:rgba(21,128,61,.10);border:1px solid rgba(21,128,61,.35);
+           color:var(--green);display:none;white-space:nowrap;animation:pulse 1.4s infinite}
+.run-badge.show{display:inline-block}
+.loop-badge{font-family:'IBM Plex Mono',monospace;font-size:.67rem;padding:2px 7px;
+            border-radius:3px;background:rgba(109,40,217,.09);border:1px solid rgba(109,40,217,.3);
+            color:var(--violet);display:none;white-space:nowrap}
+.loop-badge.show{display:inline-block}
+.stopped-badge{font-family:'IBM Plex Mono',monospace;font-size:.67rem;padding:2px 7px;
+               border-radius:3px;background:rgba(220,38,38,.09);border:1px solid rgba(220,38,38,.35);
+               color:var(--bad);display:none;white-space:nowrap}
+.stopped-badge.show{display:inline-block}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.spacer{flex:1}
+.hbtn{font-family:'IBM Plex Mono',monospace;font-size:.7rem;padding:3px 10px;border-radius:4px;
+      border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;
+      transition:all .13s;white-space:nowrap}
+.hbtn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── Workspace ── */
+.workspace{flex:1;display:flex;overflow:hidden;min-height:0}
+
+/* Left: canvas */
+.left-col{flex:0 0 auto;width:492px;display:flex;flex-direction:column;
+          background:var(--surface);border-right:1px solid var(--border);
+          padding:10px;gap:7px;overflow:hidden}
+.canvas-wrap{border:1.5px solid var(--border);border-radius:6px;overflow:hidden;
+             background:#060a10;transition:border-color .2s,box-shadow .2s;flex-shrink:0;
+             box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.canvas-wrap.running{border-color:rgba(21,128,61,.6);box-shadow:var(--glow-g)}
+#simCanvas{display:block}
+.ctrl-row{display:flex;gap:5px}
+.ctrl-btn{font-family:'IBM Plex Mono',monospace;font-size:.72rem;padding:5px 0;
+          border-radius:4px;border:1px solid var(--border);background:var(--surface);
+          color:var(--text);cursor:pointer;transition:all .13s;flex:1;text-align:center}
+.ctrl-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(2,132,199,.05)}
+.ctrl-btn.play-act{background:rgba(21,128,61,.08);border-color:var(--green);color:var(--green)}
+.ctrl-btn.play-act:hover{background:rgba(21,128,61,.14)}
+.ctrl-btn.pause-act{background:rgba(180,83,9,.08);border-color:var(--amber);color:var(--amber)}
+.ctrl-btn.pause-act:hover{background:rgba(180,83,9,.14)}
+.slider-row{display:flex;align-items:center;gap:7px}
+.slider-row label{font-family:'IBM Plex Mono',monospace;font-size:.67rem;color:var(--muted);
+                  width:104px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 生成されるパラメータ行：表示名とモデル側の変数名にそれぞれ固定幅の列を与え、行を揃えつつ
+   変数名が切り詰められないようにする。収まりきらない分は title= のホバーで確認できる。 */
+.slider-row label.param-label{width:132px;flex-shrink:0;display:block;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:help}
+.slider-row .pvar{width:80px;flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:.58rem;
+  opacity:.55;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:help}
+/* 画面が広いときにトラックが伸び切ってラベルを圧迫しないよう上限を設ける。 */
+.slider-row input[type=range]{flex:1 1 90px;max-width:240px;-webkit-appearance:none;height:3px;border-radius:2px;
+  background:var(--border);outline:none;cursor:pointer}
+.slider-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;
+  height:12px;border-radius:50%;background:var(--accent);cursor:pointer;
+  box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.speed-row input[type=range]{accent-color:var(--green)}
+.speed-row input[type=range]::-webkit-slider-thumb{background:var(--green)!important;
+  box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.slider-val{font-family:'IBM Plex Mono',monospace;font-size:.66rem;color:var(--accent);
+            width:46px;text-align:right;flex-shrink:0}
+.slider-row input.slider-num{flex:0 0 auto;width:58px;font-family:'IBM Plex Mono',monospace;
+            font-size:.66rem;color:var(--accent);background:var(--panel);border:1px solid var(--border);
+            border-radius:4px;padding:2px 4px;text-align:right;-webkit-appearance:auto;height:auto}
+.slider-row input.slider-num:focus{outline:none;border-color:var(--accent)}
+.slider-row .param-unit{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted);flex-shrink:0}
+.speed-val{font-family:'IBM Plex Mono',monospace;font-size:.66rem;color:var(--green);
+           width:58px;text-align:right;flex-shrink:0}
+/* 追っかけ再生のタイムライン：実験を続けたまま記録した状態をたどる。 */
+.tl-row{display:flex;align-items:center;gap:6px;margin-top:5px}
+.tl-btn{font-family:'IBM Plex Mono',monospace;font-size:.66rem;padding:2px 7px;border:1px solid var(--border);
+  border-radius:4px;background:var(--surface);color:var(--text);cursor:pointer;flex-shrink:0}
+.tl-btn:hover{border-color:var(--accent);color:var(--accent)}
+.tl-row input[type=range]{flex:1;min-width:60px;accent-color:var(--amber);height:3px}
+.tl-row .tl-btn:disabled,.tl-row input[type=range]:disabled{opacity:.35;cursor:default}
+.tl-pos{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted);
+  width:78px;text-align:right;flex-shrink:0;white-space:nowrap}
+/* 既定はLIVE。過去を見ている間だけ行が琥珀色になる。 */
+.tl-live{display:inline-flex;align-items:center;gap:4px;flex-shrink:0;cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--good);font-weight:600}
+.tl-live input{accent-color:var(--good);cursor:pointer}
+.tl-row.reviewing .tl-live{color:var(--muted);font-weight:400}
+.tl-row.reviewing .tl-pos{color:var(--amber)}
+.tl-row.reviewing input[type=range]{accent-color:var(--amber)}
+
+/* Field image/video buttons */
+.field-actions{display:flex;gap:5px;align-items:center;flex-shrink:0}
+.field-btn{font-family:'IBM Plex Mono',monospace;font-size:.67rem;padding:4px 0;
+           border-radius:4px;border:1px solid var(--border);background:var(--panel);
+           color:var(--text);cursor:pointer;transition:all .13s;white-space:nowrap;
+           flex:1;text-align:center}
+.field-btn:hover{border-color:var(--accent);color:var(--accent)}
+.field-btn.recording{background:rgba(220,38,38,.1);border-color:var(--bad);color:var(--bad)}
+.rec-badge{font-family:'IBM Plex Mono',monospace;font-size:.66rem;padding:2px 7px;
+           border-radius:3px;background:rgba(220,38,38,.12);border:1px solid rgba(220,38,38,.4);
+           color:var(--bad);display:none;white-space:nowrap;animation:pulse 1s infinite;flex-shrink:0}
+.rec-badge.show{display:inline-block}
+
+/* Right col */
+.right-col{flex:1;display:flex;flex-direction:column;overflow-y:auto;
+           background:var(--bg);padding:10px 12px;gap:8px;min-width:0}
+.sep{width:100%;height:1px;background:var(--border);flex-shrink:0}
+.group-label{font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:var(--muted);
+             letter-spacing:.09em;text-transform:uppercase;flex-shrink:0}
+.desc-box{font-size:.7rem;line-height:1.5;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:8px 10px;margin-bottom:6px}
+.desc-box .desc-sum{color:var(--accent);font-weight:500;margin-bottom:5px}
+.desc-box .desc-row{margin:3px 0;display:flex;gap:6px}
+.desc-box .desc-k{flex:0 0 4.4em;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:.62rem;padding-top:1px}
+.desc-box .desc-v{flex:1}
+.desc-box.empty{display:none}
+.param-group{display:flex;flex-direction:column;gap:6px}
+.stats-box{background:var(--surface);border:1px solid var(--border);border-radius:4px;
+           padding:5px 9px;font-family:'IBM Plex Mono',monospace;font-size:.65rem;
+           color:var(--muted);line-height:1.9;word-break:break-all;flex-shrink:0}
+.stats-box .sv{color:var(--accent)}
+
+/* ── Setup selector ── */
+.setup-section{display:none;flex-direction:column;gap:5px;flex-shrink:0}
+.setup-section.show{display:flex}
+.setup-btns{display:flex;gap:5px;flex-wrap:wrap}
+.setup-btn{font-family:'IBM Plex Mono',monospace;font-size:.68rem;padding:4px 10px;
+           border-radius:4px;border:1px solid var(--border);background:var(--surface);
+           color:var(--text);cursor:pointer;transition:all .13s;white-space:nowrap}
+.setup-btn:hover{border-color:var(--accent);color:var(--accent)}
+.setup-btn.active{background:rgba(2,132,199,.09);border-color:var(--accent);color:var(--accent);font-weight:500}
+
+/* ── Stop condition ── */
+.stopcond-section{display:none;flex-direction:column;gap:5px;flex-shrink:0}
+.stopcond-section.show{display:flex}
+.stopcond-row{display:flex;align-items:center;gap:8px}
+.stopcond-label{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--text);flex:1;
+                word-break:break-all;line-height:1.5}
+.stopcond-label.active{color:var(--bad);font-weight:500}
+.stopcond-code{font-family:'IBM Plex Mono',monospace;font-size:.63rem;color:#1e4070;
+               background:var(--code-bg);border:1px solid var(--border);border-radius:4px;
+               padding:4px 8px;line-height:1.6;display:none;word-break:break-all}
+.stopcond-code.show{display:block}
+
+/* toggle switch */
+.toggle-wrap{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.toggle{position:relative;width:34px;height:18px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:9px;
+               cursor:pointer;transition:background .2s}
+.toggle input:checked+.toggle-slider{background:var(--bad)}
+.toggle-slider::before{content:'';position:absolute;width:12px;height:12px;
+  left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;
+  box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(16px)}
+
+/* ── Action buttons ── */
+.action-section{display:none;flex-direction:column;gap:5px;flex-shrink:0}
+.action-section.show{display:flex}
+.action-btns{display:flex;gap:5px;flex-wrap:wrap}
+.action-btn{font-family:'IBM Plex Mono',monospace;font-size:.7rem;padding:5px 12px;
+            border-radius:4px;border:1px solid var(--border);background:var(--surface);
+            color:var(--text);cursor:pointer;transition:all .13s;white-space:nowrap;font-weight:500}
+.action-btn:hover{filter:brightness(.93)}
+.action-btn:active{filter:brightness(.85)}
+
+/* Charts */
+.charts-section{display:none;flex-direction:column;gap:10px;flex-shrink:0}
+.charts-section.show{display:flex}
+.chart-block{display:flex;flex-direction:column;gap:4px}
+.chart-hdr{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-height:18px}
+.chart-title{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted);
+             letter-spacing:.07em;text-transform:uppercase}
+.legend{display:flex;gap:8px;flex-wrap:wrap;flex:1}
+.legend-item{display:flex;align-items:center;gap:3px;font-family:'IBM Plex Mono',monospace;
+             font-size:.58rem;color:var(--muted)}
+.legend-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.chart-canvas-wrap{border:1px solid var(--border);border-radius:5px;overflow:hidden;flex-shrink:0;
+                   box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.chart-canvas-wrap canvas{display:block}
+.chart-action-btn{font-family:'IBM Plex Mono',monospace;font-size:.57rem;padding:2px 6px;
+                  border-radius:3px;border:1px solid var(--border);background:var(--surface);
+                  color:var(--muted);cursor:pointer;transition:all .13s;white-space:nowrap;flex-shrink:0}
+.chart-action-btn:hover{border-color:var(--good);color:var(--good)}
+.chart-action-btn.done{border-color:var(--good);color:var(--good)}
+
+.toggle.loop input:checked+.toggle-slider{background:var(--violet)}
+
+/* ── Code bar ── */
+.code-bar{flex-shrink:0;border-top:1px solid var(--border);background:var(--surface);
+          display:flex;flex-direction:column;box-shadow:0 -1px 4px rgba(0,0,0,.05)}
+.code-bar-header{display:flex;align-items:center;gap:6px;padding:5px 12px;
+                 flex-wrap:wrap;flex-shrink:0}
+.code-toggle{font-family:'IBM Plex Mono',monospace;font-size:.68rem;padding:2px 8px;
+             border-radius:3px;border:1px solid var(--border);background:var(--panel);
+             color:var(--muted);cursor:pointer;transition:all .13s;white-space:nowrap}
+.code-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.code-toggle.open{border-color:rgba(2,132,199,.5);color:var(--accent);background:rgba(2,132,199,.06)}
+.cbtn{font-family:'IBM Plex Mono',monospace;font-size:.68rem;padding:3px 9px;border-radius:4px;
+      border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;
+      transition:all .12s;white-space:nowrap}
+.cbtn:hover{border-color:var(--accent);color:var(--accent)}
+.cbtn.primary{background:rgba(2,132,199,.09);border-color:var(--accent);color:var(--accent)}
+.cbtn.primary:hover{background:rgba(2,132,199,.16)}
+.cbtn.amber{background:rgba(180,83,9,.08);border-color:var(--amber);color:var(--amber)}
+.cbtn.green{background:rgba(21,128,61,.08);border-color:var(--green);color:var(--green)}
+.cbtn.violet{background:rgba(109,40,217,.08);border-color:var(--violet);color:var(--violet)}
+.ok-badge{font-family:'IBM Plex Mono',monospace;font-size:.66rem;color:var(--good);
+          opacity:0;transition:opacity .3s}
+.ok-badge.show{opacity:1}
+.code-body{display:none;flex-direction:column;gap:5px;padding:0 12px 8px;max-height:260px}
+.code-body.open{display:flex}
+.code-wrap{flex:1;border:1px solid var(--border);border-radius:5px;overflow:hidden;
+           background:var(--code-bg);min-height:140px}
+.code-wrap:focus-within{border-color:rgba(2,132,199,.5);box-shadow:0 0 0 2px rgba(2,132,199,.08)}
+textarea{width:100%;height:100%;min-height:140px;background:transparent;border:none;
+         outline:none;color:#1e4070;font-family:'IBM Plex Mono',monospace;font-size:.73rem;
+         line-height:1.6;padding:8px 11px;resize:none;tab-size:2}
+.error-box{font-family:'IBM Plex Mono',monospace;font-size:.67rem;color:var(--bad);
+           background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.25);
+           border-radius:3px;padding:4px 9px;display:none;line-height:1.5}
+.error-box.show{display:block}
+
+/* ════════ v6 additions ════════ */
+
+/* Param row: info icon + "needs setup" marker */
+.slider-row .pinfo{font-family:'IBM Plex Mono',monospace;font-size:.6rem;width:14px;height:14px;
+  flex-shrink:0;border:1px solid var(--border);border-radius:50%;color:var(--muted);
+  display:inline-flex;align-items:center;justify-content:center;cursor:help;line-height:1;
+  background:var(--surface);transition:all .13s;position:relative}
+.slider-row .pinfo:hover{border-color:var(--accent);color:var(--accent)}
+.slider-row .pinfo .tip{display:none;position:absolute;bottom:130%;left:50%;transform:translateX(-50%);
+  width:200px;background:var(--text);color:#fff;font-size:.62rem;line-height:1.5;padding:6px 8px;
+  border-radius:5px;z-index:60;white-space:normal;text-align:left;box-shadow:0 3px 10px rgba(0,0,0,.25);
+  font-family:'Noto Sans JP',sans-serif;pointer-events:none}
+.slider-row .pinfo:hover .tip{display:block}
+.slider-row label.needs-setup{color:var(--violet);font-weight:500}
+.slider-row label.needs-setup::after{content:' ⟳';color:var(--violet);font-size:.7em}
+
+/* Settings (param behavior) */
+.settings-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;
+  font-size:.62rem;color:var(--muted)}
+.settings-row .seg{display:inline-flex;border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.settings-row .seg button{font-family:'IBM Plex Mono',monospace;font-size:.62rem;padding:3px 8px;border:none;
+  background:var(--surface);color:var(--muted);cursor:pointer;transition:all .12s;border-right:1px solid var(--border)}
+.settings-row .seg button:last-child{border-right:none}
+.settings-row .seg button.on{background:rgba(2,132,199,.1);color:var(--accent);font-weight:500}
+.reset-hint{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--violet);
+  background:rgba(109,40,217,.07);border:1px solid rgba(109,40,217,.3);border-radius:4px;
+  padding:4px 8px;display:none;align-items:center;gap:6px;flex-shrink:0}
+.reset-hint.show{display:flex}
+.reset-hint button{font-family:'IBM Plex Mono',monospace;font-size:.62rem;padding:2px 8px;border-radius:3px;
+  border:1px solid var(--violet);background:var(--surface);color:var(--violet);cursor:pointer}
+.reset-hint button:hover{background:rgba(109,40,217,.1)}
+
+/* Experiment snapshots / compare */
+.snap-section{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.snap-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.snap-btn{font-family:'IBM Plex Mono',monospace;font-size:.64rem;padding:4px 9px;border-radius:4px;
+  border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;transition:all .13s;white-space:nowrap}
+.snap-btn:hover{border-color:var(--good);color:var(--good)}
+.snap-btn.danger:hover{border-color:var(--bad);color:var(--bad)}
+.snap-list{display:flex;flex-direction:column;gap:4px}
+.snap-item{display:flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--border);
+  border-radius:4px;padding:4px 8px;font-family:'IBM Plex Mono',monospace;font-size:.62rem}
+.snap-item .dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.snap-item .nm{color:var(--text);font-weight:500;flex-shrink:0}
+.snap-item .pm{color:var(--muted);flex:1;word-break:break-all;line-height:1.4}
+.snap-item .x{cursor:pointer;color:var(--muted);flex-shrink:0;padding:0 3px;border-radius:3px}
+.snap-item .x:hover{color:var(--bad);background:rgba(220,38,38,.08)}
+.snap-item.off{opacity:.45}
+.snap-item .eye{cursor:pointer;flex-shrink:0;font-size:.7rem}
+.snap-empty{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted);
+  border:1px dashed var(--border);border-radius:4px;padding:6px 9px;line-height:1.5}
+
+/* small select (recording format etc) */
+.mini-sel{font-family:'IBM Plex Mono',monospace;font-size:.64rem;padding:3px 5px;border-radius:4px;
+  border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;flex-shrink:0}
+
+/* fps readout */
+.fps-badge{font-family:'IBM Plex Mono',monospace;font-size:.66rem;padding:3px 9px;
+  border:1px solid var(--border);border-radius:4px;color:var(--muted);
+  background:var(--panel);white-space:nowrap;min-width:64px;text-align:center}
+
+/* Code editor: line-number gutter */
+.code-wrap{display:flex}
+.code-gutter{flex-shrink:0;width:38px;padding:8px 6px 8px 0;text-align:right;background:rgba(0,0,0,.03);
+  color:#9aa5b8;font-family:'IBM Plex Mono',monospace;font-size:.73rem;line-height:1.6;
+  user-select:none;overflow:hidden;border-right:1px solid var(--border);white-space:pre}
+.error-box{cursor:default}
+.error-box .errline{display:block;margin-top:4px;color:#7a1d1d;background:rgba(220,38,38,.08);
+  border-radius:3px;padding:2px 6px;font-size:.63rem;white-space:pre-wrap;word-break:break-all}
+.error-box .errhint{display:block;margin-top:3px;color:var(--amber);font-size:.63rem}
+
+/* Help overlay */
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:200;display:none;
+  align-items:center;justify-content:center;padding:24px}
+.overlay.show{display:flex}
+.overlay-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  max-width:720px;width:100%;max-height:84vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.overlay-card header{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border);
+  padding:12px 18px;display:flex;align-items:center;gap:10px;z-index:2}
+.overlay-card header h2{font-family:'Syne',sans-serif;font-size:1rem;color:var(--text);letter-spacing:.03em}
+.overlay-card .ovbody{padding:6px 22px 22px}
+.overlay-card h3{font-family:'IBM Plex Mono',monospace;font-size:.74rem;color:var(--accent);
+  letter-spacing:.04em;margin:16px 0 6px;border-left:3px solid var(--accent);padding-left:8px}
+.overlay-card p,.overlay-card li{font-family:'Noto Sans JP',sans-serif;font-size:.78rem;color:var(--text);
+  line-height:1.7}
+.overlay-card ul{margin:4px 0 4px 18px}
+.overlay-card code{font-family:'IBM Plex Mono',monospace;font-size:.72rem;background:var(--code-bg);
+  border:1px solid var(--border);border-radius:3px;padding:1px 5px;color:#1e4070}
+.overlay-card .close-x{margin-left:auto;cursor:pointer;font-family:'IBM Plex Mono',monospace;
+  font-size:.8rem;color:var(--muted);border:1px solid var(--border);border-radius:5px;padding:3px 10px;background:var(--panel)}
+.overlay-card .close-x:hover{border-color:var(--bad);color:var(--bad)}
+.kbd{font-family:'IBM Plex Mono',monospace;font-size:.68rem;background:var(--panel);border:1px solid var(--border);
+  border-radius:3px;padding:1px 5px}
+
+/* Toast */
+.toast{position:fixed;bottom:12px;right:14px;background:var(--surface);
+       border:1px solid var(--good);border-radius:5px;padding:6px 12px;
+       font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--good);
+       opacity:0;transform:translateY(4px);transition:opacity .18s,transform .18s;
+       pointer-events:none;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.toast.bad{border-color:var(--bad);color:var(--bad)}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* ── Chart axis range controls ── */
+.chart-axis-row{display:none;align-items:center;gap:5px;flex-wrap:wrap;
+  font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted);
+  background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:4px 7px;margin-top:-2px}
+.chart-axis-row.show{display:flex}
+.axis-lbl{color:var(--muted);white-space:nowrap}
+.axis-num{width:64px;font-family:'IBM Plex Mono',monospace;font-size:.62rem;padding:2px 4px;
+  border-radius:3px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.axis-num:disabled{opacity:.4;background:var(--bg)}
+.chart-action-btn.axis-on{border-color:var(--violet);color:var(--violet)}
+
+/* ══════════════════════════════════════════════════════════════
+   スマホ対応
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width:900px){
+  html{font-size:12pt}
+  body{overflow-y:auto;overflow-x:hidden;height:auto;min-height:100%}
+  header{flex-wrap:wrap;row-gap:6px;padding:8px 10px}
+  header h1{font-size:.92rem}
+  .tick-badge,.fps-badge,.run-badge,.loop-badge,.stopped-badge{font-size:.64rem}
+  .workspace{flex-direction:column;overflow:visible;height:auto;min-height:0}
+  .left-col{width:100%!important;flex:0 0 auto;border-right:none;border-bottom:1px solid var(--border);
+    overflow:visible;padding:9px;align-items:stretch}
+  .canvas-wrap{width:100%;max-width:480px;margin:0 auto;flex-shrink:0}
+  #simCanvas{width:100%!important;height:auto!important;display:block}
+  .field-actions{flex-wrap:wrap}
+  .right-col{width:100%;overflow:visible;padding:9px 10px}
+  .setup-btns,.action-btns{flex-wrap:wrap}
+  .code-bar-header{padding:6px 8px}
+  .code-body{max-height:none}
+  /* スマホでは高さが確定せず約140px（≒7行）に潰れ、行番号だけ伸びて下が空白になる。
+     確定した高さを与え、行番号・テキストとも内部スクロール（scroll同期済み）させる。 */
+  .code-wrap{flex:0 0 auto;height:52vh;min-height:0}
+  #codeArea{min-height:0}
+  #modelSelect{max-width:100%;flex:1 1 100%}
+  .overlay{padding:10px}
+  .overlay-card{max-height:92vh}
+  .chart-hdr{row-gap:4px}
+}
+@media (max-width:480px){
+  html{font-size:11pt}
+  header h1{font-size:.82rem}
+  header h1 span{display:none}
+  .fs-ctrl,.fps-badge{display:none}
+  .slider-row label{width:74px}
+  .slider-row label.param-label{width:92px}
+  .slider-row .pvar{display:none}
+  .slider-row input[type=range]{max-width:none}
+  .ctrl-btn{font-size:.66rem}
+  .cbtn,.code-toggle{padding:3px 7px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1><em>ABM</em> Studio <span style="font-size:.65em;font-weight:400;opacity:.6">v1.0</span></h1>
+  <div class="tick-badge" id="tickBadge">Tick: 0</div>
+  <div class="fps-badge"  id="fpsBadge">— fps</div>
+  <div class="run-badge"     id="runBadge">● RUNNING</div>
+  <div class="loop-badge"    id="loopBadge">↺ LOOP</div>
+  <div class="stopped-badge" id="stoppedBadge">■ STOPPED</div>
+  <div class="spacer"></div>
+    <div class="fs-ctrl" title="文字の大きさ（A− / A＋）">
+    <button class="hbtn fs-btn" onclick="adjustFont(-1)">A−</button>
+    <span class="fs-val" id="fsVal">15pt</span>
+    <button class="hbtn fs-btn" onclick="adjustFont(1)">A＋</button>
+  </div>
+    <button class="hbtn" id="soundBtn" onclick="toggleSound()" title="音：オン（クリックで消音）">🔊</button>
+  <button class="hbtn" onclick="openHelp()">❔ ヘルプ</button>
+</header>
+
+<div class="workspace">
+
+  <!-- Left: canvas + playback -->
+  <div class="left-col">
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="simCanvas" width="470" height="470"></canvas>
+    </div>
+    <div class="field-actions">
+      <button class="field-btn" onclick="copyFieldImage()" title="現在のフィールドをコピー">📋 コピー</button>
+      <button class="field-btn" onclick="saveFieldImage()" title="PNGで保存">⬇ 保存</button>
+      <button class="field-btn" id="recordBtn" onclick="toggleRecording()" title="動画録画">⏺ 録画</button>
+      <select class="mini-sel" id="recFmtSel" title="録画の出力形式">
+        <option value="auto">形式:自動</option>
+        <option value="mp4">MP4</option>
+        <option value="webm">WebM</option>
+      </select>
+      <select class="mini-sel" id="fieldSizeSel" onchange="setFieldSize(this.value)" title="フィールドの表示サイズ（実行中の状態は保持されます）">
+        <option value="470">サイズ:標準</option>
+        <option value="600">サイズ:大</option>
+        <option value="760">サイズ:特大</option>
+      </select>
+      <span class="rec-badge" id="recBadge">● REC</span>
+    </div>
+    <div class="ctrl-row">
+      <button class="ctrl-btn play-act" id="playBtn" onclick="toggleSim()">▶ 実行</button>
+      <button class="ctrl-btn" onclick="stepOnce()">⏭ 1 tick</button>
+      <button class="ctrl-btn" onclick="resetSim()">⟳ 初期化</button>
+    </div>
+    <!-- Time-shift: scrub back through recorded states while the run continues in the background -->
+    <div class="tl-row" id="timelineRow" style="display:none">
+      <button class="tl-btn" id="tlPlayBtn" onclick="toggleReviewPlay()" title="記録した状態を再生する">▶</button>
+      <input type="range" id="tlScrub" min="0" max="0" value="0" oninput="onScrubInput(this.value)" title="記録した状態をたどる">
+      <span class="tl-pos" id="tlPos">—</span>
+      <label class="tl-live" id="tlLiveLbl" title="最新のステップを表示し続けます。チェックを外す（またはバーを動かす）と、裏で実験を続けたまま過去の状態を見返せます。">
+        <input type="checkbox" id="tlLiveChk" checked onchange="onLiveToggle()"> LIVE
+      </label>
+    </div>
+    <div class="slider-row speed-row">
+      <label>実行速度</label>
+      <input type="range" id="speedSlider" min="0" max="100" step="1" value="53"
+             oninput="updateSpeedLabel()">
+      <span class="speed-val" id="speedVal">3 t/f</span>
+    </div>
+    <div class="slider-row">
+      <label>最大 tick</label>
+      <input type="range" id="maxTickSlider" min="10" max="5000" step="10" value="500"
+             oninput="updateMaxTickLabel()">
+      <span class="slider-val" id="maxTickVal" style="color:var(--muted)">500</span>
+      <label class="toggle loop" title="最大tickに達したときの挙動（ループ／停止）を有効にする" style="margin-left:4px;flex-shrink:0">
+        <input type="checkbox" id="loopToggle" onchange="onLoopToggle()">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="slider-row" id="maxTickModeRow" style="display:none">
+      <label>到達時</label>
+      <select id="maxTickModeSel" class="mini-sel" onchange="onMaxTickModeChange()" style="flex:1">
+        <option value="stop" selected>⏹ 停止のみ（最初に戻らない）</option>
+        <option value="loop">🔁 ループ（初期化して再開）</option>
+      </select>
+    </div>
+    <div class="slider-row" title="描画を間引いて計算を高速化します（エージェント数が多いとき有効）">
+      <label>描画間引き</label>
+      <input type="range" id="drawEverySlider" min="1" max="20" step="1" value="1"
+             oninput="updateDrawEveryLabel()">
+      <span class="slider-val" id="drawEveryVal" style="color:var(--muted)">毎回</span>
+    </div>
+  </div>
+
+  <!-- Right: setup presets + action buttons + params + stats + charts -->
+  <div class="right-col">
+
+    <!-- Setup presets (SETUP_DEFS) -->
+    <div class="setup-section" id="setupSection">
+      <div class="group-label">初期状態プリセット</div>
+      <div class="setup-btns" id="setupBtns"></div>
+    </div>
+
+    <!-- Action buttons (BUTTON_DEFS) -->
+    <div class="action-section" id="actionSection">
+      <div class="group-label">コマンド</div>
+      <div class="action-btns" id="actionBtns"></div>
+    </div>
+
+    <!-- Stop condition (STOP_COND) -->
+    <div class="stopcond-section" id="stopcondSection">
+      <div class="group-label">停止条件</div>
+      <div class="stopcond-row">
+        <label class="toggle" title="停止条件のオン／オフ">
+          <input type="checkbox" id="stopcondToggle" checked onchange="onStopCondToggle()">
+          <span class="toggle-slider"></span>
+        </label>
+        <span class="stopcond-label" id="stopcondLabel">—</span>
+      </div>
+      <div class="stopcond-code" id="stopcondCode"></div>
+    </div>
+
+    <div class="sep" id="sepTop" style="display:none"></div>
+
+    <!-- Model overview -->
+    <div class="group-label">このモデルの概要</div>
+    <div class="desc-box" id="descBox"></div>
+
+    <!-- Params -->
+    <div class="group-label">パラメータ</div>
+    <div class="settings-row">
+      <span>スライダー変更時:</span>
+      <span class="seg" id="paramModeSeg">
+        <button id="pmode_live"  class="on" onclick="setParamMode('live')"  title="実行中のモデルに即時反映（再初期化しない）">即時反映</button>
+        <button id="pmode_reset" onclick="setParamMode('reset')" title="変更したら自動で初期化">自動初期化</button>
+      </span>
+    </div>
+    <div class="param-group" id="paramGroup"></div>
+    <div class="reset-hint" id="resetHint">
+      <span>⟳ 初期配置に関わる値が変わりました。反映するには初期化が必要です。</span>
+      <button onclick="resetSim()">今すぐ初期化</button>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Stats -->
+    <div class="group-label">状態</div>
+    <div class="stats-box" id="statsBox"><span class="sv">—</span></div>
+
+    <div class="sep"></div>
+
+    <!-- Experiment snapshots / compare -->
+    <div class="snap-section" id="snapSection">
+      <div class="snap-head">
+        <span class="group-label" style="flex:1">実験の保存・比較</span>
+        <button class="snap-btn" id="snapSaveBtn" onclick="saveSnapshot()" title="現在の実行結果（グラフ）とパラメータを保存して比較に重ねます">📸 現在を保存</button>
+        <button class="snap-btn danger" onclick="clearSnapshots()" title="保存した実験をすべて削除">🗑 クリア</button>
+        <button class="snap-btn" onclick="downloadAllCSV()" title="全グラフのデータと保存実験をCSVファイルで保存">⬇ CSV保存</button>
+        <button class="snap-btn" onclick="downloadDataZip()" title="初期化以降の全データ（現在の実行＋保存実験）を CSV と JSON にまとめて ZIP でダウンロード">📦 一式DL</button>
+      </div>
+      <div class="rec-frames-row" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:.66rem;color:var(--muted)">
+        <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer" title="各ステップの状態を記録します。追っかけ再生のタイムラインと、同梱ビュワーでの再生は、いずれもこの記録を使います。PCでは、実行中に気づいた現象へいつでも戻れるよう既定でオン。メモリの余裕が少ないスマートフォン・タブレットでは既定でオフです。いつでも切り替えられます（記録は右の上限で自動的に止まります）。">
+          <input type="checkbox" id="recFramesChk" checked onchange="updateTimelineUI()" style="accent-color:var(--accent)"> 状態を記録（追っかけ再生・再生用）
+        </label>
+        <label style="display:inline-flex;align-items:center;gap:4px" title="状態を記録する間隔">間隔
+          <select class="mini-sel" id="recFramesInterval">
+            <option value="1">毎ステップ</option>
+            <option value="2">2ステップごと</option>
+            <option value="5">5ステップごと</option>
+            <option value="10">10ステップごと</option>
+            <option value="20">20ステップごと</option>
+          </select>
+        </label>
+        <label style="display:inline-flex;align-items:center;gap:4px" title="記録した状態が使ってよいメモリの上限。これを超えると記録を止めます。「無制限」ではブラウザのメモリが尽きるまで記録し続けます。">上限
+          <select class="mini-sel" id="recFramesCap">
+            <option value="100">100 MB</option>
+            <option value="500" selected>500 MB</option>
+            <option value="1024">1 GB</option>
+            <option value="2048">2 GB</option>
+            <option value="0">無制限</option>
+          </select>
+        </label>
+        <span id="recFramesInfo"></span>
+      </div>
+      <div class="snap-list" id="snapList"></div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Charts -->
+    <div class="charts-section" id="chartsSection"></div>
+
+  </div>
+</div>
+
+<!-- Code bar -->
+<div class="code-bar">
+  <div class="code-bar-header">
+    <button class="code-toggle" id="codeToggle" onclick="toggleCode()">▸ コード</button>
+    <button class="cbtn primary" onclick="applyCode()">▶ 適用</button>
+    <button class="cbtn green"   onclick="pasteAndApply()" title="生成AIからコピーしたコードでコード欄を置き換えて適用">📥 貼り付けて適用</button>
+    <button class="cbtn"         onclick="copyCurrentCode()" title="現在のコード欄の内容をクリップボードにコピー">📋 コードをコピー</button>
+    <button class="cbtn amber"   onclick="copySpec()">📋 仕様書コピー</button>
+    <button class="cbtn"         onclick="copyNewModelPrompt()">✨ 新規作成プロンプト</button>
+    <button class="cbtn"         onclick="copyModPrompt()">✏️ 改変プロンプト</button>
+    <button class="cbtn"         onclick="copyExplainPrompt()" title="現在のコードがどんなモデルかを説明させるプロンプトをコピー">📖 説明プロンプト</button>
+    <button class="cbtn"         onclick="copyPythonPrompt()" title="現在のコードを Python スクリプト＋requirements.txt に変換させるプロンプトをコピー">🐍 Python化プロンプト</button>
+    <button class="cbtn violet"  onclick="openAI()" title="OpenAI互換API（LM Studio等）で生成・改変">🤖 AI生成</button>
+    <button class="cbtn green"   onclick="saveModelFile()" title="現在のコードを .js ファイルとして保存">💾 .js保存</button>
+    <button class="cbtn"         onclick="document.getElementById('modelFileInput').click()" title="保存した .js / .txt を読み込む">📂 開く</button>
+    <button class="cbtn amber"   onclick="exportStandaloneHTML()" title="今動かしているモデルだけを実行できる、独立したHTMLファイルを書き出します（コード編集・AI生成UIなし）">💾 HTML出力</button>
+    <input type="file" id="modelFileInput" accept=".js,.txt,.text" style="display:none" onchange="loadModelFile(event)">
+    <select id="modelSelect" onchange="loadFromSelect(this.value)" style="font-family:'IBM Plex Mono',monospace;font-size:.68rem;padding:3px 6px;border-radius:4px;border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;max-width:210px">
+      <option value="">── モデルを選択 ──</option>
+      <optgroup label="セルオートマトン（CA）">
+        <option value="eca">ECA ─ 初等セルオートマトン（1次元）</option>
+        <option value="life">ライフゲーム（2次元セルオートマトン）</option>
+      </optgroup>
+      <optgroup label="エージェントベースモデル（ABM）">
+        <option value="segregation">住み分け（分居）モデル</option>
+        <option value="flock">群れ（フロッキング）</option>
+        <option value="aco">アリのフェロモンモデル（Ant-pheromone）</option>
+        <option value="pd">空間囚人のジレンマ</option>
+        <option value="sps">ソーシャル・パーティクル・スウォーム（SPS）</option>
+        <option value="sir">SIR 感染症モデル</option>
+      </optgroup>
+    </select>
+    <span class="ok-badge" id="okBadge">✓ 適用しました</span>
+  </div>
+  <div class="code-body" id="codeBody">
+    <div class="code-wrap">
+      <div class="code-gutter" id="codeGutter">1</div>
+      <textarea id="codeArea" spellcheck="false"></textarea>
+    </div>
+    <div class="error-box" id="errorBox"></div>
+  </div>
+</div>
+
+<!-- Help overlay -->
+<div class="overlay" id="helpOverlay" onclick="if(event.target===this)closeHelp()">
+  <div class="overlay-card">
+    <header>
+      <h2>ABM Studio v1.0 — つかいかた</h2>
+      <span class="close-x" onclick="closeHelp()">✕ 閉じる</span>
+    </header>
+    <div class="ovbody">
+      <p>ABM Studio は <code>setup</code> / <code>step</code> / <code>draw</code> の3つの関数でエージェントベースモデルを記述し、パラメータをリアルタイムに変えながら挙動とグラフを観察できるツールです。スマートフォン・タブレットの画面幅にも対応しています。</p>
+
+      <h3>基本操作</h3>
+      <ul>
+        <li><b>▶ 実行 / ⏸ 停止</b>：モデルの開始・停止。<b>⏭ 1 tick</b> は1ステップだけ進めます。</li>
+        <li><b>⟳ 初期化</b>：現在のパラメータで初期状態を作り直します。</li>
+        <li><b>実行速度</b>：1フレームあたりのステップ数（t/f）。約0.1〜60まで対数で調整でき、<b>1 未満にすると数フレームに1回だけ進むのでゆっくり観察できます</b>。<b>描画間引き</b>：N フレームに1回だけ描画して計算を高速化します（エージェントが多いときに有効）。</li>
+        <li><b>最大 tick</b>：トグルをONにすると、指定 tick に到達したときの挙動を選べます（右に出る<b>到達時</b>セレクタ、既定は <b>⏹ 停止のみ</b>）。<b>⏹ 停止のみ</b>＝初期化せず、その場で一時停止します（最初に戻りません）。<b>🔁 ループ</b>に切り替えると、自動的に初期化して最初から繰り返します。トグルOFFなら最大 tick は無視されます。</li>
+      </ul>
+
+      <h3>パラメータの反映方法</h3>
+      <ul>
+        <li><b>即時反映</b>（既定）：スライダーを動かすと、実行中のモデルに <code>step</code> 経由で即座に反映されます。これまでの履歴（グラフ）は消えません。</li>
+        <li><b>自動初期化</b>：スライダーを動かすと自動で初期化します。</li>
+        <li>初期配置にだけ使われる値（密度・初期人数など）は <code>step</code> では効かないため、変更すると「<b>初期化が必要</b>」のヒントが出ます。<b>今すぐ初期化</b>を押すか ⟳ 初期化 で反映してください。勝手に履歴が消えることはありません。</li>
+      </ul>
+
+      <h3>実験の保存・比較</h3>
+      <ul>
+        <li><b>📸 現在を保存</b>：いまのグラフ（実行結果）とパラメータ一式を保存し、グラフ上に<b>うすい線で重ねて</b>比較できます。条件 A / B を切り替えて発表する用途に。</li>
+        <li>各実験は 👁 で表示/非表示、✕ で削除できます。<b>⬇ CSV保存</b>で全グラフ＋保存実験をまとめて CSV ファイルに書き出せます。</li>
+        <li>各グラフの <b>⬇ CSV</b>（クリップボード）・<b>💾</b>（ファイル）・<b>🖼 画像</b>も利用できます。</li>
+      </ul>
+
+      <h3>グラフの縦軸・横軸の範囲設定</h3>
+      <ul>
+        <li>各グラフ右上の <b>⚙ 軸</b> を押すと、縦軸（Y）・横軸（X, tick）それぞれの範囲設定欄が開きます。</li>
+        <li><b>自動調整</b>（既定）：これまで通り、データの範囲に合わせて軸を自動で調整します。</li>
+        <li><b>手動設定</b>：min／max を数値で指定して固定します。特定の範囲を拡大して見たい時や、複数のグラフの見た目を揃えたい時に使ってください。</li>
+      </ul>
+
+      <div id="helpCodeSection">
+      <h3>コードを書くときの注意（エラー対策）</h3>
+      <p>コードは <code>new Function()</code> で評価されます。次の構文は<b>使えません</b>。使うと適用時にエラーになり、コード欄の下に原因の行番号とヒントを表示します。</p>
+      <ul>
+        <li><code>class</code> キーワード → オブジェクトリテラル <code>{}</code> で代替</li>
+        <li><code>document.*</code> / <code>window.*</code> などの DOM 操作、<code>addEventListener</code></li>
+        <li><code>fetch</code> / <code>XMLHttpRequest</code>（外部通信）</li>
+        <li><code>setTimeout</code> / <code>setInterval</code>（非同期処理）</li>
+        <li><code>import</code> / <code>export</code> 文</li>
+      </ul>
+      <p>ChatGPT に改変を頼むときは、コード欄の <b>✏️ 改変プロンプト</b> / <b>✨ 新規作成プロンプト</b> をコピーして使うと、仕様と禁止事項・「簡単な解説コメントを付ける」指示まで含まれた状態で依頼できます。</p>
+      <p>🐍 <b>Python化プロンプト</b>：現在のコードを、単体で動く Python スクリプト（matplotlib 使用）＋ <code>requirements.txt</code> に変換させるプロンプトをコピーします。生成AIに貼り付けると、2つのコードブロック（Pythonスクリプトと requirements.txt）で返ってきます。</p>
+      <p>💾 <b>HTML出力</b>：今動かしているモデルだけをそのまま実行できる独立した HTML ファイル（コード編集・AI生成 UI なし）を書き出せます。配布や授業での配布物に便利です。</p>
+      </div>
+      <p>🔊 <b>音</b>：ヘッダの 🔊 ボタンで音のオン/オフを切り替えられます。モデルが <code>Sound.beep(...)</code> や <code>Sound.note(...)</code> を呼ぶと音が鳴ります（最初のクリック後に有効になります）。鳴らしすぎないよう，イベント時だけ鳴らすのがコツです。</p>
+
+      <h3>保存・読み込み</h3>
+      <ul>
+        <li><b>💾 .js保存</b>：現在のコードを <code>.js</code> ファイルとして保存。<b>📂 開く</b>：保存した <code>.js</code> / <code>.txt</code> を読み込みます。</li>
+        <li><b>⏺ 録画</b>：キャンバスを動画保存。形式は隣のメニューで <b>MP4 / WebM / 自動</b> を選べます（環境が対応していない形式は自動的に WebM になります）。</li>
+      </ul>
+
+      <h3>パラメータの意味（ⓘ）</h3>
+      <p>各パラメータ名の横に <span class="kbd">ⓘ</span> がある場合は、ポインタを乗せると説明が表示されます。コードの <code>PARAM_DEFS</code> に <code>help: '説明文'</code> を足すと、その説明が表示されます。</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ──────────────────────────────────────────────────────────────
+// 仕様書
+// ──────────────────────────────────────────────────────────────
+const SPEC_TEXT = `
+【ABM Studio — エージェントベースモデル記述仕様 v6】
+
+━━━ 動作環境 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+このコードは new Function(...) で評価されます。
+以下は動きません（書かないでください）：
+  ✗ document.* / window.addEventListener などの DOM 操作
+  ✗ import / export 文
+  ✗ fetch / XMLHttpRequest（外部通信）
+  ✗ setInterval / setTimeout（非同期処理）
+  ✗ class キーワード（オブジェクトリテラル {} で代替）
+  ✗ グローバル変数への代入（const / let / function 定義は可）
+
+━━━ 必須関数 3 つ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+① setup(params = {}, W, H)  →  state オブジェクト
+   モデル開始・リセット時に1回呼ばれます。
+   必ず state.tick = 0 を含めて return してください。
+
+② step(state, dt, params = {}, W, H)  →  なし
+   毎フレーム × 速度スライダー回数 呼ばれます。
+   state を直接変更し，末尾で state.tick++ してください。
+
+③ draw(ctx, state, W, H)  →  なし
+   毎フレーム呼ばれます（Canvas 2D コンテキスト ctx を使用）。
+   先頭で必ず背景を塗るか ctx.clearRect(0, 0, W, H) を呼ぶこと。
+   W と H はキャンバスのピクセル幅・高さ（通常 470 × 470）。
+
+━━━ モデル種別ごとのテンプレート ━━━━━━━━━━━━━━━━━━━━━━━
+
+■ グリッドモデル（CA・ライフゲーム・住み分け・PD など）
+
+const WORLD = 80;   // グリッドサイズ N×N
+
+function setup(params = {}, W, H) {
+  const grid = Array.from({ length: WORLD }, () => new Array(WORLD).fill(0));
+  // grid[y][x] に状態値（整数・小数など）を代入して初期化
+  return { grid, tick: 0 };
+}
+
+function step(state, dt, params = {}, W, H) {
+  const N = WORLD, { grid } = state;
+  const next = Array.from({ length: N }, () => new Uint8Array(N)); // 0/1 の場合
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    // トーラス境界: (y+dy+N)%N, (x+dx+N)%N
+    next[y][x] = /* 新しい状態 */ 0;
+  }
+  state.grid = next;
+  state.tick++;
+}
+
+function draw(ctx, state, W, H) {
+  const N = WORLD, cw = W / N, ch = H / N;
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    if (state.grid[y][x]) {
+      ctx.fillStyle = '#4ade80';
+      ctx.fillRect(x * cw + 0.3, y * ch + 0.3, cw - 0.4, ch - 0.4);
+    }
+  }
+}
+
+■ エージェントモデル（群れ・アリのフェロモンなど）
+
+function setup(params = {}, W, H) {
+  const agents = Array.from({ length: Math.round(params.N ?? 100) }, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    vx: (Math.random() - 0.5) * 20, vy: (Math.random() - 0.5) * 20,
+    // 必要なプロパティを追加
+  }));
+  return { agents, tick: 0 };
+}
+
+function step(state, dt, params = {}, W, H) {
+  state.agents.forEach(a => {
+    // 力の計算と速度更新
+    a.x = ((a.x + a.vx * dt) % W + W) % W;  // トーラス境界
+    a.y = ((a.y + a.vy * dt) % H + H) % H;
+  });
+  state.tick++;
+}
+
+function draw(ctx, state, W, H) {
+  ctx.fillStyle = '#0a1020'; ctx.fillRect(0, 0, W, H);
+  state.agents.forEach(a => {
+    ctx.beginPath(); ctx.arc(a.x, a.y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#38bdf8'; ctx.fill();
+  });
+}
+
+■ 1次元 CA（初等セルオートマトン ECA）
+
+function setup(params = {}, W, H) {
+  const COLS = 120;
+  const row = new Array(COLS).fill(0);
+  row[Math.floor(COLS / 2)] = 1;  // 中央1セルだけ ON
+  return { rows: [row], COLS, tick: 0 };
+}
+
+function step(state, dt, params = {}, W, H) {
+  const rule = Math.round(params.rule ?? 110), N = state.COLS;
+  const last = state.rows[state.rows.length - 1];
+  const next = Array.from({ length: N }, (_, x) => {
+    const idx = (last[(x-1+N)%N] << 2) | (last[x] << 1) | last[(x+1)%N];
+    return (rule >> idx) & 1;
+  });
+  state.rows.push(next);
+  if (state.rows.length > 300) state.rows.shift();  // メモリ節約
+  state.tick++;
+}
+
+function draw(ctx, state, W, H) {
+  ctx.fillStyle = '#0d1117'; ctx.fillRect(0, 0, W, H);
+  const { rows, COLS } = state;
+  const cw = W / COLS;
+  const visRows = Math.min(rows.length, Math.floor(H / Math.max(1, cw)));
+  const ch = H / Math.max(visRows, 1);
+  const startRow = rows.length - visRows;
+  ctx.fillStyle = '#f0e8d0';
+  for (let ri = 0; ri < visRows; ri++) {
+    const row = rows[startRow + ri];
+    for (let x = 0; x < COLS; x++)
+      if (row[x]) ctx.fillRect(x * cw, ri * ch, cw - 0.2, ch - 0.2);
+  }
+}
+
+■ フェロモン拡散パターン
+
+function spreadField(cells, N, key, rate, evap) {
+  const next = cells.map((row, y) => row.map((cell, x) => {
+    let sum = 0, cnt = 0;
+    for (let dy=-1;dy<=1;dy++) for (let dx=-1;dx<=1;dx++) {
+      sum += cells[(y+dy+N)%N][(x+dx+N)%N][key]; cnt++;
+    }
+    return cell[key] * (1-evap) * (1-rate) + (sum/cnt) * rate * (1-evap);
+  }));
+  for (let y=0;y<N;y++) for (let x=0;x<N;x++) cells[y][x][key] = next[y][x];
+}
+
+━━━ オプション定義 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// スライダーパラメータ（help を付けると名前の横の ⓘ にツールチップ表示）
+const PARAM_DEFS = [
+  { id: 'nAgents', label: 'エージェント数', min: 10, max: 500, step: 10, default: 100,
+    help: 'このパラメータの意味や効果を書くと、画面の ⓘ に表示されます' },
+];
+
+// 初期状態プリセット（ボタン群として表示）
+const SETUP_DEFS = [
+  { label: '初期状態A', fn: (params, W, H) => { /* setup と同様 */ return state; } },
+];
+
+// コマンドボタン（実行中でも押せる）
+const BUTTON_DEFS = [
+  { label: 'ボタン名', color: '#dc2626',
+    fn: (state, params, W, H) => { /* state を直接変更 */ } },
+];
+
+// 自動停止条件
+const STOP_COND = {
+  label: '停止条件の説明文',
+  fn: (state, params) => state.tick > 0 && /* 真になると停止 */,
+};
+
+// グラフ（1枚 or 複数枚）
+const PLOT_DEFS = [{
+  title: 'グラフ名', yMin: 0, yMax: 100,
+  series: [{ id: 'v', label: 'ラベル', color: '#38bdf8', fn: s => s.someValue }]
+}];
+
+// モデルの概要（画面の「このモデルの概要」に表示。初心者向けに必ず付ける）
+const DESCRIPTION = {
+  summary:     'このモデルが何を見るものか（1行）',
+  agent:       'エージェントの特性（何で、どんな状態・性質を持つか）',
+  environment: '環境（空間・場・制約）',
+  interaction: 'エージェント間／環境との相互作用のルール'
+};
+
+━━━ よくある実装パターン ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// 距離 r 以内の近傍エージェントを取得
+const neighbors = state.agents.filter(b => b !== a && (a.x-b.x)**2+(a.y-b.y)**2 < r*r);
+
+// トーラス境界
+a.x = ((a.x % W) + W) % W;
+
+// 反射境界
+if (a.x < 0 || a.x > W) a.vx *= -1;
+
+// 速度を一定値に正規化（群れの速度固定）
+const mag = Math.sqrt(a.vx*a.vx + a.vy*a.vy) + 0.001;
+a.vx = a.vx / mag * speed; a.vy = a.vy / mag * speed;
+
+// ヒートマップ色（0〜1 → 青〜赤）
+function heatColor(v) {
+  return 'rgb(' + Math.round(v*255) + ',0,' + Math.round((1-v)*255) + ')';
+}
+
+// 矢印形エージェントの描画
+function drawArrow(ctx, x, y, ang, size, color) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(size*1.5, 0); ctx.lineTo(-size, size*0.7);
+  ctx.lineTo(-size*0.4, 0); ctx.lineTo(-size, -size*0.7);
+  ctx.closePath(); ctx.fill(); ctx.restore();
+}
+
+━━━ ABM の基本概念 → ABM Studio（JavaScript）早見表 ━━━━━━━━━
+
+概念                              JavaScript (ABM Studio)
+───────────────────────────────────────────────────────────
+エージェント集合              →   state.agents = [{x, y, ...}]
+場所（セル）                  →   state.cells[y][x] = {...}
+種類分け                      →   a.type = 'wolf'
+グローバル変数                →   state.someGlobal
+時間ステップ                  →   state.tick（末尾で tick++）
+全エージェントに処理          →   state.agents.forEach(a => {...})
+誕生（増殖）                  →   state.agents.push({...新しいエージェント})
+死亡（除去）                  →   state.agents = state.agents.filter(a => a.alive)
+前進                          →   a.x += Math.cos(a.heading)*dist; ...
+旋回                          →   a.heading += angle
+相手の方を向く                →   a.heading = Math.atan2(other.y-a.y, other.x-a.x)
+半径 r 以内                   →   Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2) < r
+拡散                          →   spreadField(cells, N, key, rate, evap)  ※関数を定義
+蒸発                          →   cell[key] *= (1 - evapRate)
+条件で数える                  →   state.agents.filter(...).length
+ランダムに1つ選ぶ             →   set[Math.floor(Math.random()*set.length)]
+世界の端                      →   WORLD - 1
+`;
+// ──────────────────────────────────────────────────────────────
+// Sample 1: 住み分け（分居）
+// ──────────────────────────────────────────────────────────────
+const CODE_SEGREGATION = `const TITLE = '住み分けモデル';
+// ── 住み分け（分居）モデル（停止条件付き）───────────────────────────
+const DESCRIPTION = { summary:'2種類の住民が「近所に同類が少なすぎると引っ越す」だけで、街全体が住み分け（分居）してしまう過程を見るモデル。', agent:'2タイプの住民。各自「周囲に同類が一定割合以上いれば満足」という許容度を持つ。', environment:'格子状の街。各マスは空き地か住民。', interaction:'不満な住民が空きマスへ引っ越す。これを繰り返すと、わずかな好みでも大きな住み分けが生じる。' };
+const WORLD = 60;
+
+const PARAM_DEFS = [
+  { id: 'threshold', label: '幸福閾値（TH）', min: 0.05, max: 0.95, step: 0.05, default: 0.60,
+    help: '各エージェントが「満足」と感じるために必要な、近傍に占める同じ色の割合。高いほど移動が増え分居が強まります。' },
+  { id: 'density',   label: '人口密度',       min: 0.30, max: 0.95, step: 0.05, default: 0.75,
+    help: '格子が埋まっている割合（空き地の少なさ）。初期配置に使う値なので、変更後は初期化で反映されます。' },
+];
+
+// 与えられた grid の満足度統計を state に書き込んで返す（tick0 のグラフ初期値にも使う）
+function schStats(state, params = {}) {
+  const threshold = params.threshold ?? 0.60;
+  const grid = state.grid, N = WORLD;
+  let totalA = 0, happyA = 0, totalB = 0, happyB = 0, unhappyCount = 0, sumS = 0, countS = 0;
+  for (let y = 0; y < N; y++)
+    for (let x = 0; x < N; x++) {
+      const t = grid[y][x];
+      if (t < 0) continue;
+      let same = 0, total = 0;
+      for (let dy = -1; dy <= 1; dy++)
+        for (let dx = -1; dx <= 1; dx++) {
+          if (!dx && !dy) continue;
+          const nt = grid[(y + dy + N) % N][(x + dx + N) % N];
+          if (nt >= 0) { total++; if (nt === t) same++; }
+        }
+      const s = total > 0 ? same / total : 0;
+      const happy = total > 0 && s >= threshold;
+      if (t === 0) { totalA++; if (happy) happyA++; }
+      else         { totalB++; if (happy) happyB++; }
+      if (!happy) unhappyCount++;
+      sumS += s; countS++;
+    }
+  const totalAll = totalA + totalB;
+  state.unhappy      = unhappyCount;
+  state.happyRateA   = totalA > 0 ? happyA / totalA : 0;
+  state.happyRateB   = totalB > 0 ? happyB / totalB : 0;
+  state.happyRateAll = totalAll > 0 ? (happyA + happyB) / totalAll : 0;
+  state.avgS         = countS > 0 ? sumS / countS : 0;
+  return state;
+}
+
+const SETUP_DEFS = [
+  {
+    label: 'ランダム配置',
+    fn: (params, W, H) => {
+      const density = params.density ?? 0.75;
+      const grid = Array.from({length: WORLD}, () =>
+        Array.from({length: WORLD}, () => {
+          const r = Math.random();
+          return r < density/2 ? 0 : r < density ? 1 : -1;
+        })
+      );
+      return schStats({ grid, tick: 0 }, params);
+    }
+  },
+  {
+    label: '左右分割配置',
+    fn: (params, W, H) => {
+      const grid = Array.from({length: WORLD}, (_, y) =>
+        Array.from({length: WORLD}, (_, x) => {
+          if (Math.random() > (params.density ?? 0.75)) return -1;
+          return x < WORLD / 2 ? 0 : 1;
+        })
+      );
+      return schStats({ grid, tick: 0 }, params);
+    }
+  },
+  {
+    label: '市松模様配置',
+    fn: (params, W, H) => {
+      const grid = Array.from({length: WORLD}, (_, y) =>
+        Array.from({length: WORLD}, (_, x) => {
+          if (Math.random() > (params.density ?? 0.75)) return -1;
+          return (x + y) % 2 === 0 ? 0 : 1;
+        })
+      );
+      return schStats({ grid, tick: 0 }, params);
+    }
+  },
+];
+
+const BUTTON_DEFS = [
+  {
+    label: '青エージェント追加 (+20)',
+    color: '#0ea5e9',
+    fn: (state, params) => {
+      const N = WORLD;
+      let added = 0;
+      for (let y = 0; y < N && added < 20; y++)
+        for (let x = 0; x < N && added < 20; x++)
+          if (state.grid[y][x] < 0) { state.grid[y][x] = 0; added++; }
+    }
+  },
+  {
+    label: '赤エージェント追加 (+20)',
+    color: '#f59e0b',
+    fn: (state, params) => {
+      const N = WORLD;
+      let added = 0;
+      outer: for (let y = N-1; y >= 0 && added < 20; y--)
+        for (let x = N-1; x >= 0 && added < 20; x--)
+          if (state.grid[y][x] < 0) { state.grid[y][x] = 1; added++; }
+    }
+  },
+  {
+    label: '全員シャッフル',
+    color: '#7c3aed',
+    fn: (state, params) => {
+      const N = WORLD;
+      const occupied = [];
+      for (let y=0;y<N;y++) for (let x=0;x<N;x++)
+        if (state.grid[y][x] >= 0) occupied.push({x,y,t:state.grid[y][x]});
+      for (let i=occupied.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        const tmp=occupied[i].t; occupied[i].t=occupied[j].t; occupied[j].t=tmp;
+      }
+      for (let y=0;y<N;y++) for (let x=0;x<N;x++) state.grid[y][x]=-1;
+      for (const {x,y,t} of occupied) state.grid[y][x]=t;
+    }
+  },
+];
+
+const STOP_COND = {
+  label: '全エージェントが幸福状態になったら停止',
+  fn: state => state.tick > 0 && state.unhappy === 0,
+};
+
+const PLOT_DEFS = [
+  {
+    title: '不満足エージェント数',
+    yMin: 0,
+    series: [
+      { id: 'unhappy', label: '不満足', color: '#ef4444', fn: s => Math.max(0, s.unhappy ?? 0) },
+    ]
+  },
+  {
+    title: '満足度の平均（全体）',
+    yMin: 0, yMax: 1,
+    series: [
+      { id: 'avgS', label: '平均満足度', color: '#8b5cf6', fn: s => s.avgS ?? 0 },
+    ]
+  },
+];
+
+function setup(params = {}, W, H) {
+  return SETUP_DEFS[0].fn(params, W, H);
+}
+
+function step(state, dt, params = {}, W, H) {
+  const threshold = params.threshold ?? 0.50;
+  const { grid } = state;
+  const N = WORLD;
+
+  // 全エージェントをリストアップしてランダム順に並び替える（非同期更新）
+  const agents = [];
+  for (let y = 0; y < N; y++)
+    for (let x = 0; x < N; x++)
+      if (grid[y][x] >= 0) agents.push({ x, y });
+  for (let i = agents.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [agents[i], agents[j]] = [agents[j], agents[i]];
+  }
+
+  // 各エージェントをランダム順に処理
+  for (const a of agents) {
+    const t = grid[a.y][a.x];
+    if (t < 0) continue;
+
+    // 満足度 s を計算（隣人なし → s=0）
+    let same = 0, total = 0;
+    for (let dy = -1; dy <= 1; dy++)
+      for (let dx = -1; dx <= 1; dx++) {
+        if (!dx && !dy) continue;
+        const nt = grid[(a.y + dy + N) % N][(a.x + dx + N) % N];
+        if (nt >= 0) { total++; if (nt === t) same++; }
+      }
+    const s = total > 0 ? same / total : 0;
+
+    if (s >= threshold) continue; // 満足 → 動かない
+
+    // 不満足 → 8近傍をシャッフルして空き地に至るまで試みる
+    const dirs = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+    for (let i = 7; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [dirs[i], dirs[j]] = [dirs[j], dirs[i]];
+    }
+    for (const [dy, dx] of dirs) {
+      const nx = (a.x + dx + N) % N;
+      const ny = (a.y + dy + N) % N;
+      if (grid[ny][nx] < 0) {
+        grid[ny][nx] = t;
+        grid[a.y][a.x] = -1;
+        break;
+      }
+    }
+    // 8近傍に空き地がなければその場に留まる
+  }
+
+  // グラフ用に幸福度を集計
+  let totalA = 0, happyA = 0, totalB = 0, happyB = 0, unhappyCount = 0;
+  let sumS = 0, countS = 0;
+  for (let y = 0; y < N; y++)
+    for (let x = 0; x < N; x++) {
+      const t = grid[y][x];
+      if (t < 0) continue;
+      let same = 0, total = 0;
+      for (let dy = -1; dy <= 1; dy++)
+        for (let dx = -1; dx <= 1; dx++) {
+          if (!dx && !dy) continue;
+          const nt = grid[(y + dy + N) % N][(x + dx + N) % N];
+          if (nt >= 0) { total++; if (nt === t) same++; }
+        }
+      const s = total > 0 ? same / total : 0;
+      const happy = total > 0 && s >= threshold;
+      if (t === 0) { totalA++; if (happy) happyA++; }
+      else         { totalB++; if (happy) happyB++; }
+      if (!happy) unhappyCount++;
+      sumS += s; countS++;
+    }
+
+  const totalAll = totalA + totalB;
+  state.unhappy      = unhappyCount;
+  state.happyRateA   = totalA > 0 ? happyA / totalA : 0;
+  state.happyRateB   = totalB > 0 ? happyB / totalB : 0;
+  state.happyRateAll = totalAll > 0 ? (happyA + happyB) / totalAll : 0;
+  state.avgS         = countS > 0 ? sumS / countS : 0;
+  state.tick++;
+}
+
+function draw(ctx,state,W,H){
+  const{grid}=state,N=WORLD,cw=W/N,ch=H/N;
+  ctx.fillStyle='#060a10';ctx.fillRect(0,0,W,H);
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const t=grid[y][x];if(t<0)continue;
+    ctx.fillStyle=t===0?'#38bdf8':'#f59e0b';
+    ctx.fillRect(x*cw+.4,y*ch+.4,cw-.4,ch-.4);
+  }
+}`;
+
+// ──────────────────────────────────────────────────────────────
+// Sample 2: SIR
+// ──────────────────────────────────────────────────────────────
+const CODE_SIR = `const TITLE = 'SIR感染症モデル';
+// ── SIR感染モデル（グリッド移動＋障害物）────────────────────────────
+const DESCRIPTION = { summary:'感染症の広がりを S(未感染)・I(感染)・R(回復) の3状態で追う基本モデル。', agent:'人。S/I/R いずれかの状態を持ち、格子上を移動する。', environment:'格子空間。障害物（壁）で移動が制限される。', interaction:'感染者(I)に接触した未感染者(S)が確率で感染し、感染者は一定時間後に回復(R)する。' };
+const WORLD = 60;
+
+const PARAM_DEFS = [
+  { id: 'N',          label: '人口',       min: 50, max: 500, step: 10,  default: 200 },
+  { id: 'N_infected', label: '初期感染者', min: 1,  max: 50,  step: 1,   default: 5   },
+  { id: 'P_infect',   label: '感染確率',   min: 0,  max: 1,   step: 0.01,default: 0.3 },
+  { id: 'P_recover',  label: '回復確率',   min: 0,  max: 1,   step: 0.01,default: 0.05},
+  { id: 'P_immobile', label: '非移動率',   min: 0,  max: 1,   step: 0.05,default: 0.2 },
+];
+
+const SETUP_DEFS = [
+  {
+    label: '標準（ランダム感染）',
+    fn: (params, W, H) => {
+      const N=WORLD, total=Math.round(params.N??200);
+      const cells=Array.from({length:N},()=>Array.from({length:N},()=>({wall:false})));
+      const agents=Array.from({length:total},()=>({
+        x:Math.floor(Math.random()*N),y:Math.floor(Math.random()*N),state:'S',speed:1
+      }));
+      for(let i=0;i<(params.N_infected??5);i++)
+        agents[Math.floor(Math.random()*agents.length)].state='I';
+      const nm=Math.floor(total*(params.P_immobile??0.2));
+      for(let i=0;i<nm;i++) agents[Math.floor(Math.random()*agents.length)].speed=0;
+      return {agents,cells,tick:0,I_max:0};
+    }
+  },
+  {
+    label: '患者ゼロ（中央1人）',
+    fn: (params, W, H) => {
+      const N=WORLD, total=Math.round(params.N??200);
+      const cells=Array.from({length:N},()=>Array.from({length:N},()=>({wall:false})));
+      const agents=Array.from({length:total},(_,i)=>({
+        x:i===0?Math.floor(N/2):Math.floor(Math.random()*N),
+        y:i===0?Math.floor(N/2):Math.floor(Math.random()*N),
+        state:i===0?'I':'S', speed:1
+      }));
+      const nm=Math.floor(total*(params.P_immobile??0.2));
+      for(let i=0;i<nm;i++) agents[Math.floor(Math.random()*agents.length)].speed=0;
+      return {agents,cells,tick:0,I_max:0};
+    }
+  },
+];
+
+const BUTTON_DEFS = [
+  {
+    label: '障害物追加',
+    color: '#6b7280',
+    fn: (state) => {
+      const N=WORLD;
+      for(let y=0;y<N;y++) for(let x=0;x<N;x++)
+        if(Math.random()<0.02) state.cells[y][x].wall=true;
+    }
+  },
+  {
+    label: '感染者 10 人追加',
+    color: '#ef4444',
+    fn: (state) => {
+      const sus=state.agents.filter(a=>a.state==='S');
+      for(let i=0;i<Math.min(10,sus.length);i++) sus[i].state='I';
+    }
+  },
+];
+
+const STOP_COND = {
+  label: '感染者 (I) が 0 人になったら停止',
+  fn: state => state.tick > 0 && state.agents.filter(a=>a.state==='I').length === 0,
+};
+
+const PLOT_DEFS = [{
+  title: 'SIR 人数',
+  yMin: 0,
+  series: [
+    {id:'S',label:'S 感受性',color:'#3b82f6',fn:s=>s.agents.filter(a=>a.state==='S').length},
+    {id:'I',label:'I 感染中',color:'#ef4444',fn:s=>s.agents.filter(a=>a.state==='I').length},
+    {id:'R',label:'R 回復済',color:'#22c55e',fn:s=>s.agents.filter(a=>a.state==='R').length},
+  ]
+}];
+
+function setup(params={},W,H){ return SETUP_DEFS[0].fn(params,W,H); }
+
+function step(state,dt,params={},W,H){
+  const N=WORLD,{agents,cells}=state;
+  const P_infect=params.P_infect??0.3;
+  const P_recover=params.P_recover??0.05;
+
+  // 移動（ランダムウォーク，トーラス境界）
+  agents.forEach(a=>{
+    const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+    const [dx,dy]=dirs[Math.floor(Math.random()*4)];
+    const nx=(a.x+dx+N)%N, ny=(a.y+dy+N)%N;
+    if(!cells[ny][nx].wall && Math.random()<a.speed){ a.x=nx; a.y=ny; }
+  });
+
+  // 感染（隣接セルの感染者から）
+  agents.forEach(a=>{
+    if(a.state!=='S') return;
+    const near=agents.some(b=>b!==a&&b.state==='I'&&(a.x-b.x)**2+(a.y-b.y)**2<=1);
+    if(near && Math.random()<P_infect) a.state='I';
+  });
+
+  // 回復
+  agents.forEach(a=>{ if(a.state==='I'&&Math.random()<P_recover) a.state='R'; });
+
+  const I=agents.filter(a=>a.state==='I').length;
+  if(I>state.I_max) state.I_max=I;
+  state.tick++;
+}
+
+function draw(ctx,state,W,H){
+  const N=WORLD,cw=W/N,ch=H/N;
+  ctx.fillStyle='#0b1020'; ctx.fillRect(0,0,W,H);
+  for(let y=0;y<N;y++) for(let x=0;x<N;x++)
+    if(state.cells[y][x].wall){ctx.fillStyle='#6b7280';ctx.fillRect(x*cw,y*ch,cw,ch);}
+  const col={S:'#3b82f6',I:'#ef4444',R:'#22c55e'};
+  state.agents.forEach(a=>{
+    ctx.beginPath();
+    ctx.arc((a.x+.5)*cw,(a.y+.5)*ch,Math.min(cw,ch)*.35,0,Math.PI*2);
+    ctx.fillStyle=col[a.state]; ctx.fill();
+  });
+}`;
+
+// ──────────────────────────────────────────────────────────────
+// Sample 3: 群れ（フロッキング）
+// ──────────────────────────────────────────────────────────────
+const CODE_FLOCKING = `const TITLE = '群れ（フロッキング）';
+// ── 群れ（フロッキング：分離・整列・凝集の3規則）─────────────────────
+const DESCRIPTION = { summary:'分離・整列・凝集の3つの単純規則だけで、鳥や魚のような群れが自然に生まれる。', agent:'一定速度で動く個体(boid)。近くの仲間だけを見て進む向きを決める。', environment:'端がつながったトーラス平面。', interaction:'近接の仲間に対して「ぶつからない(分離)・向きを揃える(整列)・中心へ寄る(凝集)」を合成して旋回する。' };
+// 分離・整列・凝集の3ルール．各個体は常に一定速度で飛ぶ．
+
+const PARAM_DEFS = [
+  {id:'nAgents',label:'個体数',    min:5,  max:120,step:1,  default:40,
+    help:'群れの個体数です。'},
+  {id:'speed', label:'速度（一定）',min:20, max:300,step:5,  default:120,
+    help:'各個体の移動の速さ（一定）。向きだけが3ルールで変わります。'},
+  {id:'sepR',  label:'分離 半径',  min:5,  max:80, step:1,  default:20,
+    help:'この距離より近い仲間から離れようとする範囲です。'},
+  {id:'aliR',  label:'整列 半径',  min:10, max:150,step:2,  default:60,
+    help:'この距離内の仲間と進行方向を合わせる範囲です。'},
+  {id:'cohR',  label:'凝集 半径',  min:10, max:200,step:2,  default:100,
+    help:'この距離内の仲間の中心へ向かう範囲です。'},
+  {id:'sepW',  label:'分離 重み',  min:0,  max:6,  step:0.1,default:1.5,
+    help:'大きいほど強く離れます。上げると群れが広がり、0だと重なりを気にしません。'},
+  {id:'aliW',  label:'整列 重み',  min:0,  max:6,  step:0.1,default:2.0,
+    help:'大きいほど向きが揃います（整列度φが上がる）。0だと向きはバラバラ。'},
+  {id:'cohW',  label:'凝集 重み',  min:0,  max:6,  step:0.1,default:1.2,
+    help:'大きいほど密集して塊になります。0だと集まりません。'},
+  {id:'inertia',label:'なめらかさ',min:2,  max:18, step:1,  default:6,
+    help:'向きを保つ強さ。小さいほど3つの重みがすぐ強く効いてキビキビ動き、大きいほどなめらかで安定します。'},
+];
+
+const SETUP_DEFS = [
+  { label: 'ランダム',
+    fn: (params, W, H) => {
+      const n=Math.round(params.nAgents??40), spd=params.speed??120;
+      const flock=Array.from({length:n},()=>{
+        const a=Math.random()*Math.PI*2;
+        return {x:Math.random()*W,y:Math.random()*H,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd};
+      });
+      return {flock,tick:0};
+    }
+  },
+  { label: '一方向から出発',
+    fn: (params, W, H) => {
+      const n=Math.round(params.nAgents??40), spd=params.speed??120;
+      const flock=Array.from({length:n},()=>{
+        const a=(Math.random()-0.5)*0.5;
+        return {x:Math.random()*W*0.3,y:Math.random()*H,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd};
+      });
+      return {flock,tick:0};
+    }
+  },
+];
+
+const BUTTON_DEFS = [
+  {
+    label: '全員を散乱させる',
+    color: '#dc2626',
+    fn: (state, params) => {
+      const spd=params.speed??120;
+      state.flock.forEach(b=>{ const a=Math.random()*Math.PI*2; b.vx=Math.cos(a)*spd; b.vy=Math.sin(a)*spd; });
+    }
+  },
+  {
+    label: '全員を同方向に揃える',
+    color: '#0284c7',
+    fn: (state, params) => {
+      const spd=params.speed??120;
+      state.flock.forEach(b=>{ b.vx=spd; b.vy=0; });
+    }
+  },
+];
+
+const PLOT_DEFS = [{
+  title: '整列度（秩序パラメータ φ）',
+  yMin: 0, yMax: 1,
+  series: [{
+    id:'order', label:'φ（0=無秩序 → 1=完全整列）', color:'#0284c7',
+    fn: s => {
+      const bs=s.flock; if(!bs||bs.length<2) return 0;
+      let sx=0,sy=0;
+      for(const b of bs){ const m=Math.sqrt(b.vx*b.vx+b.vy*b.vy)+.001; sx+=b.vx/m; sy+=b.vy/m; }
+      return Math.round(Math.sqrt(sx*sx+sy*sy)/bs.length*1000)/1000;
+    }
+  }]
+}];
+
+function setup(params={},W,H){ return SETUP_DEFS[0].fn(params,W,H); }
+
+function step(state, dt, params={}, W, H){
+  const bs=state.flock, n=bs.length;
+  const spd=params.speed??120;
+  const sepR=params.sepR??20, aliR=params.aliR??60, cohR=params.cohR??100;
+  const sepW=params.sepW??1.5, aliW=params.aliW??1.5, cohW=params.cohW??1.0;
+  const inertia=params.inertia??6;  // 向きの保持の強さ（小さいほど重みが強く効く）
+  const sR2=sepR*sepR, aR2=aliR*aliR, cR2=cohR*cohR;
+  const ndx=new Float64Array(n), ndy=new Float64Array(n), has=new Uint8Array(n);
+
+  for(let i=0;i<n;i++){
+    const b=bs[i];
+    let sepx=0,sepy=0, alix=0,aliy=0,alic=0, cohx=0,cohy=0,cohc=0;
+    for(let j=0;j<n;j++){
+      if(i===j) continue;
+      // トーラス最小像（端をまたぐ仲間も近傍として扱う）
+      let dx=bs[j].x-b.x, dy=bs[j].y-b.y;
+      if(dx> W*0.5) dx-=W; else if(dx<-W*0.5) dx+=W;
+      if(dy> H*0.5) dy-=H; else if(dy<-H*0.5) dy+=H;
+      const d2=dx*dx+dy*dy;
+      if(d2<cR2){
+        const d=Math.sqrt(d2)+1e-4;
+        if(d2<sR2){ sepx-=dx/d/d; sepy-=dy/d/d; }            // 近いほど強く離れる
+        if(d2<aR2){ alix+=bs[j].vx; aliy+=bs[j].vy; alic++; } // 仲間の速度（向き）を集計
+        cohx+=dx; cohy+=dy; cohc++;                          // 仲間への相対位置（中心方向）
+      }
+    }
+    // 3つの寄与をそれぞれ「単位ベクトル × 重み」にして合成（スケールを対等にする）
+    let dX=0, dY=0, m;
+    m=Math.hypot(sepx,sepy); if(m>1e-6){ dX+=sepx/m*sepW; dY+=sepy/m*sepW; }
+    if(alic){ m=Math.hypot(alix,aliy); if(m>1e-6){ dX+=alix/m*aliW; dY+=aliy/m*aliW; } }
+    if(cohc){ const ccx=cohx/cohc, ccy=cohy/cohc; m=Math.hypot(ccx,ccy); if(m>1e-6){ dX+=ccx/m*cohW; dY+=ccy/m*cohW; } }
+    if(dX!==0||dY!==0){ ndx[i]=dX; ndy[i]=dY; has[i]=1; }
+  }
+
+  const MAXTURN=0.6;  // 1ステップの最大旋回角(rad)。低慣性でも振動・暴走を防ぐ安全弁
+  for(let i=0;i<n;i++){
+    const b=bs[i];
+    if(has[i]){
+      // 現在の進行方向（単位）と希望方向をブレンドし、旋回角を上限内に収めて向きを決める
+      const sp0=Math.hypot(b.vx,b.vy)+1e-6;
+      const nx=(b.vx/sp0)*inertia + ndx[i], ny=(b.vy/sp0)*inertia + ndy[i];
+      const cur=Math.atan2(b.vy,b.vx);
+      let da=Math.atan2(ny,nx)-cur;
+      if(da>Math.PI) da-=2*Math.PI; else if(da<-Math.PI) da+=2*Math.PI;
+      if(da>MAXTURN) da=MAXTURN; else if(da<-MAXTURN) da=-MAXTURN;
+      const na=cur+da;
+      b.vx=Math.cos(na)*spd; b.vy=Math.sin(na)*spd;
+    } else {
+      const m=Math.hypot(b.vx,b.vy)+1e-6; b.vx=b.vx/m*spd; b.vy=b.vy/m*spd; // 速さは一定に保つ
+    }
+    b.x=((b.x+b.vx*dt)%W+W)%W;
+    b.y=((b.y+b.vy*dt)%H+H)%H;
+  }
+  state.tick++;
+}
+
+function draw(ctx,state,W,H){
+  ctx.fillStyle='rgba(11,16,32,0.22)'; ctx.fillRect(0,0,W,H);
+  for(const b of state.flock){
+    const ang=Math.atan2(b.vy,b.vx);
+    const hue=((ang/Math.PI*180)+360)%360;
+    const sz=6;
+    ctx.save(); ctx.translate(b.x,b.y); ctx.rotate(ang);
+    ctx.fillStyle=\`hsl(\${hue},70%,58%)\`;
+    ctx.beginPath();
+    ctx.moveTo(sz*1.6,0); ctx.lineTo(-sz,sz*0.65);
+    ctx.lineTo(-sz*0.4,0); ctx.lineTo(-sz,-sz*0.65);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  // 整列度 φ（向きの揃い具合）を表示
+  const bs=state.flock; let sx=0,sy=0;
+  for(const b of bs){ const m=Math.hypot(b.vx,b.vy)+1e-4; sx+=b.vx/m; sy+=b.vy/m; }
+  const phi=bs.length?Math.hypot(sx,sy)/bs.length:0;
+  ctx.fillStyle='rgba(11,16,32,0.6)'; ctx.fillRect(4,4,150,20);
+  ctx.fillStyle='rgba(240,232,208,0.92)'; ctx.font='bold 11px IBM Plex Mono,monospace';
+  ctx.fillText('整列度 φ = '+phi.toFixed(2)+' /1.00', 10, 18);
+}`;
+
+// ─── CA モデル ──────────────────────────────────────────────────
+const CODE_ECA = `const TITLE = '初等セルオートマトン';
+
+// ── 初等セルオートマトン（1次元CA）──────────────────────────
+const DESCRIPTION = { summary:'1次元のセルが両隣と自分の状態だけで次の値を決める、最も単純なルール。ルール番号でパターンが激変する。', agent:'1次元に並んだセル。状態は 0 か 1。', environment:'1行のセル列（時間を下に積み上げて2次元の模様にする）。', interaction:'各セルは「左・自分・右」3セルの組合せ(8通り)に応じ、ルール番号(0〜255)が定める次状態になる。' };
+// ルール番号 0〜255 を変えながら，クラス1〜4のパターンを観察しよう
+// ★ 速度スライダーは 1 t/f 推奨（1行ずつ描くと変化が見やすい）
+// ★ ルール番号はスライダーでも，右の数値欄に直接入力でも変えられます
+const PARAM_DEFS = [
+  { id: 'rule',    label: 'ルール番号', min: 0,    max: 255,  step: 1,    default: 110,
+    help: 'ルール番号（0〜255）。スライダーまたは数値欄に直接入力できます。' },
+  { id: 'density', label: '初期密度',   min: 0.01, max: 0.99, step: 0.01, default: 0.5,
+    help: 'ランダム初期状態のときに ON になるセルの割合（変更は初期化で反映）。' },
+];
+
+const COLS = 120;
+
+// グラフ：最新世代の ON セル数の推移（クラス1→0/飽和、2→周期、3→ゆらぎ、4→複雑）
+const PLOT_DEFS = [{
+  title: 'ON セルの数（最新世代）',
+  yMin: 0, yMax: COLS,
+  series: [
+    { id: 'on', label: 'ON セル数', color: '#f0e8d0',
+      fn: s => { const r = s.rows[s.rows.length - 1]; let c = 0; for (let i = 0; i < r.length; i++) c += r[i]; return c; } }
+  ]
+}];
+
+// セルの高さ（正方形に近い）を W から決める。draw と setup で共通に使う。
+function cellH(W) {
+  const cw = (W || 470) / COLS;
+  return Math.max(2, cw);          // 正方形（縦伸び防止）
+}
+
+// 周期境界の規約（idx = 左*4 + 中央*2 + 右）で次の1行を計算
+function nextRow(prev, rule) {
+  const N = prev.length;
+  return Array.from({ length: N }, (_, x) => {
+    const idx = (prev[(x - 1 + N) % N] << 2) | (prev[x] << 1) | prev[(x + 1) % N];
+    return (rule >> idx) & 1;
+  });
+}
+
+// 画面を満たす行数だけ初期履歴を作っておく（最初から縦に詰まって見える）
+function fillRows(firstRow, rule, W, H) {
+  const target = Math.max(1, Math.floor((H || 470) / cellH(W)));
+  const rows = [firstRow];
+  while (rows.length < target) rows.push(nextRow(rows[rows.length - 1], rule));
+  return rows;
+}
+
+const SETUP_DEFS = [
+  {
+    label: '中央1セルだけ ON',
+    fn: (params, W, H) => {
+      const row = new Array(COLS).fill(0);
+      row[Math.floor(COLS / 2)] = 1;
+      const rule = Math.round(params.rule ?? 110);
+      return { rows: fillRows(row, rule, W, H), COLS, rule, tick: 0 };
+    }
+  },
+  {
+    label: 'ランダム初期状態',
+    fn: (params, W, H) => {
+      const d = params.density ?? 0.5;
+      const row = Array.from({ length: COLS }, () => Math.random() < d ? 1 : 0);
+      const rule = Math.round(params.rule ?? 110);
+      return { rows: fillRows(row, rule, W, H), COLS, rule, tick: 0 };
+    }
+  },
+];
+
+function setup(params = {}, W, H) {
+  return SETUP_DEFS[0].fn(params, W, H);
+}
+
+function step(state, dt, params = {}, W, H) {
+  const rule = Math.round(params.rule ?? state.rule ?? 110);
+  state.rule = rule;
+  state.rows.push(nextRow(state.rows[state.rows.length - 1], rule));
+  if (state.rows.length > 600) state.rows.shift();
+  state.tick++;
+}
+
+function draw(ctx, state, W, H) {
+  const { rows, COLS: N, rule } = state;
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0, 0, W, H);
+  const cw = W / N;
+  const ch = cellH(W);                       // ★ 固定の正方形セル高（縦伸びしない）
+  const maxVis = Math.max(1, Math.floor(H / ch));
+  const visRows = Math.min(rows.length, maxVis);
+  const startRow = rows.length - visRows;
+  ctx.fillStyle = '#f0e8d0';
+  for (let ri = 0; ri < visRows; ri++) {
+    const row = rows[startRow + ri];
+    const y = ri * ch;
+    for (let x = 0; x < N; x++) {
+      if (row[x]) ctx.fillRect(x * cw + 0.2, y + 0.2, Math.max(0.5, cw - 0.3), Math.max(0.5, ch - 0.3));
+    }
+  }
+  // ルール番号をオーバーレイ表示
+  ctx.fillStyle = 'rgba(240,232,208,0.6)';
+  ctx.font = 'bold 11px IBM Plex Mono,monospace';
+  ctx.fillText('Rule ' + (rule ?? '?'), 6, 15);
+}
+`;
+
+const CODE_LIFE = `const TITLE = 'ライフゲーム';
+
+// ── ライフゲーム（2次元セルオートマトン）───────────────────────
+const DESCRIPTION = { summary:'各セルの生死が周囲8マスの生存数だけで決まる、生命のような2次元セルオートマトン。', agent:'格子上のセル。生(1)か死(0)。', environment:'2次元の格子（トーラス）。', interaction:'生存セルは隣接2〜3個で生存、死セルは隣接ちょうど3個で誕生。グライダー等の構造が動く。' };
+// 「誕生」3個・「生存」2-3個の隣接生存セルで次世代を決定する古典2次元CA
+const WORLD = 80;
+
+const PARAM_DEFS = [
+  { id: 'density', label: '初期密度', min: 0.05, max: 0.90, step: 0.05, default: 0.30 },
+];
+
+const SETUP_DEFS = [
+  {
+    label: 'ランダム配置',
+    fn: (params, W, H) => {
+      const d = params.density ?? 0.30;
+      const grid = Array.from({ length: WORLD }, () =>
+        Array.from({ length: WORLD }, () => Math.random() < d ? 1 : 0)
+      );
+      return { grid, tick: 0, alive: 0 };
+    }
+  },
+  {
+    label: 'グライダー銃',
+    fn: (params, W, H) => {
+      const N = WORLD;
+      const grid = Array.from({ length: N }, () => new Array(N).fill(0));
+      // グライダー銃の初期配置
+      const cells = [
+        [4,0],[4,1],[5,0],[5,1],
+        [4,10],[5,10],[6,10],[3,11],[7,11],[2,12],[8,12],[2,13],[8,13],
+        [5,14],[3,15],[7,15],[4,16],[5,16],[6,16],[5,17],
+        [2,20],[3,20],[4,20],[2,21],[3,21],[4,21],[1,22],[5,22],
+        [0,24],[1,24],[5,24],[6,24],[2,34],[3,34],[2,35],[3,35]
+      ];
+      for (const [y, x] of cells) if (y < N && x < N) grid[y][x] = 1;
+      return { grid, tick: 0, alive: cells.length };
+    }
+  },
+  {
+    label: 'パルサー（周期3）',
+    fn: (params, W, H) => {
+      const N = WORLD, cx = Math.floor(N / 2), cy = Math.floor(N / 2);
+      const grid = Array.from({ length: N }, () => new Array(N).fill(0));
+      const offs = [
+        [-6,-4],[-6,-3],[-6,-2],[-6,2],[-6,3],[-6,4],
+        [6,-4],[6,-3],[6,-2],[6,2],[6,3],[6,4],
+        [-4,-6],[-3,-6],[-2,-6],[2,-6],[3,-6],[4,-6],
+        [-4,6],[-3,6],[-2,6],[2,6],[3,6],[4,6],
+        [-1,-4],[-1,-3],[-1,-2],[-1,2],[-1,3],[-1,4],
+        [1,-4],[1,-3],[1,-2],[1,2],[1,3],[1,4],
+        [-4,-1],[-3,-1],[-2,-1],[2,-1],[3,-1],[4,-1],
+        [-4,1],[-3,1],[-2,1],[2,1],[3,1],[4,1],
+      ];
+      for (const [dy, dx] of offs) {
+        const y = cy + dy, x = cx + dx;
+        if (y >= 0 && y < N && x >= 0 && x < N) grid[y][x] = 1;
+      }
+      return { grid, tick: 0, alive: 0 };
+    }
+  },
+];
+
+const BUTTON_DEFS = [
+  {
+    label: '全消去',
+    color: '#6b7280',
+    fn: (state) => { state.grid.forEach(row => row.fill(0)); state.alive = 0; }
+  },
+  {
+    label: 'グライダーを1つ追加',
+    color: '#4ade80',
+    fn: (state) => {
+      const N = WORLD;
+      const ox = Math.floor(Math.random() * (N - 5));
+      const oy = Math.floor(Math.random() * (N - 5));
+      for (const [dy, dx] of [[0,1],[1,2],[2,0],[2,1],[2,2]])
+        state.grid[(oy + dy) % N][(ox + dx) % N] = 1;
+    }
+  },
+];
+
+const STOP_COND = {
+  label: '生存セルが 0 になったら停止',
+  fn: state => state.tick > 5 && state.alive === 0,
+};
+
+const PLOT_DEFS = [{
+  title: '生存セル数',
+  yMin: 0,
+  series: [{ id: 'alive', label: '生存セル', color: '#4ade80', fn: s => s.alive }]
+}];
+
+function setup(params = {}, W, H) {
+  return SETUP_DEFS[0].fn(params, W, H);
+}
+
+function step(state, dt, params = {}, W, H) {
+  const N = WORLD, grid = state.grid;
+  const next = Array.from({ length: N }, () => new Uint8Array(N));
+  let alive = 0;
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    let n = 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      if (!dx && !dy) continue;
+      n += grid[(y + dy + N) % N][(x + dx + N) % N];
+    }
+    const c = grid[y][x];
+    next[y][x] = (c && (n === 2 || n === 3)) || (!c && n === 3) ? 1 : 0;
+    if (next[y][x]) alive++;
+  }
+  state.grid = next;
+  state.alive = alive;
+  state.tick++;
+}
+
+function draw(ctx, state, W, H) {
+  const N = WORLD, cw = W / N, ch = H / N;
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#4ade80';
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++)
+    if (state.grid[y][x]) ctx.fillRect(x * cw + 0.3, y * ch + 0.3, cw - 0.4, ch - 0.4);
+}
+`;
+
+// ─── ABM モデル ─────────────────────────────────────────────────
+const CODE_ACO = `const TITLE = 'アリのフェロモン';
+
+// ── アリのフェロモンモデル（蟻の採餌行動）──────────────────────
+const DESCRIPTION = { summary:'アリがフェロモンを残し合うことで、巣と餌を結ぶ経路が群れとして見つかる。', agent:'アリ。餌を探して歩き、餌を持つと巣へ戻り、通り道にフェロモンを残す。帰巣中はフェロモンを参照せず巣へ直行する。', environment:'壁で囲まれた有限平面（外周で反射し、トーラスではない）に巣と複数の餌場。フェロモンは時間で蒸発・拡散する。', interaction:'探索中のアリだけがフェロモンの濃い方へ進みやすく、良い経路ほど強化される正のフィードバックで経路が収束する。' };
+// フェロモンを使って食料源への経路を発見する（アリの採餌モデル）
+const WORLD = 80;
+const PHER_MIN = 0.5;   // これ未満のフェロモンは0にする（残留トレイルで固まるのを防ぐ）
+
+const PARAM_DEFS = [
+  { id: 'nAnts',  label: 'アリ数',       min: 10,  max: 300,  step: 5,    default: 100 },
+  { id: 'evap',   label: '蒸発率',       min: 0,   max: 1,    step: 0.01, default: 0.03 },
+  { id: 'diff',   label: '拡散率',       min: 0,   max: 1,    step: 0.01, default: 0.12 },
+  { id: 'drop',   label: 'フェロモン量', min: 1,   max: 80,   step: 1,    default: 30  },
+];
+
+const SETUP_DEFS = [
+  {
+    label: '食料源 3か所',
+    fn: (params, W, H) => {
+      const N = WORLD, cx = Math.floor(N / 2), cy = Math.floor(N / 2);
+      const cells = Array.from({ length: N }, () =>
+        Array.from({ length: N }, () => ({ pher: 0, food: 0, nest: false }))
+      );
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++)
+        cells[(cy + dy + N) % N][(cx + dx + N) % N].nest = true;
+      for (const [fx, fy] of [[cx+22,cy-16],[cx-20,cy+18],[cx+6,cy+24]])
+        for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++)
+          cells[(fy + dy + N) % N][(fx + dx + N) % N].food = 33;
+      const n = Math.round(params.nAnts ?? 100);
+      const ants = Array.from({ length: n }, () => ({
+        x: cx + (Math.random() - 0.5) * 4, y: cy + (Math.random() - 0.5) * 4,
+        heading: Math.random() * Math.PI * 2, hasFood: false,
+      }));
+      return { cells, ants, tick: 0, collected: 0 };
+    }
+  },
+  {
+    label: '食料源 5か所（ランダム）',
+    fn: (params, W, H) => {
+      const N = WORLD, cx = Math.floor(N / 2), cy = Math.floor(N / 2);
+      const cells = Array.from({ length: N }, () =>
+        Array.from({ length: N }, () => ({ pher: 0, food: 0, nest: false }))
+      );
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++)
+        cells[(cy + dy + N) % N][(cx + dx + N) % N].nest = true;
+      for (let i = 0; i < 5; i++) {
+        const fx = 5 + Math.floor(Math.random() * (N - 10));
+        const fy = 5 + Math.floor(Math.random() * (N - 10));
+        for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++)
+          cells[(fy + dy + N) % N][(fx + dx + N) % N].food = 27;
+      }
+      const n = Math.round(params.nAnts ?? 100);
+      const ants = Array.from({ length: n }, () => ({
+        x: cx + (Math.random() - 0.5) * 4, y: cy + (Math.random() - 0.5) * 4,
+        heading: Math.random() * Math.PI * 2, hasFood: false,
+      }));
+      return { cells, ants, tick: 0, collected: 0 };
+    }
+  },
+];
+
+const BUTTON_DEFS = [
+  {
+    label: 'フェロモン消去',
+    color: '#64748b',
+    fn: (state) => { state.cells.forEach(row => row.forEach(p => p.pher = 0)); }
+  },
+  {
+    label: '食料補充',
+    color: '#22c55e',
+    fn: (state) => { state.cells.forEach(row => row.forEach(p => { if (!p.nest) p.food = 33; })); }
+  },
+];
+
+const PLOT_DEFS = [{
+  title: '回収した食料（累積）',
+  yMin: 0,
+  series: [{ id: 'col', label: '累積回収量', color: '#fbbf24', fn: s => s.collected }]
+}];
+
+function setup(params = {}, W, H) { return SETUP_DEFS[0].fn(params, W, H); }
+
+function step(state, dt, params = {}, W, H) {
+  const N = WORLD, { cells, ants } = state;
+  const evap = params.evap ?? 0.03, diff = params.diff ?? 0.12, drop = params.drop ?? 30;
+
+  // フェロモン拡散・蒸発（トーラスにしない：盤外は近傍として数えない）
+  const newP = cells.map((row, y) => row.map((cell, x) => {
+    let sum = 0, cnt = 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const ny = y + dy, nx = x + dx;
+      if (ny < 0 || ny >= N || nx < 0 || nx >= N) continue;
+      sum += cells[ny][nx].pher; cnt++;
+    }
+    const val = cell.pher * (1 - evap) * (1 - diff) + (sum / cnt) * diff * (1 - evap);
+    return val < PHER_MIN ? 0 : val;   // ごく小さい値は0にして残留を消す
+  }));
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) cells[y][x].pher = newP[y][x];
+
+  const cx2 = Math.floor(N / 2), cy2 = Math.floor(N / 2);
+  for (const ant of ants) {
+    const px = Math.max(0, Math.min(N - 1, Math.floor(ant.x)));
+    const py = Math.max(0, Math.min(N - 1, Math.floor(ant.y)));
+    const cell = cells[py][px];
+
+    if (ant.hasFood) {
+      // 食料保持 → フェロモンを置きながら巣へ。帰巣中はフェロモンを参照せず、巣の方向へ直行する
+      cell.pher = Math.min(cell.pher + drop, 600);
+      const ang = Math.atan2(cy2 - ant.y, cx2 - ant.x);
+      ant.heading = ang + (Math.random() - 0.5) * 0.3;
+      if (cell.nest) { ant.hasFood = false; state.collected++; }
+    } else {
+      if (cell.food > 0) {
+        cell.food = Math.max(0, cell.food - 1);
+        ant.hasFood = true;
+        ant.heading += Math.PI;
+      } else {
+        // 探索中のみフェロモン/食料の濃い方向を参照する。無ければまっすぐ進むのを基準にする。
+        let bestVal = 0, bestAng = ant.heading;
+        for (let k = -3; k <= 3; k++) {
+          const sAng = ant.heading + k * 0.3;
+          const sx = Math.max(0, Math.min(N - 1, Math.floor(ant.x + Math.cos(sAng) * 2)));
+          const sy = Math.max(0, Math.min(N - 1, Math.floor(ant.y + Math.sin(sAng) * 2)));
+          const v = cells[sy][sx].pher + cells[sy][sx].food * 8;
+          if (v > bestVal) { bestVal = v; bestAng = sAng; }
+        }
+        // 頭の向きの変化は穏やかに（小さくランダムに揺らぐ）→ 巣から放射状に広がる
+        ant.heading = bestAng + (Math.random() - 0.5) * 1.0;
+      }
+    }
+
+    // 移動（トーラスにしない：壁で反射して内側に留まる）
+    let nx = ant.x + Math.cos(ant.heading);
+    let ny = ant.y + Math.sin(ant.heading);
+    if (nx < 0)            { nx = -nx;                ant.heading = Math.PI - ant.heading; }
+    else if (nx > N - 1)   { nx = 2 * (N - 1) - nx;   ant.heading = Math.PI - ant.heading; }
+    if (ny < 0)            { ny = -ny;                ant.heading = -ant.heading; }
+    else if (ny > N - 1)   { ny = 2 * (N - 1) - ny;   ant.heading = -ant.heading; }
+    ant.x = Math.max(0, Math.min(N - 1, nx));
+    ant.y = Math.max(0, Math.min(N - 1, ny));
+  }
+  state.tick++;
+}
+
+function draw(ctx, state, W, H) {
+  const N = WORLD, cw = W / N, ch = H / N;
+  ctx.fillStyle = '#0a1020'; ctx.fillRect(0, 0, W, H);
+  const { cells, ants } = state;
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const p = cells[y][x];
+    if (p.nest) {
+      ctx.fillStyle = 'rgba(255,210,100,0.45)'; ctx.fillRect(x * cw, y * ch, cw, ch);
+    } else if (p.food > 0) {
+      const a = Math.min(1, p.food / 33).toFixed(2);
+      ctx.fillStyle = 'rgba(80,210,80,' + a + ')'; ctx.fillRect(x * cw, y * ch, cw, ch);
+    } else if (p.pher > 0) {
+      const a = Math.min(0.95, 0.18 + p.pher / 100).toFixed(2);
+      ctx.fillStyle = 'rgba(120,190,255,' + a + ')'; ctx.fillRect(x * cw, y * ch, cw, ch);
+    }
+  }
+  const r = Math.min(cw, ch) * 0.45;
+  for (const ant of ants) {
+    const ax = Math.max(0, Math.min(N - 1, ant.x)) * cw + cw / 2;
+    const ay = Math.max(0, Math.min(N - 1, ant.y)) * ch + ch / 2;
+    ctx.fillStyle = ant.hasFood ? '#ffd700' : '#e8d5b0';
+    ctx.beginPath(); ctx.arc(ax, ay, r, 0, Math.PI * 2); ctx.fill();
+  }
+}
+`;
+
+
+const CODE_PD = `const TITLE = '空間囚人のジレンマ';
+
+// ── 空間囚人のジレンマ──────────────────────────────────
+const DESCRIPTION = { summary:'協力と裏切りが空間で隣どうし対戦し、協力が生き残れるかを見る空間囚人のジレンマ。', agent:'格子上のプレイヤー。戦略は協力(C)か裏切り(D)。', environment:'2次元格子。各セルが近傍と総当たり対戦する。', interaction:'近傍との利得を合計し、周囲で最も得点の高い戦略を次世代にまねる。協力の塊が裏切りに抗して広がる。' };
+// 協力(C=青)と裏切り(D=赤)の戦略が空間上で競い合う ── 協力はなぜ生まれるか？
+// 空間版の囚人のジレンマ（協力の進化を見る）
+const WORLD = 80;
+
+const PARAM_DEFS = [
+  { id: 'b',     label: '裏切り利得 b', min: 1.0, max: 2.5, step: 0.01, default: 1.65 },
+  { id: 'noise', label: 'ノイズ率',     min: 0,   max: 0.10, step: 0.005,default: 0.01 },
+];
+
+const SETUP_DEFS = [
+  {
+    label: '協力者多数（中央に裏切り者）',
+    fn: (params, W, H) => {
+      const N = WORLD, cx = N / 2, cy = N / 2;
+      const grid = Array.from({ length: N }, (_, y) =>
+        Array.from({ length: N }, (_, x) =>
+          (Math.abs(x - cx) <= 1 && Math.abs(y - cy) <= 1) ? 1 : 0 // 1=D, 0=C
+        )
+      );
+      return { grid, tick: 0, coop: 1.0 };
+    }
+  },
+  {
+    label: 'ランダム 50:50',
+    fn: (params, W, H) => {
+      const N = WORLD;
+      const grid = Array.from({ length: N }, () =>
+        Array.from({ length: N }, () => Math.random() < 0.5 ? 1 : 0)
+      );
+      return { grid, tick: 0, coop: 0.5 };
+    }
+  },
+  {
+    label: '全員裏切り（中央1人が協力）',
+    fn: (params, W, H) => {
+      const N = WORLD;
+      const grid = Array.from({ length: N }, () => new Array(N).fill(1));
+      grid[Math.floor(N / 2)][Math.floor(N / 2)] = 0;
+      return { grid, tick: 0, coop: 0 };
+    }
+  },
+];
+
+const BUTTON_DEFS = [
+  {
+    label: '全員を協力(C)に',
+    color: '#2563eb',
+    fn: (state) => { state.grid.forEach(r => r.fill(0)); state.coop = 1; }
+  },
+  {
+    label: '全員を裏切り(D)に',
+    color: '#dc2626',
+    fn: (state) => { state.grid.forEach(r => r.fill(1)); state.coop = 0; }
+  },
+  {
+    label: '中央に裏切り者（5×5）',
+    color: '#7c3aed',
+    fn: (state) => {
+      const N = WORLD, cx = Math.floor(N / 2), cy = Math.floor(N / 2);
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++)
+        state.grid[(cy + dy + N) % N][(cx + dx + N) % N] = 1;
+    }
+  },
+];
+
+const PLOT_DEFS = [{
+  title: '協力者(C) vs 裏切り者(D) の割合',
+  yMin: 0, yMax: 1,
+  series: [
+    { id: 'coop',   label: '協力(C)', color: '#3b82f6', fn: s => s.coop },
+    { id: 'defect', label: '裏切(D)', color: '#ef4444', fn: s => 1 - s.coop },
+  ]
+}];
+
+function setup(params = {}, W, H) { return SETUP_DEFS[0].fn(params, W, H); }
+
+function step(state, dt, params = {}, W, H) {
+  const N = WORLD, b = params.b ?? 1.65, noise = params.noise ?? 0.01, { grid } = state;
+  // 得点計算（ムーア近傍 8 + 自身）
+  const score = Array.from({ length: N }, () => new Float32Array(N));
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    let s = 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const ny = (y + dy + N) % N, nx = (x + dx + N) % N;
+      if (grid[y][x] === 1 && grid[ny][nx] === 0) s += b;
+      else if (grid[y][x] === 0 && grid[ny][nx] === 0) s += 1;
+    }
+    score[y][x] = s;
+  }
+  // 戦略更新（最高得点の近傍の戦略をコピー）
+  const next = Array.from({ length: N }, () => new Uint8Array(N));
+  let coop = 0;
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    let bestS = score[y][x], bestT = grid[y][x];
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      if (!dx && !dy) continue;
+      const ny = (y + dy + N) % N, nx = (x + dx + N) % N;
+      if (score[ny][nx] > bestS) { bestS = score[ny][nx]; bestT = grid[ny][nx]; }
+    }
+    next[y][x] = Math.random() < noise ? (Math.random() < 0.5 ? 0 : 1) : bestT;
+    if (next[y][x] === 0) coop++;
+  }
+  state.grid = next;
+  state.coop = coop / (N * N);
+  state.tick++;
+}
+
+function draw(ctx, state, W, H) {
+  const N = WORLD, cw = W / N, ch = H / N;
+  ctx.fillStyle = '#0a0a18'; ctx.fillRect(0, 0, W, H);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    ctx.fillStyle = state.grid[y][x] === 0 ? '#3b82f6' : '#ef4444';
+    ctx.fillRect(x * cw + 0.2, y * ch + 0.2, cw - 0.2, ch - 0.2);
+  }
+}
+`;
+
+const CODE_SPS = `const TITLE = 'ソーシャル・パーティクル・スウォーム';
+
+// ── Social Particle Swarm（SPS）─────────────────────────────────
+const DESCRIPTION = { summary:'粒子＝個人とみなし、協力/裏切りと『距離＝関係の強さ』が共に変化する社会的群れモデル。', agent:'粒子(個人)。協力(C)か裏切り(D)の戦略と、各自固有の協力しやすさ(閾値)を持つ。', environment:'端がつながったトーラス平面。近い粒子どうしが相互作用する。', interaction:'近傍の協力率で戦略を更新し、利得に応じて引き寄せ/反発で移動。集合→裏切り侵入→崩壊の周期が現れることがある。' };
+// 社会的粒子群モデル。粒子＝個人で、近さ＝関係の強さ。
+// 各粒子は協力/裏切りの2戦略を取り、ゲームの利得から引力/斥力を受けて動く。
+// 「協力クラスタ形成 → 裏切り侵入 → 爆発的崩壊」の周期的パターンが現れる。
+const PARAM_DEFS = [
+  { id: 'nP',  label: '粒子数 N',          min: 50, max: 500, step: 10, default: 250,
+    help: '空間に置く粒子（個人）の数です。多いほど密度が上がります。' },
+  { id: 'R',   label: '相互作用半径 R',     min: 20, max: 200, step: 5,  default: 70,
+    help: 'この距離以内の粒子を「近傍」として見ます。社交性に相当。中くらいで周期パターンが出やすい。' },
+  { id: 'v',   label: '速さ v',            min: 1,  max: 20,  step: 1,  default: 6,
+    help: '1ステップで進む距離（速さは一定で向きだけ力で決まる）。' },
+  { id: 'Tem', label: '裏切りの誘惑 Tem',   min: 0,  max: 4,   step: 0.1, default: 2.0,
+    help: '裏切って相手が協力のときの利得。大きいほど裏切り者がクラスタに侵入しやすい。' },
+  { id: 'Suc', label: 'カモの利得 Suc',     min: -4, max: 0,   step: 0.1, default: -2.0,
+    help: '協力したのに相手が裏切ったときの利得。小さい(負に大)ほど協力者が逃げて分散しやすい。' },
+  { id: 'pd',  label: '撹乱確率 pd',        min: 0,  max: 0.1, step: 0.005, default: 0.03,
+    help: '各ステップで戦略がランダムに反転する確率（外部効果）。0でも周期は起こり得ます。' },
+];
+const REW = 1, PUN = -1;   // 相互協力の報酬 / 相互裏切りの罰（固定）
+
+const PLOT_DEFS = [
+  { title: '協力者の割合', yMin: 0, yMax: 1,
+    series: [{ id: 'c', label: '協力率', color: '#3b82f6', fn: s => s.coopRate ?? 0 }] },
+  { title: '平均近傍数（集合と分散の指標）', yMin: 0,
+    series: [{ id: 'nb', label: '平均近傍数', color: '#fbbf24', fn: s => s.avgNb ?? 0 }] },
+];
+
+function makeParticles(n, W, H, fixedCt) {
+  return Array.from({ length: n }, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    s: Math.random() < 0.5 ? 1 : 0,                 // 1=協力, 0=裏切り
+    ct: fixedCt != null ? fixedCt : Math.random(),  // 協力閾値 [0,1)（固定）
+    hx: 0, hy: 0
+  }));
+}
+
+const SETUP_DEFS = [
+  { label: 'ランダム配置（ct 多様）',
+    fn: (params, W, H) => ({ particles: makeParticles(Math.round(params.nP ?? 200), W, H, null), tick: 0, coopRate: 0, avgNb: 0 }) },
+  { label: 'ct を一律 0.5（多様性なし）',
+    fn: (params, W, H) => ({ particles: makeParticles(Math.round(params.nP ?? 200), W, H, 0.5), tick: 0, coopRate: 0, avgNb: 0 }) },
+];
+
+const BUTTON_DEFS = [
+  { label: '中央に集めて協力', color: '#22c55e',
+    fn: (state, params, W, H) => {
+      const cx = W / 2, cy = H / 2;
+      for (const p of state.particles) { p.x = cx + (Math.random() - 0.5) * 30; p.y = cy + (Math.random() - 0.5) * 30; p.s = 1; }
+    } },
+];
+
+function setup(params = {}, W, H) { return SETUP_DEFS[0].fn(params, W, H); }
+
+// i の利得（i の戦略 si、相手 j の戦略 sj）
+function payoff(si, sj, Tem, Suc) {
+  if (si === 1) return sj === 1 ? REW : Suc;   // CC=Rew, CD=Suc
+  return sj === 1 ? Tem : PUN;                 // DC=Tem, DD=Pun
+}
+// トーラス境界の最小像（最短方向の差分）
+function wrapDelta(d, L) { if (d > L * 0.5) return d - L; if (d < -L * 0.5) return d + L; return d; }
+
+function step(state, dt, params = {}, W, H) {
+  const ps = state.particles, n = ps.length;
+  const R = params.R ?? 70, R2 = R * R;
+  const v = params.v ?? 6, Tem = params.Tem ?? 2.0, Suc = params.Suc ?? -2.0, pd = params.pd ?? 0.02;
+
+  // 近傍リスト（距離 < R）。位置は移動前なので戦略更新と力計算で共用する。
+  const nb = Array.from({ length: n }, () => []);
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      const dx = wrapDelta(ps[j].x - ps[i].x, W), dy = wrapDelta(ps[j].y - ps[i].y, H);
+      if (dx * dx + dy * dy < R2) { nb[i].push(j); nb[j].push(i); }
+    }
+  }
+
+  // 1) 戦略選択（前ステップの戦略から同期更新）
+  const newS = new Array(n);
+  for (let i = 0; i < n; i++) {
+    const list = nb[i];
+    if (list.length === 0) { newS[i] = ps[i].s; }     // 近傍なしは現状維持
+    else {
+      let coop = 0;
+      for (let k = 0; k < list.length; k++) if (ps[list[k]].s === 1) coop++;
+      const rc = coop / list.length;                  // 近傍の協力者割合
+      newS[i] = ((1 - rc) < ps[i].ct) ? 1 : 0;        // 多数派同調（一般化tit-for-tat）
+    }
+    if (Math.random() < pd) newS[i] = 1 - newS[i];    // 撹乱（反転）
+  }
+  for (let i = 0; i < n; i++) ps[i].s = newS[i];
+
+  // 2) 移動：更新後の戦略で合力を計算し、向きだけ使って一定速 v で進む
+  let coopCount = 0, nbSum = 0;
+  for (let i = 0; i < n; i++) {
+    const list = nb[i]; nbSum += list.length;
+    if (ps[i].s === 1) coopCount++;
+    let cx = 0, cy = 0;
+    for (let k = 0; k < list.length; k++) {
+      const j = list[k];
+      const dx = wrapDelta(ps[j].x - ps[i].x, W), dy = wrapDelta(ps[j].y - ps[i].y, H);
+      const d2 = dx * dx + dy * dy; if (d2 < 1e-6) continue;
+      const P = payoff(ps[i].s, ps[j].s, Tem, Suc);
+      cx += P * dx / d2; cy += P * dy / d2;           // p_ij·(d/|d|) = P·d/|d|²
+    }
+    const mag = Math.sqrt(cx * cx + cy * cy);
+    if (mag > 1e-9) { ps[i].hx = cx / mag; ps[i].hy = cy / mag; }
+    else { const a = Math.random() * Math.PI * 2; ps[i].hx = Math.cos(a); ps[i].hy = Math.sin(a); } // 近傍なし→ランダム
+  }
+  // 全粒子の力計算後にまとめて移動（同期更新）
+  for (let i = 0; i < n; i++) {
+    ps[i].x = ((ps[i].x + v * ps[i].hx) % W + W) % W;
+    ps[i].y = ((ps[i].y + v * ps[i].hy) % H + H) % H;
+  }
+
+  state.coopRate = n ? coopCount / n : 0;
+  state.avgNb = n ? nbSum / n : 0;
+  state.tick++;
+}
+
+function draw(ctx, state, W, H) {
+  ctx.fillStyle = '#0a1020'; ctx.fillRect(0, 0, W, H);
+  const ps = state.particles;
+  for (let i = 0; i < ps.length; i++) {
+    const p = ps[i];
+    ctx.fillStyle = p.s === 1 ? '#3b82f6' : '#ef4444';   // 協力=青, 裏切り=赤
+    ctx.beginPath(); ctx.arc(p.x, p.y, 2.6, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.fillStyle = 'rgba(240,232,208,0.85)';
+  ctx.font = 'bold 11px IBM Plex Mono,monospace';
+  ctx.fillText('協力率 ' + Math.round((state.coopRate ?? 0) * 100) + '%   平均近傍 ' + (state.avgNb ?? 0).toFixed(1), 8, 16);
+}
+
+// 利得が正の相手には引力・負の相手には斥力。合力の向きに一定速で進む（群れ型の運動）。
+// Tem 大で裏切り侵入、Suc 小（負に大）で協力者が逃げ、クラスタが爆発的に崩壊→再形成（周期的パターン）。
+// ct を一律にすると周期は出ず Class B（協力クラスタで安定）になりやすい。
+`;
+
+// モデルマップ（キー → コード文字列）
+const MODELS = {
+  segregation: CODE_SEGREGATION,
+  sir:       CODE_SIR,
+  flock:     CODE_FLOCKING,
+  eca:       CODE_ECA,
+  life:      CODE_LIFE,
+  aco:       CODE_ACO,
+  pd:        CODE_PD,
+  sps:       CODE_SPS,
+};
+
+// ──────────────────────────────────────────────────────────────
+// Engine state
+// ──────────────────────────────────────────────────────────────
+let defs=null, simState=null, running=false, rafHandle=null, lastTs=null;
+let paramDefs=[], paramVals={};
+let setupDefs=[], activeSetupIdx=0;
+let buttonDefs=[];
+let chartDefs=[], chartHistories=[], chartAxisState=[];
+let stopCondFn=null, stopCondEnabled=true;
+const PLOT_MAX=800;
+let chartW=340;
+// ── v6 state ──
+let paramMode='live';            // 'live' | 'reset'
+let setupAffecting={};           // {paramId: true} → 変更に再セットアップが要る
+let lastSetupParams={};          // 直近のセットアップ時のパラメータ
+let pendingReset=false;          // setup系パラメータが変わった
+let frameCount=0;                // 描画間引き用フレームカウンタ
+let speedAccum=0;                // 実行速度の端数蓄積（tpf<1 のとき数フレームに1回 step）
+let fpsSamples=[], fpsLastTs=null;
+let snapshots=[];                // 保存した実験 [{id,label,params,histories,color,visible}]
+let snapSeq=0;
+const SNAP_COLORS=['#0ea5e9','#16a34a','#d97706','#9333ea','#dc2626','#0891b2','#65a30d','#db2777'];
+
+function getMaxTicks(){ return parseInt(document.getElementById('maxTickSlider').value)||500; }
+function isLoopEnabled(){ return document.getElementById('loopToggle').checked; }
+
+// ──────────────────────────────────────────────────────────────
+// Init
+// ──────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const rc = document.querySelector('.right-col');
+  if (rc) chartW = Math.max(240, rc.clientWidth - 24);
+  applyRecFramesDefault();   // decide before applyCode() captures the first frame
+  // code editor: line-number gutter sync
+  const ta = document.getElementById('codeArea');
+  const sync = () => syncGutter();
+  ta.addEventListener('input', sync);
+  ta.addEventListener('scroll', () => { document.getElementById('codeGutter').scrollTop = ta.scrollTop; });
+  document.getElementById('codeArea').value = CODE_SEGREGATION;
+  updateDrawEveryLabel();
+  applyCode(true);
+  syncGutter();
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeHelp(); });
+});
+window.addEventListener('resize', () => {
+  chartDefs.forEach((_,ci) => renderChart(ci));
+});
+
+// ──────────────────────────────────────────────────────────────
+// Code toggle
+// ──────────────────────────────────────────────────────────────
+function toggleCode() {
+  const body=document.getElementById('codeBody'),toggle=document.getElementById('codeToggle');
+  const open=body.classList.toggle('open');
+  toggle.textContent=open?'▾ コード':'▸ コード';
+  toggle.classList.toggle('open',open);
+}
+
+// ──────────────────────────────────────────────────────────────
+// Code parser
+// ──────────────────────────────────────────────────────────────
+function applyCode(silent) {
+  const code=document.getElementById('codeArea').value;
+  const err=document.getElementById('errorBox'),ok=document.getElementById('okBadge');
+  err.className='error-box';err.innerHTML='';
+  syncGutter();
+
+  // ── v6: 禁止構文の事前チェック（行番号つきで分かりやすく） ──
+  const banned = lintCode(code);
+  if (banned) {
+    showCodeError(banned.msg, banned.line, code, banned.hint);
+    if (!silent) {} // 失敗時はバッジを出さない
+    return;
+  }
+
+  let res;
+  try {
+    const fn=new Function(code+`
+      return {
+        setup:       typeof setup       !=='undefined'?setup:null,
+        step:        typeof step        !=='undefined'?step:null,
+        draw:        typeof draw        !=='undefined'?draw:null,
+        PARAM_DEFS:  typeof PARAM_DEFS  !=='undefined'?PARAM_DEFS:null,
+        SETUP_DEFS:  typeof SETUP_DEFS  !=='undefined'?SETUP_DEFS:null,
+        BUTTON_DEFS: typeof BUTTON_DEFS !=='undefined'?BUTTON_DEFS:null,
+        PLOT_DEFS:   typeof PLOT_DEFS   !=='undefined'?PLOT_DEFS:null,
+        MAX_TICKS:   typeof MAX_TICKS   !=='undefined'?MAX_TICKS:0,
+        STOP_COND:   typeof STOP_COND   !=='undefined'?STOP_COND:null,
+        DESCRIPTION: typeof DESCRIPTION !=='undefined'?DESCRIPTION:null,
+        TITLE:       typeof TITLE       !=='undefined'?TITLE:null,
+      };
+    `);
+    res=fn();
+  } catch(e){
+    const line=errorLine(e);
+    showCodeError(e.message, line, code, friendlyHint(e.message));
+    return;
+  }
+  try {
+    if(typeof res.setup!=='function') throw new Error('setup() 関数が見つかりません．');
+    if(typeof res.step !=='function') throw new Error('step() 関数が見つかりません．');
+    if(typeof res.draw !=='function') throw new Error('draw() 関数が見つかりません．');
+    defs=res;
+    setModelTitle(res.TITLE);
+    renderDescription(res.DESCRIPTION);
+    const maxTicks=(typeof res.MAX_TICKS==='number'&&res.MAX_TICKS>0)?res.MAX_TICKS:0;
+    if(maxTicks>0){
+      document.getElementById('maxTickSlider').value=Math.min(maxTicks,5000);
+      document.getElementById('loopToggle').checked=true;
+      const modeSel=document.getElementById('maxTickModeSel');
+      if(modeSel) modeSel.value = 'stop';   // 既定は常に「停止のみ」（ループしたい場合はユーザーが明示的に切り替える）
+      updateMaxTickLabel();
+      document.getElementById('loopBadge').classList.add('show');
+      const modeRow=document.getElementById('maxTickModeRow');
+      if(modeRow) modeRow.style.display='flex';
+    }
+    buildStopCond(res.STOP_COND||null);
+    buildParamSliders((res.PARAM_DEFS&&Array.isArray(res.PARAM_DEFS)&&res.PARAM_DEFS.length)?res.PARAM_DEFS:[]);
+    detectSetupAffecting(res);   // v6: どのパラメータが再セットアップを要するか判定
+    buildSetupSelector((res.SETUP_DEFS&&Array.isArray(res.SETUP_DEFS)&&res.SETUP_DEFS.length)?res.SETUP_DEFS:null);
+    buildActionButtons((res.BUTTON_DEFS&&Array.isArray(res.BUTTON_DEFS)&&res.BUTTON_DEFS.length)?res.BUTTON_DEFS:null);
+    setupCharts(res.PLOT_DEFS||null);
+    clearSnapshots(true);        // モデルが変わったら保存実験はリセット
+    resetSim();
+    if(!silent){ok.className='ok-badge show';setTimeout(()=>ok.className='ok-badge',1800);}
+  } catch(e){ showCodeError(e.message, errorLine(e), code, friendlyHint(e.message)); }
+}
+
+// ── v6: 禁止構文チェック ──
+function lintCode(code){
+  const lines=code.split('\n');
+  const rules=[
+    {re:/(^|[^.\w])class\s+[A-Za-z_$]/, msg:'class キーワードは使えません', hint:'オブジェクトリテラル {} やファクトリ関数で代替してください（例: const make = () => ({x:0,y:0}); ）'},
+    {re:/\bdocument\s*\./, msg:'document.* は使えません（DOM 操作は不可）', hint:'描画は draw(ctx, ...) の中で Canvas 2D（ctx）だけを使ってください'},
+    {re:/\bwindow\s*\./, msg:'window.* は使えません', hint:'グローバルなブラウザ API には触れられません。state と params だけで完結させてください'},
+    {re:/\.addEventListener\s*\(/, msg:'addEventListener は使えません', hint:'入力は PARAM_DEFS のスライダーや BUTTON_DEFS のボタンで受け取ってください'},
+    {re:/\bfetch\s*\(/, msg:'fetch（外部通信）は使えません', hint:'外部データは読み込めません。初期値は setup() の中で生成してください'},
+    {re:/\bXMLHttpRequest\b/, msg:'XMLHttpRequest（外部通信）は使えません', hint:'外部通信はできません'},
+    {re:/\bset(Timeout|Interval)\s*\(/, msg:'setTimeout / setInterval は使えません', hint:'時間発展は step() が毎フレーム呼ばれることで進みます。非同期処理は不要です'},
+    {re:/^\s*import\s/, msg:'import 文は使えません', hint:'外部ライブラリは読み込めません（純粋な JS + Canvas のみ）'},
+    {re:/^\s*export\s/, msg:'export 文は使えません', hint:'モジュール構文は使えません'},
+  ];
+  // 文字列・コメントを大ざっぱに除去してから判定（誤検知を減らす）
+  for(let i=0;i<lines.length;i++){
+    const stripped=lines[i]
+      .replace(/\/\/.*$/,'')
+      .replace(/(["'`])(?:\\.|(?!\1).)*\1/g,'""');
+    for(const r of rules){
+      if(r.re.test(stripped)) return {msg:r.msg, line:i+1, hint:r.hint};
+    }
+  }
+  return null;
+}
+
+function errorLine(e){
+  // new Function 内のエラー行から、ユーザーコード上の行番号を推定
+  const m=(e.stack||'').match(/<anonymous>:(\d+):\d+/) || (e.stack||'').match(/Function:(\d+):\d+/);
+  if(m){ const n=parseInt(m[1]); return n>1? n-1 : n; } // 関数ラッパで +1 行ずれる分を補正
+  if(typeof e.lineNumber==='number') return e.lineNumber;
+  return null;
+}
+
+function friendlyHint(msg){
+  if(/is not defined/.test(msg)) return '変数名のスペルミス、または定義する前に使っている可能性があります';
+  if(/Unexpected token|Unexpected end|missing/.test(msg)) return '括弧 () {} [] の対応や、カンマ・セミコロンの抜けを確認してください';
+  if(/is not a function/.test(msg)) return '関数でないものを () で呼び出しています。変数の中身を確認してください';
+  if(/Cannot read|reading/.test(msg)) return 'undefined のプロパティを参照しています。state の初期化（setup の return）を確認してください';
+  return '';
+}
+
+function showCodeError(msg, line, code, hint){
+  const el=document.getElementById('errorBox');
+  let html='⚠ '+escHtml(msg)+(line?'（'+line+' 行目あたり）':'');
+  if(line && code){
+    const ln=code.split('\n')[line-1];
+    if(ln!==undefined) html+='<span class="errline">'+line+' | '+escHtml(ln.trim().slice(0,120))+'</span>';
+  }
+  if(hint) html+='<span class="errhint">💡 '+escHtml(hint)+'</span>';
+  el.innerHTML=html; el.className='error-box show';
+  // コード欄が閉じていたら開いて気づけるように
+  const body=document.getElementById('codeBody');
+  if(!body.classList.contains('open')) toggleCode();
+}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function loadFromSelect(key) {
+  const sel = document.getElementById('modelSelect');
+  if (sel) sel.value = '';
+  if (!key || !MODELS[key]) return;
+  paramVals = {};   // 組み込みモデルは自前の既定値を持つので，前のモデルの値を引き継がない
+  document.getElementById('codeArea').value = MODELS[key];
+  applyCode();
+}
+// 後方互換（旧ボタンリンクが残っていた場合）
+function loadDefault()  { loadFromSelect('segregation'); }
+function loadSIR()      { loadFromSelect('sir'); }
+function loadFlocking() { loadFromSelect('flock'); }
+
+// ──────────────────────────────────────────────────────────────
+// Stop condition (STOP_COND)
+// ──────────────────────────────────────────────────────────────
+function buildStopCond(raw){
+  // 形式A: 関数のみ  const STOP_COND = (state, params) => ...
+  // 形式B: オブジェクト  const STOP_COND = { label: '説明', fn: (state,params)=>... }
+  let fn=null, label='', code='';
+  if(typeof raw==='function'){
+    fn=raw;
+    code=raw.toString().replace(/^[^=]*=>\s*/,'').trim();  // arrow body
+    label='条件が true になると自動停止';
+  } else if(raw&&typeof raw==='object'&&typeof raw.fn==='function'){
+    fn=raw.fn;
+    label=raw.label||'';
+    code=raw.code||raw.fn.toString().replace(/^[^=]*=>\s*/,'').trim();
+  }
+  stopCondFn=fn;
+  stopCondEnabled=true;
+  const section=document.getElementById('stopcondSection');
+  const labelEl=document.getElementById('stopcondLabel');
+  const codeEl=document.getElementById('stopcondCode');
+  const chk=document.getElementById('stopcondToggle');
+  if(!fn){
+    section.classList.remove('show');
+    updateSepTop();
+    return;
+  }
+  section.classList.add('show');
+  updateSepTop();
+  chk.checked=true;
+  labelEl.textContent=label;
+  labelEl.classList.remove('active');
+  if(code){codeEl.textContent=code;codeEl.classList.add('show');}
+  else{codeEl.classList.remove('show');}
+}
+
+function onStopCondToggle(){
+  stopCondEnabled=document.getElementById('stopcondToggle').checked;
+  if(!stopCondEnabled){
+    document.getElementById('stoppedBadge').classList.remove('show');
+    document.getElementById('stopcondLabel').classList.remove('active');
+  }
+}
+
+function checkStopCond(){
+  if(!stopCondFn||!stopCondEnabled||!simState)return false;
+  let result=false;
+  try{result=stopCondFn(simState,getParams());}catch(_){return false;}
+  if(result){
+    stopSim();
+    renderFrame();updateTickUI();  // 停止時の最終状態を確実に描画
+    document.getElementById('stoppedBadge').classList.add('show');
+    document.getElementById('stopcondLabel').classList.add('active');
+    showToast('停止条件が満たされました（tick '+(simState.tick??0)+'）');
+    return true;
+  }
+  return false;
+}
+
+// ──────────────────────────────────────────────────────────────
+// Param sliders
+// ──────────────────────────────────────────────────────────────
+function renderDescription(desc){
+  const box=document.getElementById('descBox'); if(!box) return;
+  const E=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  if(!desc){ box.className='desc-box empty'; box.innerHTML=''; return; }
+  box.className='desc-box';
+  if(typeof desc==='string'){ box.innerHTML=E(desc).replace(/\n/g,'<br>'); return; }
+  let h='';
+  if(modelTitle) h+='<div class="desc-title" style="font-weight:700;color:var(--accent);margin-bottom:4px">'+E(modelTitle)+'</div>';
+  if(desc.summary) h+='<div class="desc-sum">'+E(desc.summary)+'</div>';
+  const row=(k,v)=> v?('<div class="desc-row"><span class="desc-k">'+k+'</span><span class="desc-v">'+E(v)+'</span></div>'):'';
+  h+=row('エージェント',desc.agent)+row('環境',desc.environment)+row('相互作用',desc.interaction);
+  if(!h) h=E(JSON.stringify(desc));
+  box.innerHTML=h;
+}
+function buildParamSliders(pdefs) {
+  paramDefs=pdefs;
+  const group=document.getElementById('paramGroup');
+  [...group.querySelectorAll('.slider-row')].forEach(el=>el.remove());
+  pdefs.forEach(p=>{
+    if(!(p.id in paramVals))paramVals[p.id]=p.default;
+    paramVals[p.id]=Math.min(p.max,Math.max(p.min,paramVals[p.id]));
+    const row=document.createElement('div');row.className='slider-row';
+    const label=document.createElement('label');label.className='param-label';label.id='paramlbl_'+p.id;
+    label.textContent=p.label;label.htmlFor='param_'+p.id;
+    // 名前が長い場合は省略されるため、全文をホバーで参照できるようにする。
+    label.title=p.label+'  ['+p.id+']'+(p.help?'\n'+p.help:'');
+    const lblVar=document.createElement('span');lblVar.className='pvar';
+    lblVar.textContent=p.id;lblVar.title=p.id;
+    const input=document.createElement('input');
+    input.type='range';input.min=p.min;input.max=p.max;input.step=p.step;
+    input.value=paramVals[p.id];input.id='param_'+p.id;
+    const val=document.createElement('input');
+    val.type='number';val.className='slider-num';val.id='paramval_'+p.id;
+    val.min=p.min;val.max=p.max;val.step=p.step;
+    const dPV=p.step<0.01?3:p.step<0.1?2:p.step<1?1:0;
+    const numStr=(v)=>+(+v).toFixed(dPV);
+    val.value=numStr(paramVals[p.id]);
+    // スライダー → 数値欄
+    input.addEventListener('input',()=>{
+      paramVals[p.id]=parseFloat(input.value);
+      val.value=numStr(paramVals[p.id]);
+      onParamChanged(p.id);
+    });
+    // 数値欄に直接入力 → スライダーへ反映（入力途中は欄のテキストを書き換えない）
+    val.addEventListener('input',()=>{
+      const v=parseFloat(val.value);
+      if(!isFinite(v))return;
+      input.value=v;                                   // range が min/max/step に丸める
+      paramVals[p.id]=parseFloat(input.value);
+      onParamChanged(p.id);
+    });
+    // 確定（Enter/フォーカス外れ）時に範囲内へ整える
+    val.addEventListener('change',()=>{
+      let v=parseFloat(val.value);
+      if(!isFinite(v))v=paramVals[p.id];
+      v=Math.min(p.max,Math.max(p.min,v));
+      input.value=v;paramVals[p.id]=parseFloat(input.value);
+      val.value=numStr(paramVals[p.id]);
+      onParamChanged(p.id);
+    });
+    row.append(label,lblVar,input,val);
+    if(p.unit){const u=document.createElement('span');u.className='param-unit';u.textContent=p.unit;row.append(u);}
+    if(p.help){
+      const info=document.createElement('span');info.className='pinfo';info.textContent='ⓘ';
+      const tip=document.createElement('span');tip.className='tip';tip.textContent=p.help;
+      info.appendChild(tip);row.appendChild(info);
+    }
+    group.appendChild(row);
+  });
+}
+// v6: パラメータ変更時の挙動
+function onParamChanged(id){
+  if(paramMode==='reset'){
+    clearTimeout(onParamChanged._t);
+    onParamChanged._t=setTimeout(()=>resetSim(),220);
+    return;
+  }
+  // live モード: step が毎フレーム getParams() を読むので即時反映される。
+  // ただし setup でしか使われない値は再セットアップが必要 → ヒント表示。
+  if(setupAffecting[id]){
+    pendingReset=true;
+    document.getElementById('resetHint').classList.add('show');
+    const lbl=document.getElementById('paramlbl_'+id);
+    if(lbl) lbl.classList.add('needs-setup');
+  }
+}
+function setParamMode(m){
+  paramMode=m;
+  document.getElementById('pmode_live').classList.toggle('on',m==='live');
+  document.getElementById('pmode_reset').classList.toggle('on',m==='reset');
+  if(m==='reset'){ resetSim(); }
+}
+// v6: PARAM_DEFS のうち、setup 系でのみ使われる（=変更に再セットアップが要る）ものを判定
+function detectSetupAffecting(res){
+  setupAffecting={};
+  const setupSrc=[];
+  if(typeof res.setup==='function') setupSrc.push(res.setup.toString());
+  if(Array.isArray(res.SETUP_DEFS)) res.SETUP_DEFS.forEach(s=>{ if(s&&typeof s.fn==='function') setupSrc.push(s.fn.toString()); });
+  const stepSrc=(typeof res.step==='function')?res.step.toString():'';
+  paramDefs.forEach(p=>{
+    const pat=new RegExp('params(?:\\.'+p.id+'\\b|\\[[\'"]'+p.id+'[\'"]\\])');
+    const inSetup=setupSrc.some(s=>pat.test(s));
+    const inStep=pat.test(stepSrc);
+    setupAffecting[p.id]= inSetup && !inStep;
+  });
+}
+function fmtPV(v,p){const d=p.step<0.01?3:p.step<0.1?2:p.step<1?1:0;return v.toFixed(d)+(p.unit||'');}
+function getParams(){
+  const obj={};
+  paramDefs.forEach(p=>{const el=document.getElementById('param_'+p.id);obj[p.id]=el?parseFloat(el.value):(paramVals[p.id]??p.default);});
+  return obj;
+}
+
+// ──────────────────────────────────────────────────────────────
+// Setup selector (SETUP_DEFS)
+// ──────────────────────────────────────────────────────────────
+function buildSetupSelector(sdefs) {
+  setupDefs=sdefs||[];
+  activeSetupIdx=0;
+  const section=document.getElementById('setupSection');
+  const btnsEl=document.getElementById('setupBtns');
+  btnsEl.innerHTML='';
+  section.classList.toggle('show',sdefs&&sdefs.length>0);
+  if(!sdefs||!sdefs.length)return;
+  sdefs.forEach((s,i)=>{
+    const btn=document.createElement('button');
+    btn.className='setup-btn'+(i===0?' active':'');
+    btn.textContent=s.label;
+    btn.id='setupBtn_'+i;
+    btn.onclick=()=>selectSetup(i);
+    btnsEl.appendChild(btn);
+  });
+}
+
+function selectSetup(idx) {
+  activeSetupIdx=idx;
+  document.querySelectorAll('.setup-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  resetSim();
+}
+
+function getSetupFn() {
+  if(setupDefs.length>0&&setupDefs[activeSetupIdx]&&typeof setupDefs[activeSetupIdx].fn==='function')
+    return setupDefs[activeSetupIdx].fn;
+  return defs.setup;
+}
+
+// ──────────────────────────────────────────────────────────────
+// Action buttons (BUTTON_DEFS)
+// ──────────────────────────────────────────────────────────────
+function buildActionButtons(bdefs) {
+  buttonDefs=bdefs||[];
+  const section=document.getElementById('actionSection');
+  const btnsEl=document.getElementById('actionBtns');
+  btnsEl.innerHTML='';
+  section.classList.toggle('show',bdefs&&bdefs.length>0);
+  if(!bdefs||!bdefs.length)return;
+  bdefs.forEach((b,i)=>{
+    const btn=document.createElement('button');
+    btn.className='action-btn';
+    btn.textContent=b.label;
+    if(b.color){
+      btn.style.borderColor=b.color;
+      btn.style.color=b.color;
+    }
+    btn.onclick=()=>fireAction(i,btn);
+    btnsEl.appendChild(btn);
+  });
+}
+
+function updateSepTop(){
+  const hasAny=document.getElementById('setupSection').classList.contains('show')||
+               document.getElementById('actionSection').classList.contains('show')||
+               document.getElementById('stopcondSection').classList.contains('show');
+  document.getElementById('sepTop').style.display=hasAny?'':'none';
+}
+
+function fireAction(idx, btn) {
+  if(!simState||!buttonDefs[idx])return;
+  const canvas=document.getElementById('simCanvas');
+  try{
+    buttonDefs[idx].fn(simState,getParams(),canvas.width,canvas.height);
+    renderFrame();updateTickUI();
+    if(btn){btn.style.opacity='.6';setTimeout(()=>btn.style.opacity='',200);}
+  }catch(e){showErr('BUTTON_DEFS['+idx+'] エラー: '+e.message);}
+}
+
+// ──────────────────────────────────────────────────────────────
+// Chart setup
+// ──────────────────────────────────────────────────────────────
+function normalizePlotDefs(raw){
+  if(!raw||!Array.isArray(raw)||!raw.length)return[];
+  if(raw[0]&&typeof raw[0]==='object'&&Array.isArray(raw[0].series))
+    return raw.map(c=>({title:c.title||'',yMin:c.yMin!==undefined?c.yMin:null,yMax:c.yMax!==undefined?c.yMax:null,series:c.series||[]}));
+  return[{title:'',yMin:null,yMax:null,series:raw}];
+}
+
+function setupCharts(rawPlotDefs){
+  chartDefs=normalizePlotDefs(rawPlotDefs);
+  chartHistories=chartDefs.map(()=>[]);
+  chartAxisState=chartDefs.map(cd=>({
+    yMode:'auto', yMin:(cd.yMin!==null?cd.yMin:0), yMax:(cd.yMax!==null?cd.yMax:100),
+    xMode:'auto', xMin:0, xMax:100,
+  }));
+  const section=document.getElementById('chartsSection');
+  section.innerHTML='';
+  if(!chartDefs.length){section.classList.remove('show');renderSnapshots();return;}
+  section.classList.add('show');
+  chartDefs.forEach((cd,idx)=>{
+    const block=document.createElement('div');block.className='chart-block';
+    const hdr=document.createElement('div');hdr.className='chart-hdr';
+    if(cd.title){const t=document.createElement('span');t.className='chart-title';t.textContent=cd.title;hdr.appendChild(t);}
+    const legend=document.createElement('div');legend.className='legend';
+    cd.series.forEach(s=>{
+      const item=document.createElement('div');item.className='legend-item';
+      const dot=document.createElement('div');dot.className='legend-dot';dot.style.background=s.color;
+      const lbl=document.createElement('span');lbl.textContent=s.label;
+      item.append(dot,lbl);legend.appendChild(item);
+    });
+    hdr.appendChild(legend);
+    const csvBtn=document.createElement('button');csvBtn.className='chart-action-btn';
+    csvBtn.textContent='⬇ CSV';csvBtn.title='クリップボードにコピー';csvBtn.onclick=()=>copyChartCSV(idx,csvBtn);hdr.appendChild(csvBtn);
+    const fileBtn=document.createElement('button');fileBtn.className='chart-action-btn';
+    fileBtn.textContent='💾';fileBtn.title='CSVファイルとして保存';fileBtn.onclick=()=>downloadChartCSV(idx,fileBtn);hdr.appendChild(fileBtn);
+    const imgBtn=document.createElement('button');imgBtn.className='chart-action-btn';
+    imgBtn.textContent='🖼 画像';imgBtn.onclick=()=>copyChartImage(idx,imgBtn);hdr.appendChild(imgBtn);
+    const axisBtn=document.createElement('button');axisBtn.className='chart-action-btn';
+    axisBtn.textContent='⚙ 軸';axisBtn.title='縦軸・横軸の範囲を手動設定／自動調整に切り替え';axisBtn.onclick=()=>toggleAxisRow(idx);hdr.appendChild(axisBtn);
+    const axisRow=document.createElement('div');axisRow.className='chart-axis-row';axisRow.id='chartAxisRow_'+idx;
+    axisRow.innerHTML=
+      '<span class="axis-lbl">縦軸(Y)</span>'+
+      '<select class="mini-sel" id="yMode_'+idx+'" onchange="onAxisModeChange('+idx+')"><option value="auto">自動調整</option><option value="manual">手動設定</option></select>'+
+      '<input type="number" class="axis-num" id="yMinIn_'+idx+'" placeholder="min" oninput="onAxisValChange('+idx+')">'+
+      '<span class="axis-lbl">〜</span>'+
+      '<input type="number" class="axis-num" id="yMaxIn_'+idx+'" placeholder="max" oninput="onAxisValChange('+idx+')">'+
+      '<span class="axis-lbl" style="margin-left:8px">横軸(X, tick)</span>'+
+      '<select class="mini-sel" id="xMode_'+idx+'" onchange="onAxisModeChange('+idx+')"><option value="auto">自動調整</option><option value="manual">手動設定</option></select>'+
+      '<input type="number" class="axis-num" id="xMinIn_'+idx+'" placeholder="min" oninput="onAxisValChange('+idx+')">'+
+      '<span class="axis-lbl">〜</span>'+
+      '<input type="number" class="axis-num" id="xMaxIn_'+idx+'" placeholder="max" oninput="onAxisValChange('+idx+')">';
+    const wrap=document.createElement('div');wrap.className='chart-canvas-wrap';
+    const canvas=document.createElement('canvas');
+    canvas.id='chartCanvas_'+idx;canvas.style.width='100%';canvas.style.height='140px';canvas.style.display='block';
+    wrap.appendChild(canvas);block.append(hdr,axisRow,wrap);section.appendChild(block);
+    initAxisInputs(idx);
+  });
+  renderSnapshots();
+}
+
+// ── 縦軸・横軸の手動設定／自動調整 ──
+function initAxisInputs(ci){
+  const st=chartAxisState[ci];if(!st)return;
+  const yModeEl=document.getElementById('yMode_'+ci),xModeEl=document.getElementById('xMode_'+ci);
+  const yMinEl=document.getElementById('yMinIn_'+ci),yMaxEl=document.getElementById('yMaxIn_'+ci);
+  const xMinEl=document.getElementById('xMinIn_'+ci),xMaxEl=document.getElementById('xMaxIn_'+ci);
+  if(yModeEl)yModeEl.value=st.yMode; if(xModeEl)xModeEl.value=st.xMode;
+  if(yMinEl)yMinEl.value=fmtNum(st.yMin); if(yMaxEl)yMaxEl.value=fmtNum(st.yMax);
+  if(xMinEl)xMinEl.value=st.xMin; if(xMaxEl)xMaxEl.value=st.xMax;
+  updateAxisInputsDisabled(ci);
+}
+function toggleAxisRow(ci){
+  const row=document.getElementById('chartAxisRow_'+ci);if(!row)return;
+  row.classList.toggle('show');
+}
+function updateAxisInputsDisabled(ci){
+  const st=chartAxisState[ci];if(!st)return;
+  const yMan=st.yMode==='manual', xMan=st.xMode==='manual';
+  const yMinEl=document.getElementById('yMinIn_'+ci),yMaxEl=document.getElementById('yMaxIn_'+ci);
+  const xMinEl=document.getElementById('xMinIn_'+ci),xMaxEl=document.getElementById('xMaxIn_'+ci);
+  if(yMinEl)yMinEl.disabled=!yMan; if(yMaxEl)yMaxEl.disabled=!yMan;
+  if(xMinEl)xMinEl.disabled=!xMan; if(xMaxEl)xMaxEl.disabled=!xMan;
+}
+function computeAutoYRange(ci){
+  const cd=chartDefs[ci],hist=chartHistories[ci]||[];
+  let yMin=cd.yMin!==null?cd.yMin:Infinity,yMax=cd.yMax!==null?cd.yMax:-Infinity;
+  const snaps=(typeof snapshots!=='undefined'?snapshots:[]).filter(s=>s.visible&&s.histories[ci]&&s.histories[ci].length);
+  const scan=h=>{for(const e of h)for(const v of Object.values(e.vals)){if(isFinite(v)){if(cd.yMin===null)yMin=Math.min(yMin,v);if(cd.yMax===null)yMax=Math.max(yMax,v);}}};
+  scan(hist);snaps.forEach(s=>scan(s.histories[ci]));
+  if(!isFinite(yMin))yMin=0;if(!isFinite(yMax)||yMax===yMin)yMax=yMin+1;
+  if(cd.yMin===null)yMin=yMin>0?0:yMin;if(cd.yMax===null)yMax=niceCeil(yMax);
+  return {yMin,yMax};
+}
+function onAxisModeChange(ci){
+  const st=chartAxisState[ci];if(!st)return;
+  const newY=document.getElementById('yMode_'+ci).value;
+  const newX=document.getElementById('xMode_'+ci).value;
+  // 自動→手動へ切り替わった軸だけ、いま表示中の範囲を初期値として書き込む
+  // （すでに手動設定中のもう一方の軸の値は保持し、上書きしない）
+  if(newY==='manual'&&st.yMode!=='manual'){
+    const auto=computeAutoYRange(ci);
+    st.yMin=auto.yMin;st.yMax=auto.yMax;
+    document.getElementById('yMinIn_'+ci).value=fmtNum(st.yMin);
+    document.getElementById('yMaxIn_'+ci).value=fmtNum(st.yMax);
+  }
+  if(newX==='manual'&&st.xMode!=='manual'){
+    const hist=chartHistories[ci];
+    if(hist&&hist.length){st.xMin=hist[0].tick;st.xMax=hist[hist.length-1].tick;}
+    document.getElementById('xMinIn_'+ci).value=st.xMin;
+    document.getElementById('xMaxIn_'+ci).value=st.xMax;
+  }
+  st.yMode=newY;st.xMode=newX;
+  updateAxisInputsDisabled(ci);
+  renderChart(ci);
+}
+function onAxisValChange(ci){
+  const st=chartAxisState[ci];if(!st)return;
+  st.yMin=parseFloat(document.getElementById('yMinIn_'+ci).value);
+  st.yMax=parseFloat(document.getElementById('yMaxIn_'+ci).value);
+  st.xMin=parseFloat(document.getElementById('xMinIn_'+ci).value);
+  st.xMax=parseFloat(document.getElementById('xMaxIn_'+ci).value);
+  renderChart(ci);
+}
+
+// ──────────────────────────────────────────────────────────────
+// Simulation
+// ──────────────────────────────────────────────────────────────
+// フィールドの表示サイズ変更（純粋な拡大＝ズーム）
+// 内部解像度（モデルに渡す W/H＝世界の広さ）は変えず、表示サイズだけ拡大する。
+// これでモデルの中身は一切変わらず、同じ絵がそのまま大きくなる。
+function setFieldSize(px){
+  px=parseInt(px)||470;
+  const isDesktop=window.matchMedia('(min-width:901px)').matches;
+  const canvas=document.getElementById('simCanvas');
+  // 表示サイズのみ変更（内部解像度＝canvas.width/height はそのまま）。スマホ幅では CSS の width:100% を優先。
+  if(canvas){ canvas.style.width = isDesktop?(px+'px'):''; canvas.style.height = isDesktop?(px+'px'):''; }
+  const lc=document.querySelector('.left-col');
+  if(lc){ lc.style.width = isDesktop ? (px+24)+'px' : ''; }
+}
+// ── 再現性のためのシード付き乱数（方式A）──
+// 実行中は Math.random をシード付き乱数に差し替え、各ステップ直前に (seed, tick) で再seed する。
+// これでモデルのコードを変えずに、ビルトインも生成AIモデルも決定的になる（seed を ZIP に記録）。
+const __nativeRandom = Math.random;
+let __runSeed = 0, __rng = __nativeRandom;
+function mulberry32(a){ return function(){ a|=0; a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; }
+function seedForSetup(){ __rng = mulberry32(__runSeed>>>0); }
+function seedForStep(t){ __rng = mulberry32(((__runSeed>>>0) + (t+1)*2654435761)>>>0); }
+function newRunSeed(){ __runSeed = ((Date.now()>>>0) ^ ((Math.floor(performance.now()*1000))>>>0)) >>> 0; }
+Math.random = function(){ return __rng(); };
+
+// ── 状態フレームの記録（方式B）── 各ステップの state を保存し、あとで同梱ビュワーで再生できるようにする
+let frameRec = { lines:[], bytes:0, truncated:false };
+function frameRecEnabled(){ const el=document.getElementById('recFramesChk'); return !!(el&&el.checked); }
+function frameRecInterval(){ const el=document.getElementById('recFramesInterval'); return el?(parseInt(el.value)||1):1; }
+// 記録した状態が使ってよいメモリの上限（利用者が選ぶ）。0 は無制限で、
+// その場合はブラウザのメモリが尽きるまで記録し続ける。
+function frameRecCapBytes(){
+  const el=document.getElementById('recFramesCap');
+  const mb = el ? parseInt(el.value) : 500;
+  return (!mb || mb<=0) ? Infinity : mb*1024*1024;
+}
+function jsonReplacer(k,v){
+  if(v && ArrayBuffer.isView(v) && !(v instanceof DataView)) return Array.from(v);
+  if(typeof v==='function') return undefined;
+  if(v instanceof Set) return Array.from(v);
+  if(v instanceof Map) return Array.from(v.entries());
+  return v;
+}
+function resetFrameRec(){
+  frameRec.lines=[]; frameRec.bytes=0; frameRec.truncated=false;
+  reviewCache={i:-1,state:null};
+  if(typeof stopReviewPlay==='function'){ stopReviewPlay(); reviewIdx=null; }
+  updateRecFramesInfo(); if(typeof updateTimelineUI==='function') updateTimelineUI();
+}
+function captureFrame(){
+  if(!frameRecEnabled()||!simState) return;
+  const t = simState.tick||0, iv = frameRecInterval();
+  if(iv>1 && (t%iv)!==0) return;
+  let line;
+  try{ line = JSON.stringify({tick:t, state:simState}, jsonReplacer); }
+  catch(e){ line = JSON.stringify({tick:t, state:null, unserializable:true}); }
+  if(frameRec.bytes+line.length > frameRecCapBytes()){ frameRec.truncated=true; updateRecFramesInfo(); return; }
+  frameRec.bytes += line.length; frameRec.lines.push(line);
+  updateRecFramesInfo(); updateTimelineUI();
+}
+function updateRecFramesInfo(){
+  const el=document.getElementById('recFramesInfo'); if(!el) return;
+  if(!frameRec.lines.length){ el.textContent=''; return; }
+  const mb = frameRec.bytes/1024/1024;
+  const size = mb>=1024 ? (mb/1024).toFixed(2)+' GB' : mb>=1 ? mb.toFixed(1)+' MB' : Math.round(frameRec.bytes/1024)+' KB';
+  el.textContent = '記録 '+frameRec.lines.length+' フレーム・'+size+(frameRec.truncated?'（上限に到達）':'');
+}
+// ── 追っかけ再生 ── 実験を続けたまま、記録した状態を遡って見る。
+// reviewIdx === null はライブで、キャンバスは最新のステップを追う。
+let reviewIdx = null, reviewPlaying = false, reviewRaf = null, reviewLastT = 0, reviewAcc = 0;
+let reviewCache = { i:-1, state:null };
+function isReviewing(){ return reviewIdx !== null; }
+function reviewFrameAt(i){
+  if(i===reviewCache.i) return reviewCache.state;          // 再描画は頻繁なので一度だけ解析する
+  const line = frameRec.lines[i]; if(!line) return null;
+  let fr=null; try{ fr = JSON.parse(line); }catch(e){ return null; }
+  reviewCache = { i, state: fr && fr.state, tick: fr && fr.tick };
+  return reviewCache.state;
+}
+// Tick/generation number of a recorded frame, read straight off the JSON line
+// (recording can start mid-run, so the frame index and the tick no longer coincide).
+function frameTickAt(i){
+  const l = frameRec.lines[i]; if(!l) return null;
+  const m = /^\{"tick":(-?\d+)/.exec(l);
+  return m ? parseInt(m[1]) : null;
+}
+// 各ステップの記録はメモリを消費する（重いモデルでは1ステップ数百KB）。
+// その影響が最も大きいスマートフォン・タブレットでは既定をオフにし、PCではオンのままにする。
+function isHandheld(){
+  try{ return matchMedia('(max-width:900px)').matches || matchMedia('(pointer:coarse)').matches; }
+  catch(_){ return false; }
+}
+function applyRecFramesDefault(){
+  if(!isHandheld()) return;
+  const el=document.getElementById('recFramesChk');
+  if(el && el.checked){ el.checked=false; updateTimelineUI(); }
+}
+function updateTimelineUI(){
+  const row=document.getElementById('timelineRow'); if(!row) return;
+  const n=frameRec.lines.length;
+  // 記録がオンなら（まだフレームが無くても）出す．オフに戻しても記録済みが残っていれば出したまま
+  row.style.display = (frameRecEnabled() || n>1) ? 'flex' : 'none';
+  const scrub=document.getElementById('tlScrub');
+  scrub.max = Math.max(0, n-1);
+  if(!isReviewing()) scrub.value = Math.max(0, n-1);       // ライブ：つまみは右端に追従する
+  row.classList.toggle('reviewing', isReviewing());
+  const pos=document.getElementById('tlPos');
+  if(isReviewing()){
+    reviewFrameAt(reviewIdx);
+    const t = (reviewCache.tick!=null)?reviewCache.tick:reviewIdx;
+    pos.textContent = 'tick '+t+' / '+((frameTickAt(n-1)!=null)?frameTickAt(n-1):(n-1>=0?n-1:0));
+  } else {
+    pos.textContent = n ? 'LIVE・'+n+'件' : '—';
+  }
+  const playBtn=document.getElementById('tlPlayBtn');
+  playBtn.textContent = reviewPlaying ? '⏸' : '▶';
+  playBtn.disabled = n<2; scrub.disabled = n<2;
+  const chk=document.getElementById('tlLiveChk'); if(chk) chk.checked = !isReviewing();
+}
+function showReviewFrame(i){
+  const n=frameRec.lines.length; if(!n) return;
+  reviewIdx = Math.max(0, Math.min(n-1, i|0));
+  const st = reviewFrameAt(reviewIdx);
+  const canvas=document.getElementById('simCanvas'), ctx=canvas.getContext('2d');
+  if(st && defs && defs.draw){
+    try{ defs.draw(ctx, st, canvas.width, canvas.height); }
+    catch(e){ ctx.fillStyle='#0a1020'; ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle='#f87171'; ctx.font='11px IBM Plex Mono,monospace'; ctx.fillText('draw() error: '+e.message,8,20); }
+  }
+  document.getElementById('tlScrub').value = reviewIdx;
+  if(typeof renderAllCharts==='function') renderAllCharts();   // move the playhead
+  if(st) updateTickUI(st);                                  // 表示は見ているフレームに合わせる
+  updateTimelineUI();
+}
+function goLive(){
+  stopReviewPlay();
+  reviewIdx = null;
+  updateTimelineUI();
+  renderFrame(); updateTickUI();
+  if(typeof renderAllCharts==='function') renderAllCharts();   // clear the playhead                            // キャンバスを実行側へ返す
+}
+function onLiveToggle(){
+  const chk=document.getElementById('tlLiveChk');
+  if(chk.checked) goLive();
+  else showReviewFrame(frameRec.lines.length-1);            // 最新フレームからライブを抜ける
+}
+function onScrubInput(v){ stopReviewPlay(); showReviewFrame(parseInt(v)||0); }
+function reviewTick(t){
+  if(!reviewPlaying) return;
+  if(!reviewLastT) reviewLastT=t;
+  reviewAcc += (t-reviewLastT)/1000 * 12; reviewLastT=t;    // 毎秒12フレームで再生
+  if(reviewAcc>=1){
+    const adv=Math.floor(reviewAcc); reviewAcc-=adv;
+    const next=reviewIdx+adv, last=frameRec.lines.length-1;
+    if(next>=last){ showReviewFrame(last); stopReviewPlay(); return; }  // 実行に追いついた
+    showReviewFrame(next);
+  }
+  reviewRaf=requestAnimationFrame(reviewTick);
+}
+function startReviewPlay(){
+  if(!frameRec.lines.length) return;
+  if(!isReviewing()) showReviewFrame(0);
+  else if(reviewIdx>=frameRec.lines.length-1) showReviewFrame(0);        // 先頭から再生し直す
+  reviewPlaying=true; reviewLastT=0; reviewAcc=0;
+  reviewRaf=requestAnimationFrame(reviewTick);
+  updateTimelineUI();
+}
+function stopReviewPlay(){
+  reviewPlaying=false;
+  if(reviewRaf){ cancelAnimationFrame(reviewRaf); reviewRaf=null; }
+  updateTimelineUI();
+}
+function toggleReviewPlay(){ reviewPlaying ? stopReviewPlay() : startReviewPlay(); }
+
+// 各ステップを実行（再seed → step → フレーム記録）
+function engineStep(dt, params, W, H){
+  seedForStep(simState.tick||0);
+  defs.step(simState, dt, params, W, H);
+  captureFrame();
+}
+
+function resetSim(){
+  stopSim();chartHistories=chartDefs.map(()=>[]);
+  document.getElementById('stoppedBadge').classList.remove('show');
+  document.getElementById('stopcondLabel').classList.remove('active');
+  document.getElementById('stopcondCode').classList.remove('active');
+  // v6: 再セットアップ待ちヒントをクリア
+  pendingReset=false;
+  document.getElementById('resetHint').classList.remove('show');
+  document.querySelectorAll('#paramGroup label.needs-setup').forEach(l=>l.classList.remove('needs-setup'));
+  if(!defs)return;
+  const canvas=document.getElementById('simCanvas');
+  try{
+    newRunSeed(); seedForSetup(); resetFrameRec();   // 方式A: 新しいシードを決めて記録／方式B: フレームをクリア
+    lastSetupParams=getParams();
+    simState=getSetupFn()(lastSetupParams,canvas.width,canvas.height);
+    captureFrame();            // フレーム0（tick 0 の初期状態）
+    recordPlot();              // v6: tick 0 を初期値としてグラフに記録
+    updateTickUI();
+    frameCount=0; fpsSamples=[]; fpsLastTs=null;
+    document.getElementById('fpsBadge').textContent='— fps';
+    requestAnimationFrame(()=>{
+      renderFrame();
+      renderAllCharts();
+    });
+  }catch(e){showErr('setup エラー: '+e.message);}
+}
+
+function toggleSim(){if(running)stopSim();else startSim();}
+
+function startSim(){
+  if(!defs||!simState)return;
+  running=true;lastTs=null;speedAccum=0;rafHandle=requestAnimationFrame(loop);
+  document.getElementById('playBtn').textContent='⏸ 停止';
+  document.getElementById('playBtn').className='ctrl-btn pause-act';
+  document.getElementById('canvasWrap').classList.add('running');
+  document.getElementById('runBadge').classList.add('show');
+}
+function stopSim(){
+  running=false;if(rafHandle){cancelAnimationFrame(rafHandle);rafHandle=null;}lastTs=null;
+  fpsLastTs=null;fpsSamples=[];
+  const fb=document.getElementById('fpsBadge'); if(fb) fb.textContent='— fps';
+  document.getElementById('playBtn').textContent='▶ 実行';
+  document.getElementById('playBtn').className='ctrl-btn play-act';
+  document.getElementById('canvasWrap').classList.remove('running');
+  document.getElementById('runBadge').classList.remove('show');
+}
+function stepOnce(){
+  if(!defs||!simState)return;
+  const was=running;if(running)stopSim();
+  const canvas=document.getElementById('simCanvas');
+  try{
+    engineStep(1/30,getParams(),canvas.width,canvas.height);
+    recordPlot();renderFrame();updateTickUI();renderAllCharts();
+    if(checkStopCond())return;   // 停止条件発動 → 再起動しない
+    if(checkMaxTicks())return;   // ループリセット → 再起動しない
+  }catch(e){showErr('step() エラー: '+e.message);return;}
+  if(was)startSim();
+}
+
+function loop(ts){
+  if(!running)return;
+  if(lastTs!==null){
+    const rawDt=Math.min((ts-lastTs)*0.001,0.1),tpf=getTicksPerFrame();
+    // 端数蓄積：tpf が 1 未満なら数フレームに1回だけ step する（＝とてもゆっくり動かせる）
+    speedAccum+=tpf;
+    let nsteps=Math.floor(speedAccum);
+    speedAccum-=nsteps;
+    const canvas=document.getElementById('simCanvas');
+    const params=getParams();           // v6: 1フレーム1回だけ取得（高速化）
+    try{
+      if(nsteps>0){
+        const dt=rawDt/nsteps;
+        for(let i=0;i<nsteps;i++)engineStep(dt,params,canvas.width,canvas.height);
+        recordPlot();
+        updateTickUI();
+      }
+      updateFps(ts);
+      const every=getDrawEvery();
+      frameCount++;
+      if(every<=1||frameCount%every===0){ renderFrame();renderAllCharts(); }
+      if(nsteps>0){
+        if(checkStopCond()){ renderFrame();renderAllCharts();return; }
+        if(checkMaxTicks())return;
+      }
+    }catch(e){showErr('step() エラー: '+e.message);stopSim();return;}
+  }
+  lastTs=ts;rafHandle=requestAnimationFrame(loop);
+}
+function updateFps(ts){
+  if(fpsLastTs!==null){
+    const d=ts-fpsLastTs;
+    if(d>0){ fpsSamples.push(1000/d); if(fpsSamples.length>20)fpsSamples.shift(); }
+  }
+  fpsLastTs=ts;
+  if(fpsSamples.length>=3){
+    const avg=fpsSamples.reduce((a,b)=>a+b,0)/fpsSamples.length;
+    document.getElementById('fpsBadge').textContent=Math.round(avg)+' fps';
+  }
+}
+
+function getMaxTickMode(){
+  const el=document.getElementById('maxTickModeSel');
+  return el ? el.value : 'loop';
+}
+function onMaxTickModeChange(){ updateTickUI(); }
+function checkMaxTicks(){
+  if(!isLoopEnabled()||!simState)return false;
+  const maxT=getMaxTicks();
+  if((simState.tick??0)>=maxT){
+    if(getMaxTickMode()==='stop'){
+      // 「停止のみ」: 初期化・再開はせず、その場で一時停止する（最初に戻らない）
+      stopSim();
+      renderFrame();updateTickUI();
+      document.getElementById('stoppedBadge').classList.add('show');
+      showToast('最大 tick（'+maxT+'）に到達したため停止しました');
+      return true;
+    }
+    const wasRunning=running;
+    stopSim();resetSim();
+    if(wasRunning)startSim();
+    return true;
+  }
+  return false;
+}
+
+function renderFrame(){
+  if(!defs||!simState)return;
+  if(isReviewing())return;     // 追っかけ中はタイムラインがキャンバスを持つ
+  const canvas=document.getElementById('simCanvas');const ctx=canvas.getContext('2d');
+  try{defs.draw(ctx,simState,canvas.width,canvas.height);}
+  catch(e){ctx.fillStyle='#0a1020';ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#f87171';ctx.font='11px IBM Plex Mono,monospace';ctx.fillText('draw() エラー: '+e.message,8,20);}
+}
+
+// ──────────────────────────────────────────────────────────────
+// Chart rendering
+// ──────────────────────────────────────────────────────────────
+function recordPlot(){
+  if(!chartDefs.length||!simState)return;
+  const tick=simState.tick??0;
+  chartDefs.forEach((cd,ci)=>{
+    const vals={};
+    cd.series.forEach(s=>{try{vals[s.id]=s.fn(simState)??0;}catch(_){vals[s.id]=0;}});
+    chartHistories[ci].push({tick,vals});
+    if(chartHistories[ci].length>PLOT_MAX)chartHistories[ci].shift();
+  });
+}
+function renderAllCharts(){chartDefs.forEach((_,ci)=>renderChart(ci));}
+
+function renderChart(ci){
+  const cd=chartDefs[ci],hist=chartHistories[ci];
+  const canvas=document.getElementById('chartCanvas_'+ci);if(!canvas)return;
+  const wrap=canvas.parentElement;
+  const cssW=Math.max(200,(wrap?wrap.clientWidth:340)),cssH=140;
+  const dpr=window.devicePixelRatio||1;
+  if(canvas.width!==Math.round(cssW*dpr)||canvas.height!==Math.round(cssH*dpr)){
+    canvas.width=Math.round(cssW*dpr);canvas.height=Math.round(cssH*dpr);
+  }
+  const ctx=canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const W=cssW,H=cssH;
+  const ml=46,mr=12,mt=10,mb=22,cw=W-ml-mr,ch=H-mt-mb;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);
+  if(!hist.length)return;
+
+  // visible snapshots for this chart
+  const snaps=snapshots.filter(s=>s.visible&&s.histories[ci]&&s.histories[ci].length);
+
+  // 縦軸・横軸とも「自動調整」または「手動設定」を選べる
+  const axisSt=chartAxisState[ci]||{yMode:'auto',xMode:'auto'};
+
+  // tick range (横軸/X): 手動設定なら固定範囲、自動調整なら現在+比較実験の全履歴
+  let t0,t1;
+  if(axisSt.xMode==='manual'&&isFinite(axisSt.xMin)&&isFinite(axisSt.xMax)&&axisSt.xMax>axisSt.xMin){
+    t0=axisSt.xMin;t1=axisSt.xMax;
+  }else{
+    t0=hist[0].tick;t1=hist[hist.length-1].tick;
+    snaps.forEach(s=>{const h=s.histories[ci];t0=Math.min(t0,h[0].tick);t1=Math.max(t1,h[h.length-1].tick);});
+    if(t1<=t0)t1=t0+1;
+  }
+
+  // y range (縦軸/Y): 手動設定なら固定範囲、自動調整なら従来通り履歴からスキャン
+  let yMin,yMax;
+  if(axisSt.yMode==='manual'&&isFinite(axisSt.yMin)&&isFinite(axisSt.yMax)&&axisSt.yMax>axisSt.yMin){
+    yMin=axisSt.yMin;yMax=axisSt.yMax;
+  }else{
+    const auto=computeAutoYRange(ci);yMin=auto.yMin;yMax=auto.yMax;
+  }
+  const yRange=yMax-yMin||1;
+  const xAt=tick=>ml+(tick-t0)/(t1-t0)*cw;
+  const yAt=v=>mt+ch-Math.max(0,Math.min(1,(v-yMin)/yRange))*ch;
+
+  // grid + y labels
+  const gridN=4;
+  for(let i=0;i<=gridN;i++){
+    const y=mt+ch-(i/gridN)*ch;
+    ctx.strokeStyle=i===0?'#9ca3af':'#e5e7eb';ctx.lineWidth=i===0?1:.8;
+    ctx.beginPath();ctx.moveTo(ml,y);ctx.lineTo(ml+cw,y);ctx.stroke();
+    ctx.fillStyle='#6b7280';ctx.font='9px IBM Plex Mono,monospace';ctx.textAlign='right';
+    ctx.fillText(fmtNum(yMin+(yMax-yMin)*i/gridN),ml-4,y+3);
+  }
+  ctx.strokeStyle='#9ca3af';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(ml,mt);ctx.lineTo(ml,mt+ch);ctx.stroke();
+
+  // MAX_TICKS marker
+  if(isLoopEnabled()){
+    const maxT=getMaxTicks();
+    if(maxT>=t0&&maxT<=t1){
+      const xm=xAt(maxT);
+      ctx.strokeStyle='rgba(167,139,250,.6)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.moveTo(xm,mt);ctx.lineTo(xm,mt+ch);ctx.stroke();ctx.setLineDash([]);
+    }
+  }
+
+  // 追っかけ再生の位置マーカー：グラフのどこを見ているかを示す
+  if(typeof isReviewing==='function' && isReviewing() && reviewCache.tick!=null){
+    const xr=xAt(reviewCache.tick);
+    if(xr>=ml&&xr<=ml+cw){
+      ctx.strokeStyle='rgba(180,83,9,.85)';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(xr,mt);ctx.lineTo(xr,mt+ch);ctx.stroke();
+      ctx.fillStyle='rgba(180,83,9,.85)';
+      ctx.beginPath();ctx.moveTo(xr,mt);ctx.lineTo(xr-4,mt-5);ctx.lineTo(xr+4,mt-5);ctx.closePath();ctx.fill();
+    }
+  }
+
+  // x labels
+  ctx.fillStyle='#9ca3af';ctx.font='9px IBM Plex Mono,monospace';
+  ctx.textAlign='left';ctx.fillText(t0,ml,mt+ch+14);
+  ctx.textAlign='right';ctx.fillText(t1,ml+cw,mt+ch+14);
+  if(t1-t0>2){ctx.textAlign='center';ctx.fillText(Math.round((t0+t1)/2),ml+cw/2,mt+ch+14);}
+
+  // clip plot area so nothing overflows the frame
+  ctx.save();
+  ctx.beginPath();ctx.rect(ml,mt-1,cw+1,ch+2);ctx.clip();
+
+  // snapshot ghost lines (drawn faint, behind)
+  snaps.forEach(s=>{
+    const h=s.histories[ci];if(h.length<2)return;
+    cd.series.forEach(se=>{
+      ctx.strokeStyle=hexA(s.color,.32);ctx.lineWidth=1.4;ctx.setLineDash([4,3]);ctx.lineJoin='round';
+      ctx.beginPath();let first=true;
+      for(let i=0;i<h.length;i++){
+        const v=h[i].vals[se.id];if(v===undefined)continue;
+        const x=xAt(h[i].tick),y=yAt(v);
+        if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    });
+  });
+  ctx.setLineDash([]);
+
+  // current series
+  if(hist.length>=2){
+    cd.series.forEach(s=>{
+      ctx.strokeStyle=s.color;ctx.lineWidth=1.8;ctx.lineJoin='round';
+      ctx.beginPath();let first=true;
+      for(let i=0;i<hist.length;i++){
+        const v=hist[i].vals[s.id]??0;const x=xAt(hist[i].tick),y=yAt(v);
+        if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+      const lv=hist[hist.length-1].vals[s.id]??0;
+      ctx.fillStyle=s.color;ctx.beginPath();ctx.arc(xAt(hist[hist.length-1].tick),yAt(lv),3,0,Math.PI*2);ctx.fill();
+    });
+  }
+  ctx.restore();
+}
+function hexA(hex,a){
+  const m=/^#?([0-9a-f]{6})$/i.exec(hex);
+  if(!m)return hex;
+  const n=parseInt(m[1],16);
+  return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';
+}
+function niceCeil(v){if(v<=0)return 1;const mag=Math.pow(10,Math.floor(Math.log10(v)));const n=[1,2,5,10].find(s=>s*mag>=v);return(n||10)*mag;}
+function fmtNum(v){if(!isFinite(v))return'—';if(Math.abs(v)>=10000)return(v/1000).toFixed(1)+'k';if(Math.abs(v)>=1000)return Math.round(v).toString();return Number.isInteger(v)?String(v):parseFloat(v.toFixed(2)).toString();}
+
+// ──────────────────────────────────────────────────────────────
+// CSV / image copy
+// ──────────────────────────────────────────────────────────────
+function copyChartCSV(ci,btn){
+  const cd=chartDefs[ci],hist=chartHistories[ci];
+  if(!hist||!hist.length){showToast('データがありません',true);return;}
+  const header=['tick',...cd.series.map(s=>s.label)].join(',');
+  const rows=hist.map(e=>[e.tick,...cd.series.map(s=>{const v=e.vals[s.id];return v===undefined?'':String(v)})].join(','));
+  navigator.clipboard.writeText([header,...rows].join('\r\n')).then(()=>{
+    showToast('CSV をコピーしました（'+rows.length+' 行）');
+    if(btn){btn.textContent='✓ CSV';btn.classList.add('done');setTimeout(()=>{btn.textContent='⬇ CSV';btn.classList.remove('done');},2000);}
+  });
+}
+function copyChartImage(ci,btn){
+  const src=document.getElementById('chartCanvas_'+ci);
+  if(!src){showToast('グラフが見つかりません',true);return;}
+  src.toBlob(blob=>{
+    if(!blob){showToast('画像生成に失敗しました',true);return;}
+    navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(()=>{
+      showToast('グラフ画像をコピーしました');
+      if(btn){btn.textContent='✓ 画像';btn.classList.add('done');setTimeout(()=>{btn.textContent='🖼 画像';btn.classList.remove('done');},2000);}
+    }).catch(()=>showToast('クリップボード書き込み失敗（HTTPS が必要）',true));
+  });
+}
+
+// ──────────────────────────────────────────────────────────────
+// Speed / stats
+// ──────────────────────────────────────────────────────────────
+// 実行速度：スライダー位置(0〜100)を対数で 0.1〜60 t/f に対応づける（遅い側も細かく選べる）
+const SPEED_MIN=0.1, SPEED_MAX=60;
+function getTicksPerFrame(){
+  const pos=parseFloat(document.getElementById('speedSlider').value);
+  const p=isFinite(pos)?Math.max(0,Math.min(100,pos)):53;
+  return SPEED_MIN*Math.pow(SPEED_MAX/SPEED_MIN, p/100);
+}
+function updateSpeedLabel(){
+  const t=getTicksPerFrame();
+  const s=t>=10?Math.round(t).toString():(t>=1?t.toFixed(1):t.toFixed(2));
+  document.getElementById('speedVal').textContent=s+' t/f';
+}
+
+function updateMaxTickLabel(){
+  const v=getMaxTicks();
+  const valEl=document.getElementById('maxTickVal');
+  valEl.textContent=v;
+  valEl.style.color=isLoopEnabled()?'var(--violet)':'var(--muted)';
+  updateTickUI();
+}
+function onLoopToggle(){
+  const on=isLoopEnabled();
+  document.getElementById('loopBadge').classList.toggle('show',on);
+  document.getElementById('maxTickVal').style.color=on?'var(--violet)':'var(--muted)';
+  const modeRow=document.getElementById('maxTickModeRow');
+  if(modeRow) modeRow.style.display=on?'flex':'none';
+  updateTickUI();
+}
+
+function updateTickUI(stateOverride){
+  if(!stateOverride && isReviewing())return;   // 追っかけ中はタイムラインが表示を持つ
+  const st=stateOverride||simState;
+  if(!st)return;
+  const tick=st.tick??0;
+  const loopOn=isLoopEnabled();
+  const maxT=loopOn?getMaxTicks():0;
+  const suffix=loopOn?` / ${maxT}`:'';
+  document.getElementById('tickBadge').textContent='Tick: '+tick+suffix;
+  let html='<span class="sv">'+tick+'</span><span style="color:var(--muted)"> tick'+suffix+'</span>';
+  const skip=new Set(['tick','counts']);
+  Object.entries(st).filter(([k,v])=>!skip.has(k)&&!k.startsWith('_')&&(typeof v==='number'||typeof v==='string')).slice(0,6)
+    .forEach(([k,v])=>{const vf=typeof v==='number'?(Number.isInteger(v)?v:v.toFixed(3)):v;
+      html+='&emsp;<span style="color:var(--muted)">'+k+' </span><span class="sv">'+vf+'</span>';});
+  if(st.counts&&typeof st.counts==='object')
+    Object.entries(st.counts).slice(0,6).forEach(([k,v])=>{
+      html+='&emsp;<span style="color:var(--muted)">'+k+' </span><span class="sv">'+v+'</span>';});
+  document.getElementById('statsBox').innerHTML=html;
+}
+
+// ──────────────────────────────────────────────────────────────
+// Field image copy / save / video recording
+// ──────────────────────────────────────────────────────────────
+function copyFieldImage() {
+  const canvas = document.getElementById('simCanvas');
+  canvas.toBlob(blob => {
+    if (!blob) { showToast('画像生成に失敗しました', true); return; }
+    navigator.clipboard.write([new ClipboardItem({'image/png': blob})])
+      .then(() => showToast('フィールド画像をコピーしました'))
+      .catch(() => showToast('クリップボードへの書き込みに失敗しました（HTTPS が必要）', true));
+  });
+}
+
+function saveFieldImage() {
+  const canvas = document.getElementById('simCanvas');
+  const url = canvas.toDataURL('image/png');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = modelSlug('abm') + '_field_tick' + (simState?.tick ?? 0) + '.png';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  showToast('フィールド画像を保存しました');
+}
+
+let mediaRecorder = null;
+let recordedChunks = [];
+let isRecording = false;
+
+function toggleRecording() {
+  if (isRecording) stopRecording(); else startRecording();
+}
+
+function startRecording() {
+  const canvas = document.getElementById('simCanvas');
+  if (!canvas.captureStream) { showToast('この環境では録画できません', true); return; }
+
+  const pref = (document.getElementById('recFmtSel')||{}).value || 'auto';
+  // H.264（avc1）を明示的に要求する。'codecs=h264' は認識されない文字列であり，
+  // 'video/mp4' だけだと Chrome は VP9 を MP4 に格納するため QuickTime や PowerPoint で再生できない。
+  let types;
+  if (pref === 'mp4') types = ['video/mp4;codecs=avc1.42E01E','video/mp4;codecs=avc1.4D401E','video/mp4;codecs=avc1','video/webm;codecs=vp9','video/webm'];
+  else if (pref === 'webm') types = ['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'];
+  else types = ['video/mp4;codecs=avc1.42E01E','video/mp4;codecs=avc1.4D401E','video/mp4;codecs=avc1','video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm']; // auto: mp4優先
+  const mimeType = types.find(t => { try { return MediaRecorder.isTypeSupported(t); } catch(_){return false;} }) || '';
+  if (pref === 'mp4' && !(mimeType||'').includes('mp4'))
+    showToast('この環境は MP4 録画に未対応のため WebM で保存します', true);
+
+  const stream = canvas.captureStream(30);
+  try {
+    mediaRecorder = new MediaRecorder(stream, mimeType ? {mimeType} : {});
+  } catch(e) { showToast('録画を開始できません: ' + e.message, true); return; }
+
+  recordedChunks = [];
+  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(recordedChunks, {type: mediaRecorder.mimeType || 'video/webm'});
+    const url  = URL.createObjectURL(blob);
+    const ext  = (mediaRecorder.mimeType||'').includes('mp4') ? 'mp4' : 'webm';
+    const a    = document.createElement('a');
+    a.href = url; a.download = modelSlug('abm') + '_recording.' + ext;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    isRecording = false; updateRecordUI();
+    showToast('動画を保存しました（' + ext + '）');
+  };
+
+  mediaRecorder.start(200);
+  isRecording = true; updateRecordUI();
+  showToast('録画を開始しました — 終了したら「停止」を押してください');
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+}
+
+function updateRecordUI() {
+  const btn   = document.getElementById('recordBtn');
+  const badge = document.getElementById('recBadge');
+  btn.textContent = isRecording ? '⏹ 停止' : '⏺ 録画';
+  btn.classList.toggle('recording', isRecording);
+  badge.classList.toggle('show', isRecording);
+}
+
+
+function copySpec(){
+  copyToClipboard('【回答は日本語で。コード中のコメントも日本語で。】\n\n'+SPEC_TEXT+'\n\n■ 現在のコード（参考）\n\n'+document.getElementById('codeArea').value, '仕様書をコピーしました');
+}
+
+const SPEC_MIN = `【ABM Studio 最小仕様（改変の必須ルール）】
+■ 実行環境：コードは new Function() で評価。次は使用不可 →
+  class / document.* / window.* / addEventListener / import / export /
+  fetch / XMLHttpRequest / setTimeout / setInterval / グローバル変数への代入
+  （const / let / function 定義は可。外部ライブラリ不可、純粋 JS + Canvas2D のみ）。
+■ 必須3関数（名前・引数は変えない）：
+  setup(params={}, W, H) → state を return（必ず tick:0 を含める）
+  step(state, dt, params={}, W, H) → state を直接変更し、末尾で state.tick++
+  draw(ctx, state, W, H) → 先頭で背景塗り or ctx.clearRect(0,0,W,H)（W,H は px, 通常470×470）
+■ パラメータは PARAM_DEFS の id を params.<id> として参照する。
+■ 任意定義（追加・変更する場合はこの形を厳守）：
+  PARAM_DEFS = [{ id, label, min, max, step, default, help? }]
+  PLOT_DEFS  = [{ title, yMin?, yMax?, series:[{ id, label, color, fn: s => 数値 }] }]
+  SETUP_DEFS = [{ label, fn:(params, W, H) => state }]
+  BUTTON_DEFS= [{ label, color, fn:(state, params, W, H) => {} }]
+  STOP_COND  = { label, fn:(state, params) => 真偽 }
+  MAX_TICKS  = 整数
+  DESCRIPTION= { summary:'概要', agent:'エージェントの特性', environment:'環境', interaction:'相互作用' }  // 画面の「このモデルの概要」に表示`;
+
+function buildModPrompt(instruction){
+  const code = document.getElementById('codeArea').value;
+  const wish = (instruction && instruction.trim()) ? instruction.trim() : '・\n・\n・';
+  const text =
+`以下の ABM Studio 用 JavaScript コードを改変してください．
+
+【出力ルール（厳守）】
+- 回答は日本語で書くこと（コード中のコメントも日本語で）。
+- 出力は \`\`\`javascript で始まり \`\`\` で終わる コードブロックを1つだけ。前後に説明文・挨拶を書かない。
+- コードは省略せず全文を出力（「// 以下同様」等で省かない）。
+- 関数名 setup / step / draw と引数は変えない。
+
+【現在のコード】
+\`\`\`javascript
+${code}
+\`\`\`
+
+【最小仕様（厳守）】
+${SPEC_MIN}
+
+【改変の進め方】
+- 任意定義（PARAM_DEFS / PLOT_DEFS / BUTTON_DEFS / SETUP_DEFS / STOP_COND / MAX_TICKS）は必要に応じて追加・変更してよい（形を厳守）。PARAM_DEFS には help: '説明' を付ける。
+- 先頭付近に const TITLE = '短いモデル名（全角10文字程度・改変後の内容を表す）' を定義／更新する。
+- DESCRIPTION（{ summary, agent, environment, interaction }）を定義／更新する（画面の「このモデルの概要」に表示）。
+- 末尾に「何をどう変えたか」を3〜5行の解説コメント（// ...）として付ける。
+
+【改変したい内容】（箇条書きで具体的に記入してください。このテキストを添付ファイルとして渡した場合は、この欄を書き換える代わりに、チャットのメッセージ本文に改変したい内容を書いてください。その場合はメッセージ本文の指示をこの欄より優先してください。）
+${wish}
+
+※ 出力はコードブロック1つだけ・全文・前後に文章なし。`;
+  return text;
+}
+function copyExplainPrompt(){
+  const code=document.getElementById('codeArea').value;
+  const fence='```';
+  const text=
+`以下は ABM Studio（エージェントベースモデル）で現在実行している JavaScript コードです。
+このコードが構築しているモデルを、コードに忠実に、丁寧に説明してください（コードに無い機能を推測で足さないこと）。
+
+【出力フォーマット】
+- 説明はすべて日本語で書くこと。
+1. 概要：このモデルが何を表現し、何を観察するものかを2〜4文で。その際、各エージェントが
+   何を見て何をするのかという更新の要点も含め、題材だけでなく仕組みが伝わるように。
+2. アルゴリズムの説明：setup（初期化）・step（1ステップの更新）・draw（描画）が実際に何を
+   しているか、エージェントの状態・相互作用・更新規則・主要パラメータ（PARAM_DEFS）の役割を、
+   コードに即して言葉で。
+3. 疑似コード：これだけを読んで同じ挙動のモデルを書き直せる厳密さで書くこと。流れの概略で
+   済ませず、次を明示すること。
+   - 1ステップの中で何がどの順に起こり、毎ステップ何を計算し直すか
+   - 更新が同期式（全エージェントが更新前の状態を見て決め、最後に一斉に反映）か、
+     逐次式（先に更新された近傍の新しい値が見える）か。挙動が変わるので、コードを読んで
+     どちらかを明記する
+   - 近傍の定義（半径・格子の隣接・距離の測り方）と、そこから何を読むか
+   - 実際の更新式。PARAM_DEFS のパラメータ名を使って書くこと
+   - 乱数がどこで入り、何を決めるか
+   - 境界条件（トーラス状に周回するか、壁か、なし）
+   - 実行が停止する条件があればそれ
+   コードが実行する順に、番号付きの手順として書くこと。
+
+【現在のコード】
+${fence}javascript
+${code}
+${fence}`;
+  copyToClipboard(text, '説明プロンプトをコピーしました');
+}
+function copyModPrompt(){
+  copyToClipboard(buildModPrompt(), '改変プロンプトをコピーしました');
+}
+function buildNewPrompt(instruction){
+  const want = (instruction && instruction.trim()) ? instruction.trim() : '（ここを書き換えてください：例 "群れ（フロッキング）モデル"）';
+  const text = `あなたは ABM Studio 用の JavaScript コードを書くエキスパートです。以下の最小仕様に厳密に従い，指定されたモデルを実装してください。
+
+【出力ルール（厳守）】
+- 回答は日本語で書くこと（コード中のコメントも日本語で）。
+- 出力は \`\`\`javascript で始まり \`\`\` で終わる コードブロックを1つだけ。前後に説明文・挨拶を書かない。
+- コードは省略せず全文を出力（「// 以下同様」等で省かない）。
+
+【最小仕様（厳守）】
+${SPEC_MIN}
+
+【その他】
+- 先頭付近に const TITLE = '短いモデル名（全角10文字程度）' を定義する。
+- DESCRIPTION = { summary, agent, environment, interaction } を定義する（画面の「このモデルの概要」に表示）。PARAM_DEFS には help: '説明' を付ける。
+- 末尾に「考え方・主要パラメータ」を3〜5行の解説コメント（// ...）として付ける。
+- 音は Sound.beep(Hz,秒,音量0〜1,波形,遅延秒) / Sound.note(MIDI,秒,音量,波形,遅延秒)（波形 'sine'|'square'|'triangle'|'sawtooth'，遅延をずらして同時予約，イベント時のみ）。
+
+【実装するモデル】（このテキストを添付ファイルとして渡した場合は、この欄を書き換える代わりに、チャットのメッセージ本文に作りたいモデルを書いてください。その場合はメッセージ本文の指示をこの欄より優先してください。）
+${want}
+
+【追加要件・変更点】（任意。同様に、添付ファイルとして渡した場合はメッセージ本文に書いても構いません）
+・（任意：パラメータ，初期状態の数，グラフ，ボタンなど）
+
+※ 出力はコードブロック1つだけ・全文・前後に文章なし。`;
+  return text;
+}
+function copyNewModelPrompt(){
+  copyToClipboard(buildNewPrompt(), '新規作成プロンプトをコピーしました（生成AI に貼り付けてください）');
+}
+
+// ──────────────────────────────────────────────────────────────
+// Python 変換プロンプト（requirements.txt 同時出力）
+// ──────────────────────────────────────────────────────────────
+function buildPythonPrompt(){
+  const code=document.getElementById('codeArea').value;
+  const title=(modelTitle||'').trim();
+  const fence='```';
+  const text=
+`以下は ABM Studio（ブラウザ上で動くエージェントベースモデル・ツール）で実行している JavaScript コードです。
+これと同じ挙動・同じパラメータをもつ、単体で実行できる Python スクリプトに変換してください。
+
+【出力ルール（厳守）】
+- 回答は日本語で書くこと（コード中のコメントも日本語で）。
+- 出力は次の2つのコードブロックだけ。前後に説明文・挨拶・見出し以外の文章を書かない。
+  1つ目: ${fence}python
+（ここに実行用スクリプト本体。ファイル名の目安: ${modelSlug('model')}.py）
+${fence}
+  2つ目: ${fence}text
+（ここに requirements.txt の中身だけ。パッケージ名==バージョン、または最低限パッケージ名のみを1行ずつ）
+${fence}
+- コードは省略せず全文を出力する（「# 以下同様」等で省かない）。
+
+【変換方針】
+- 可視化・アニメーションには matplotlib（matplotlib.animation.FuncAnimation）を使い、python model.py で実行すればウィンドウが開いて動くようにする。
+- 元コードの setup(params, W, H) → 初期状態を作る関数、step(state, dt, params, W, H) → 1ステップ更新する関数、draw(ctx, state, W, H) → matplotlib の Axes に描画する関数、の3つに1対1で対応させ、対応関係がわかるコメントを付ける。
+- PARAM_DEFS がある場合、各パラメータをスクリプト冒頭で変数として定義する（コメントで元の min/max/step/既定値を明記）。
+- PLOT_DEFS（グラフ定義）がある場合、時系列データを記録し、実行終了後またはサブプロットとしてグラフ表示する。
+- SETUP_DEFS / BUTTON_DEFS / STOP_COND がある場合は、コメントで元の挙動を説明したうえで、対応する Python の分岐やキー操作（例: 任意でキー入力によるトリガー）として実装するか、最低限コメントで代替手段を示す。
+- グリッド系モデルは numpy 配列、エージェント系モデルは numpy 配列またはリストの辞書で表現する。乱数は numpy.random（再現性のため任意で np.random.seed を用意）を使う。
+- Sound.beep / Sound.note のような音の呼び出しは Python 版では省略してよい（コメントでその旨を記す）。
+- コード全体に日本語で簡潔な説明コメントを付ける。標準的な範囲のライブラリ（numpy, matplotlib 程度）だけで完結させ、requirements.txt にはそこで実際に import したパッケージだけを列挙する。
+
+【モデル名】
+${title||'（元コードの TITLE を参照）'}
+
+【現在の JavaScript コード】
+${fence}javascript
+${code}
+${fence}
+
+※ 出力は python コードブロックと requirements.txt コードブロックの2つだけ。前後に文章なし。`;
+  return text;
+}
+function copyPythonPrompt(){
+  copyToClipboard(buildPythonPrompt(), 'Python化プロンプトをコピーしました（生成AI に貼り付けてください）');
+}
+
+function showErr(msg){const el=document.getElementById('errorBox');el.textContent='⚠ '+msg;el.className='error-box show';}
+let toastTimer=null;
+function copyCurrentCode(){
+  copyToClipboard(document.getElementById('codeArea').value, '現在のコードをコピーしました');
+}
+function copyToClipboard(text, okMsg){
+  const ok=()=>showToast(okMsg||'コピーしました');
+  const legacy=()=>{
+    try{
+      const ta=document.createElement('textarea');
+      ta.value=text; ta.style.position='fixed'; ta.style.top='-1000px'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      const done=document.execCommand('copy'); document.body.removeChild(ta);
+      done ? ok() : showToast('コピーできませんでした。手動でコピーしてください', true);
+    }catch(e){ showToast('コピーできませんでした。手動でコピーしてください', true); }
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(ok).catch(legacy);
+  } else { legacy(); }
+}
+// テキスト（```コードブロック``` を含んでいてもよい）からコードを取り出してコード欄へ入れ、適用する
+function applyPastedText(text){
+  if(!text || !text.trim()){ showToast('コードが見つかりませんでした', true); return false; }
+  let code=text;
+  const blocks=[...text.matchAll(/```(?:javascript|js)?\s*\n([\s\S]*?)```/gi)];
+  if(blocks.length){ code=blocks[blocks.length-1][1]; }
+  else { code=text.replace(/^\s*```[a-zA-Z]*\s*\n?/,'').replace(/\n?```\s*$/,''); }
+  code=code.trim();
+  if(!code){ showToast('コードが見つかりませんでした', true); return false; }
+  const ta=document.getElementById('codeArea');
+  ta.value=code; if(typeof syncGutter==='function') syncGutter();
+  applyCode();
+  return true;
+}
+// クリップボードの自動読み取りが使えない環境（Android Chrome の file:// 等）向けの手動貼り付けフォールバック
+function manualPasteFallback(prefix){
+  const body=document.getElementById('codeBody');
+  if(body && !body.classList.contains('open')) toggleCode();   // コード欄を開く
+  const ta=document.getElementById('codeArea');
+  ta.focus();
+  showToast((prefix||'自動で貼り付けできませんでした。')+'コード欄を長押し→「貼り付け」すると自動で適用します（または貼り付け後に ▶ 適用）。', true);
+  const onPaste=()=>{ setTimeout(()=>applyPastedText(ta.value), 30); };  // 貼り付け完了後に取り込む
+  ta.addEventListener('paste', onPaste, {once:true});
+}
+async function pasteAndApply(){
+  let text=null;
+  try{
+    if(!navigator.clipboard || !navigator.clipboard.readText) throw new Error('clipboard read unavailable');
+    text=await navigator.clipboard.readText();
+  }catch(e){ return manualPasteFallback(); }
+  if(!text || !text.trim()){ return manualPasteFallback('クリップボードが空でした。'); }
+  applyPastedText(text);
+}
+function showToast(msg,isBad=false){
+  const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(isBad?' bad':'')+' show';
+  if(toastTimer)clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.className='toast',2400);
+}
+// ──────────────────────────────────────────────────────────────
+// v6: code gutter / draw-throttle / file I/O / snapshots / CSV / help
+// ──────────────────────────────────────────────────────────────
+function syncGutter(){
+  const ta=document.getElementById('codeArea'),g=document.getElementById('codeGutter');
+  if(!ta||!g)return;
+  const n=(ta.value.match(/\n/g)||[]).length+1;
+  let s='';for(let i=1;i<=n;i++)s+=i+'\n';
+  g.textContent=s;g.scrollTop=ta.scrollTop;
+}
+
+function getDrawEvery(){return parseInt(document.getElementById('drawEverySlider').value)||1;}
+function updateDrawEveryLabel(){
+  const v=getDrawEvery();
+  document.getElementById('drawEveryVal').textContent=v<=1?'毎回':('1/'+v);
+}
+
+// ── model file save / load ──
+let modelTitle='';
+function setModelTitle(t){
+  modelTitle = (t!=null && (''+t).trim()) ? (''+t).trim() : '';
+  const base='ABM Studio v1.0';
+  document.title = modelTitle ? (modelTitle+' — '+base) : base;
+}
+function modelSlug(fallback){
+  const t=(modelTitle||'').trim();
+  if(!t) return fallback;
+  const s=t.replace(/[\\\/:*?"<>|]/g,'').replace(/\s+/g,'_').replace(/_+/g,'_').slice(0,60).replace(/^_+|_+$/g,'');
+  return s || fallback;
+}
+function saveModelFile(){
+  const code=document.getElementById('codeArea').value;
+  const blob=new Blob([code],{type:'text/javascript'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=modelSlug('abm_model')+'.js';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  showToast('モデルを .js ファイルに保存しました');
+}
+function loadModelFile(ev){
+  const f=ev.target.files&&ev.target.files[0];
+  if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{document.getElementById('codeArea').value=r.result;syncGutter();applyCode();showToast('モデルを読み込みました（'+f.name+'）');};
+  r.onerror=()=>showToast('ファイルの読み込みに失敗しました',true);
+  r.readAsText(f);
+  ev.target.value=''; // 同じファイルを連続で開けるように
+}
+
+// ══════════════════════════════════════════════════════════════
+// HTML出力：今のモデルだけを動かせる独立HTMLを書き出す
+// ══════════════════════════════════════════════════════════════
+// IEC Studio と同じ方針：画面（document）をまるごと複製し、
+//   1) コード編集UI（.code-bar）を非表示にする
+//   2) 開いていたダイアログは閉じた状態に戻す
+//   3) 起動時に「今のモデルコード」を codeArea へ再セットする
+//      小さな追加スクリプトを末尾に足す
+// ことで、既存のコード評価エンジンにはまったく手を加えない。
+function exportStandaloneHTML(){
+  if(!defs){ showToast('モデルが読み込まれていません', true); return; }
+  const code=(document.getElementById('codeArea').value||'').trim();
+  if(!code){ showToast('コードが空です', true); return; }
+  try{
+    const clone=document.documentElement.cloneNode(true);
+
+    const codeBar=clone.querySelector('.code-bar');
+    if(codeBar) codeBar.style.display='none';
+
+    const helpCode=clone.querySelector('#helpCodeSection');
+    if(helpCode) helpCode.remove();
+
+    clone.querySelectorAll('.overlay.show')
+      .forEach(el=>el.classList.remove('show'));
+
+    const tickBadgeEl=clone.querySelector('#tickBadge');
+    if(tickBadgeEl){
+      tickBadgeEl.textContent='Tick: 0';
+      const pkgBadge=document.createElement('div');
+      pkgBadge.className='tick-badge';
+      pkgBadge.style.color='var(--amber)';
+      pkgBadge.style.background='rgba(180,83,9,.08)';
+      pkgBadge.textContent='📦 スタンドアロン版';
+      tickBadgeEl.after(pkgBadge);
+    }
+
+    const reinit=document.createElement('script');
+    reinit.textContent =
+      'window.addEventListener("DOMContentLoaded", function(){\n' +
+      '  var ta = document.getElementById("codeArea");\n' +
+      '  if (ta) { ta.value = ' + JSON.stringify(code) + '; }\n' +
+      '  if (typeof applyCode === "function") applyCode(true);\n' +
+      '});\n';
+    (clone.querySelector('body')||clone).appendChild(reinit);
+
+    const html='<!DOCTYPE html>\n'+clone.outerHTML;
+    const blob=new Blob([html],{type:'text/html'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=modelSlug('abm_model')+'_standalone.html';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    showToast('スタンドアロンHTMLを書き出しました（このモデルだけを実行できます）');
+  }catch(e){
+    showToast('書き出しに失敗しました: '+e.message, true);
+  }
+}
+
+// ── experiment snapshots / compare ──
+function paramSummary(params){
+  if(!paramDefs.length)return '（パラメータなし）';
+  return paramDefs.slice(0,5).map(p=>{
+    const v=params[p.id];const d=p.step<0.01?3:p.step<0.1?2:p.step<1?1:0;
+    return p.id+'='+(typeof v==='number'?(Number.isInteger(v)?v:v.toFixed(d)):v);
+  }).join('  ');
+}
+function saveSnapshot(){
+  if(!chartDefs.length){showToast('このモデルにはグラフがありません',true);return;}
+  if(!chartHistories.some(h=>h&&h.length>1)){showToast('保存できるデータがありません（少し実行してから保存してください）',true);return;}
+  const color=SNAP_COLORS[snapshots.length%SNAP_COLORS.length];
+  const params=getParams();
+  snapshots.push({
+    id:++snapSeq,
+    label:'実験 '+snapSeq,
+    params,
+    summary:paramSummary(params),
+    histories:JSON.parse(JSON.stringify(chartHistories)),
+    color,
+    visible:true,
+  });
+  renderSnapshots();renderAllCharts();
+  showToast('現在の結果を保存しました（実験 '+snapSeq+'）');
+}
+function clearSnapshots(silent){
+  snapshots=[];snapSeq=0;
+  renderSnapshots();
+  if(typeof renderAllCharts==='function')renderAllCharts();
+  if(!silent)showToast('保存した実験をすべて削除しました');
+}
+function toggleSnapshot(id){
+  const s=snapshots.find(s=>s.id===id);if(!s)return;
+  s.visible=!s.visible;renderSnapshots();renderAllCharts();
+}
+function removeSnapshot(id){
+  snapshots=snapshots.filter(s=>s.id!==id);
+  renderSnapshots();renderAllCharts();
+}
+function renderSnapshots(){
+  const list=document.getElementById('snapList');if(!list)return;
+  list.innerHTML='';
+  if(!snapshots.length){
+    const e=document.createElement('div');e.className='snap-empty';
+    e.textContent='「📸 現在を保存」を押すと、いまのグラフとパラメータを保存し、別条件の結果と重ねて比較できます。';
+    list.appendChild(e);return;
+  }
+  snapshots.forEach(s=>{
+    const item=document.createElement('div');item.className='snap-item'+(s.visible?'':' off');
+    const eye=document.createElement('span');eye.className='eye';eye.textContent=s.visible?'👁':'🚫';
+    eye.title=s.visible?'グラフから隠す':'グラフに表示';eye.onclick=()=>toggleSnapshot(s.id);
+    const dot=document.createElement('span');dot.className='dot';dot.style.background=s.color;
+    const nm=document.createElement('span');nm.className='nm';nm.textContent=s.label;
+    const pm=document.createElement('span');pm.className='pm';pm.textContent=s.summary;
+    const x=document.createElement('span');x.className='x';x.textContent='✕';x.title='削除';x.onclick=()=>removeSnapshot(s.id);
+    item.append(eye,dot,nm,pm,x);list.appendChild(item);
+  });
+}
+
+// ── CSV file download (works offline / no clipboard needed) ──
+function buildChartCSV(ci){
+  const cd=chartDefs[ci];const lines=[];
+  const header=['run','params','tick',...cd.series.map(s=>s.label)];
+  lines.push(header.join(','));
+  const emit=(runName,params,hist)=>{
+    const pstr='"'+paramSummary(params).replace(/"/g,'""')+'"';
+    hist.forEach(e=>{
+      lines.push([csvCell(runName),pstr,e.tick,...cd.series.map(s=>{const v=e.vals[s.id];return v===undefined?'':v;})].join(','));
+    });
+  };
+  emit('現在',getParams(),chartHistories[ci]||[]);
+  snapshots.forEach(s=>{ if(s.histories[ci]) emit(s.label,s.params,s.histories[ci]); });
+  return lines;
+}
+function csvCell(v){const s=String(v);return /[",\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+function triggerDownload(text,filename){
+  const blob=new Blob(['\ufeff'+text],{type:'text/csv;charset=utf-8'}); // BOM付きでExcel文字化け回避
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function downloadChartCSV(ci,btn){
+  const hist=chartHistories[ci];
+  if((!hist||hist.length<1)&&!snapshots.length){showToast('データがありません',true);return;}
+  const title=(chartDefs[ci].title||('chart'+ci)).replace(/[^\w가-힣ぁ-んァ-ヶ一-龠ー]+/g,'_').slice(0,40)||('chart'+ci);
+  triggerDownload(buildChartCSV(ci).join('\r\n'),'abm_'+title+'.csv');
+  showToast('CSVファイルを保存しました');
+  if(btn){btn.textContent='✓';btn.classList.add('done');setTimeout(()=>{btn.textContent='💾';btn.classList.remove('done');},1500);}
+}
+function downloadAllCSV(){
+  if(!chartDefs.length){showToast('グラフがありません',true);return;}
+  if(!chartHistories.some(h=>h&&h.length)&&!snapshots.length){showToast('データがありません',true);return;}
+  const blocks=[];
+  chartDefs.forEach((cd,ci)=>{
+    blocks.push('# '+(cd.title||('グラフ '+(ci+1))));
+    blocks.push(buildChartCSV(ci).join('\r\n'));
+    blocks.push('');
+  });
+  triggerDownload(blocks.join('\r\n'),'abm_all_charts.csv');
+  showToast('全グラフのデータをCSVに保存しました');
+}
+
+// ── データ一式を ZIP でダウンロード（CSV + JSON。外部ライブラリ非依存の store 方式）──
+function crc32(bytes){
+  let c,crc=0xFFFFFFFF;
+  if(!crc32.tab){crc32.tab=[];for(let n=0;n<256;n++){c=n;for(let k=0;k<8;k++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);crc32.tab[n]=c>>>0;}}
+  for(let i=0;i<bytes.length;i++)crc=(crc>>>8)^crc32.tab[(crc^bytes[i])&0xFF];
+  return (crc^0xFFFFFFFF)>>>0;
+}
+function makeZipBlob(files){
+  const enc=new TextEncoder();
+  const u16=v=>[v&0xFF,(v>>>8)&0xFF];
+  const u32=v=>[v&0xFF,(v>>>8)&0xFF,(v>>>16)&0xFF,(v>>>24)&0xFF];
+  const local=[],central=[];let offset=0;
+  files.forEach(f=>{
+    const name=enc.encode(f.name);
+    const data=(typeof f.data==='string')?enc.encode(f.data):f.data;
+    const crc=crc32(data);
+    const lh=[].concat(u32(0x04034b50),u16(20),u16(0x0800),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0));
+    local.push(new Uint8Array(lh),name,data);
+    const ch=[].concat(u32(0x02014b50),u16(20),u16(20),u16(0x0800),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset));
+    central.push(new Uint8Array(ch),name);
+    offset+=lh.length+name.length+data.length;
+  });
+  let cenSize=0;central.forEach(c=>cenSize+=c.length);
+  const eocd=[].concat(u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(cenSize),u32(offset),u16(0));
+  return new Blob([...local,...central,new Uint8Array(eocd)],{type:'application/zip'});
+}
+function triggerBlobDownload(blob,filename){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function chartSlug(cd,ci){
+  return (cd.title||('chart'+(ci+1))).replace(/[^\w가-힣ぁ-んァ-ヶ一-龠ー]+/g,'_').slice(0,40)||('chart'+(ci+1));
+}
+function getExperimentSettings(params){
+  const setup=(setupDefs[activeSetupIdx]&&setupDefs[activeSetupIdx].label)||null;
+  const modeSel=document.getElementById('maxTickModeSel');
+  const drawEl=document.getElementById('drawEverySlider');
+  const spdEl=document.getElementById('speedSlider');
+  const stopSec=document.getElementById('stopcondSection');
+  const stopLbl=document.getElementById('stopcondLabel');
+  return {
+    params: params||getParams(),
+    initialState: setup,
+    maxTicks: (typeof getMaxTicks==='function')?getMaxTicks():null,
+    onMaxReached: modeSel?modeSel.value:null,
+    drawEvery: drawEl?(parseInt(drawEl.value)||1):null,
+    speed: spdEl?(parseInt(spdEl.value)):null,
+    stopCondition: (stopSec&&stopSec.classList.contains('show'))?{enabled:stopCondEnabled, label:(stopLbl?stopLbl.textContent:null)}:null,
+    seed: __runSeed>>>0
+  };
+}
+function downloadDataZip(){
+  if(!chartDefs.length){showToast('このモデルには記録データ（グラフ）がありません',true);return;}
+  if(!chartHistories.some(h=>h&&h.length)&&!snapshots.length){showToast('データがありません（少し実行してから）',true);return;}
+  const nowISO=new Date().toISOString();
+  const stamp=nowISO.slice(0,19).replace('T','_').replace(/:/g,'');
+  const root='abm_'+modelSlug('model')+'_'+stamp;
+  const code=(document.getElementById('codeArea')||{}).value||'';
+  const params=getParams();
+  const settings=getExperimentSettings(params);
+  const cur0=chartHistories[0]||[];
+  const files=[];
+  const meta={
+    app:'ABM Studio', version:'1.0',
+    model:modelTitle||null,
+    exportedAt:nowISO,
+    ticks: cur0.length?cur0[cur0.length-1].tick:0,
+    settings,
+    charts: chartDefs.map(cd=>({title:cd.title||null, series:cd.series.map(s=>({id:s.id,label:s.label}))})),
+    experimentCount: snapshots.length,
+    frameRecording:{
+      enabled: frameRec.lines.length>0,
+      interval: frameRecInterval(),
+      frameCount: frameRec.lines.length,
+      truncated: frameRec.truncated,
+      memoryLimit: (frameRecCapBytes()===Infinity?'none':(frameRecCapBytes()/1024/1024)+' MB'),
+      bytes: frameRec.bytes,
+      schema:'JSON Lines（1行1フレーム）。各行 = {"tick": <整数>, "state": <モデルの state オブジェクト>}。model.js の draw(ctx, state, W, H) で描き直せば各ステップを再生できる。'
+    },
+    files: frameRec.lines.length?['metadata.json','model.js','data.json','frames.jsonl','<各グラフ>.csv']:['metadata.json','model.js','data.json','<各グラフ>.csv'],
+    note:'settings = 実験設定（パラメータ・初期状態プリセット・最大tick・到達時の挙動・停止条件・乱数シード seed 等）。seed により Math.random が固定されるため、model.js＋settings から実行を再現できる（方式A）。frames.jsonl（「状態を記録」ON時）は各ステップの状態そのもので、同梱ビュワーで確実に再生できる（方式B）。model.js = この実験を生成したモデルのコード。current = 初期化以降の現在の実行。experiments = 「📸 現在を保存」で保存した比較用データ。'
+  };
+  files.push({name:root+'/metadata.json', data:JSON.stringify(meta,null,2)});
+  files.push({name:root+'/model.js', data:code});
+  if(frameRec.lines.length){ files.push({name:root+'/frames.jsonl', data:frameRec.lines.join('\n')}); }
+  chartDefs.forEach((cd,ci)=>{
+    files.push({name:root+'/'+String(ci+1).padStart(2,'0')+'_'+chartSlug(cd,ci)+'.csv', data:'﻿'+buildChartCSV(ci).join('\r\n')});
+  });
+  const dumpRun=(hists)=>{
+    const o={};
+    chartDefs.forEach((cd,ci)=>{ o[cd.title||('chart'+(ci+1))]=(hists[ci]||[]).map(e=>Object.assign({tick:e.tick},e.vals)); });
+    return o;
+  };
+  const data={
+    meta:{app:'ABM Studio', version:'1.0', model:modelTitle||null, exportedAt:nowISO},
+    settings,
+    current:{ params, charts:dumpRun(chartHistories) },
+    experiments: snapshots.map(s=>({ label:s.label, params:s.params, charts:dumpRun(s.histories) }))
+  };
+  files.push({name:root+'/data.json', data:JSON.stringify(data,null,2)});
+  triggerBlobDownload(makeZipBlob(files), root+'.zip');
+  showToast('データ一式を ZIP で保存しました（'+files.length+' ファイル）');
+}
+
+// ── help overlay ──
+function openHelp(){document.getElementById('helpOverlay').classList.add('show');}
+function closeHelp(){document.getElementById('helpOverlay').classList.remove('show');}
+
+// ── 文字サイズ調整（既定は標準より1ポイント大きい 13pt）──
+let fontPt = 15;
+function applyFontScale(){
+  document.documentElement.style.fontSize = fontPt + 'pt';
+  const el = document.getElementById('fsVal'); if(el) el.textContent = fontPt + 'pt';
+}
+function adjustFont(d){ fontPt = Math.max(9, Math.min(20, fontPt + d)); applyFontScale(); }
+applyFontScale();
+
+// ── サウンド：全 Studio 共通の安全な音声 API（モデルからは Sound.* だけを呼ぶ）──
+const Sound = (function(){
+  let ctx=null, master=null, enabled=true, vol=0.5;
+  let voices=0; const MAXVOICES=24; let lastReset=0, perFrame=0;
+  function ensure(){
+    if(ctx) return ctx;
+    try{
+      const AC = (typeof window!=='undefined') ? (window.AudioContext||window.webkitAudioContext) : null;
+      if(!AC) return null;
+      ctx = new AC();
+      master = ctx.createGain(); master.gain.value = vol; master.connect(ctx.destination);
+    }catch(e){ ctx=null; }
+    return ctx;
+  }
+  function resume(){ const c=ensure(); if(c && c.state==='suspended'){ try{c.resume();}catch(_){} } }
+  function clampType(t){ return (t==='square'||t==='triangle'||t==='sawtooth'||t==='sine')?t:'sine'; }
+  function tone(freq,dur,v,type,when){
+    if(!enabled) return;
+    const c=ensure(); if(!c) return;
+    const now=c.currentTime;
+    if(now-lastReset>0.016){ lastReset=now; perFrame=0; }   // フレームあたりの発音数を制限
+    if(perFrame>=16) return; perFrame++;
+    if(voices>=MAXVOICES) return;                            // 同時発音数を制限
+    freq=Math.max(20,Math.min(8000,freq||440));
+    dur=Math.max(0.01,Math.min(4,dur||0.15));
+    v=Math.max(0,Math.min(1,(v==null?0.5:v)));
+    when=Math.max(0,Math.min(8,when||0));
+    const t0=now+when;
+    let osc,g;
+    try{ osc=c.createOscillator(); g=c.createGain(); }catch(_){ return; }
+    osc.type=clampType(type); osc.frequency.value=freq;
+    g.gain.setValueAtTime(0.0001,t0);
+    g.gain.linearRampToValueAtTime(v,t0+0.006);
+    g.gain.exponentialRampToValueAtTime(0.0008,t0+dur);
+    osc.connect(g); g.connect(master); voices++;
+    osc.onended=()=>{ voices=Math.max(0,voices-1); try{g.disconnect();osc.disconnect();}catch(_){}; };
+    try{ osc.start(t0); osc.stop(t0+dur+0.02); }catch(_){ voices=Math.max(0,voices-1); }
+  }
+  return {
+    beep(freq,dur,v,type,when){ tone(freq,dur,v,type,when); },
+    note(midi,dur,v,type,when){ const f=440*Math.pow(2,((midi==null?69:midi)-69)/12); tone(f,dur,v,type,when); },
+    setEnabled(b){ enabled=!!b; if(enabled) resume(); },
+    isEnabled(){ return enabled; },
+    setVolume(x){ vol=Math.max(0,Math.min(1,x)); if(master) master.gain.value=vol; },
+    getVolume(){ return vol; },
+    resume
+  };
+})();
+if (typeof globalThis !== 'undefined') globalThis.Sound = Sound;
+function toggleSound(){
+  const on=!Sound.isEnabled(); Sound.setEnabled(on);
+  const b=document.getElementById('soundBtn'); if(b){ b.textContent=on?'🔊':'🔇'; b.title=on?'音：オン（クリックで消音）':'音：オフ（クリックで音を出す）'; }
+  if(on) Sound.resume();
+}
+if (typeof document !== 'undefined') document.addEventListener('pointerdown', ()=>Sound.resume());
+</script>
+
+<!-- ============ AI 生成（OpenAI 互換 API / LM Studio 等） ============ -->
+<div class="overlay" id="aiOverlay" onclick="if(event.target===this)closeAI()">
+  <div class="overlay-card" style="max-width:760px;width:92%">
+    <header>
+      <h2>🤖 AI 生成 — OpenAI 互換 API（LM Studio 等）</h2>
+      <span class="close-x" onclick="closeAI()">✕ 閉じる</span>
+    </header>
+    <div class="ovbody">
+      <div class="ai-grid">
+        <label>エンドポイント (Base URL)
+          <span class="ai-model-row">
+            <input id="aiBaseUrl" type="text" placeholder="http://localhost:1234">
+            <button class="cbtn" type="button" onclick="aiResetUrl()" title="localhost に戻す">🏠</button>
+          </span>
+        </label>
+        <label>API キー（LM Studio は空でOK）
+          <input id="aiApiKey" type="password" placeholder="lm-studio / sk-...">
+        </label>
+        <label style="grid-column:1 / -1">モデル
+          <span class="ai-model-row">
+            <input id="aiModel" type="text" list="aiModelList" placeholder="例: qwen2.5-coder-7b-instruct">
+            <datalist id="aiModelList"></datalist>
+            <button class="cbtn" type="button" onclick="aiFetchModels()">🔄 一覧取得</button>
+          </span>
+        </label>
+        <label>温度 (temperature)
+          <input id="aiTemp" type="number" min="0" max="2" step="0.1" value="0.7" style="width:90px">
+        </label>
+        <label class="ai-inline"><input id="aiStream" type="checkbox" checked> ストリーミング表示</label>
+        <div style="grid-column:1 / -1;font-size:.64rem;color:var(--muted);line-height:1.6">例）LM Studio: <code>http://localhost:1234</code>（キー不要）／ OpenRouter: <code>https://openrouter.ai/api/v1</code> ／ DeepInfra: <code>https://api.deepinfra.com/v1/openai</code> ／ OpenAI: <code>https://api.openai.com/v1</code> 。クラウドは API キー必須。</div>
+      </div>
+
+      <div class="ai-mode">
+        <label><input type="radio" name="aiMode" value="mod" checked> ✏️ 既存コードを改変</label>
+        <label><input type="radio" name="aiMode" value="new"> ✨ 新規作成</label>
+      </div>
+
+      <label class="ai-instr-label">指示（やりたいこと・作りたいモデルを記入）
+        <textarea id="aiInstruction" rows="4" placeholder="例：エージェントを2種類にして、捕食者と被食者の関係にしてください"></textarea>
+      </label>
+
+      <div class="ai-actions">
+        <button class="cbtn primary" id="aiRunBtn" onclick="aiRun()">▶ 送信</button>
+        <button class="cbtn" id="aiStopBtn" onclick="aiStop()" disabled>⏹ 停止</button>
+        <span id="aiStatus" class="ai-status"></span>
+      </div>
+
+      <div id="aiOutWrap" style="display:none">
+        <div class="ai-out-head">
+          <span>AI 応答</span>
+          <button class="cbtn" type="button" onclick="aiInsertLast()">⬇ コード欄へ挿入</button>
+        </div>
+        <pre id="aiOut" class="ai-out"></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+#aiOverlay .ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-bottom:10px}
+#aiOverlay label{font-family:'Noto Sans JP',sans-serif;font-size:.72rem;color:var(--text);display:flex;flex-direction:column;gap:3px}
+#aiOverlay input[type=text],#aiOverlay input[type=password],#aiOverlay input[type=number],#aiOverlay textarea{
+  font-family:'IBM Plex Mono',monospace;font-size:.72rem;padding:5px 7px;border:1px solid var(--border);
+  border-radius:4px;background:var(--panel);color:var(--text)}
+#aiOverlay textarea{resize:vertical;width:100%}
+#aiOverlay .ai-inline{flex-direction:row;align-items:center;gap:6px}
+#aiOverlay .ai-model-row{display:flex;gap:6px;align-items:center}
+#aiOverlay .ai-model-row input{flex:1}
+#aiOverlay .ai-mode{display:flex;gap:18px;margin:6px 0 10px}
+#aiOverlay .ai-mode label{flex-direction:row;align-items:center;gap:6px}
+#aiOverlay .ai-instr-label{margin-bottom:10px}
+#aiOverlay .ai-actions{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+#aiOverlay .ai-status{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--muted)}
+#aiOverlay .ai-out-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--accent)}
+#aiOverlay .ai-out{max-height:300px;overflow:auto;background:var(--code-bg);border:1px solid var(--border);
+  border-radius:6px;padding:10px;font-family:'IBM Plex Mono',monospace;font-size:.68rem;white-space:pre-wrap;color:var(--text)}
+</style>
+
+<script>
+(function(){
+  const LS_KEY='alife_ai_settings';
+  let aiCtrl=null, aiLastText='';
+  const $=id=>document.getElementById(id);
+
+  window.openAI=function(){
+    const s=loadSettings();
+    $('aiBaseUrl').value=s.baseUrl; $('aiApiKey').value=s.apiKey;
+    $('aiModel').value=s.model; $('aiTemp').value=s.temp; $('aiStream').checked=s.stream;
+    const hasCode=($('codeArea').value||'').trim().length>0;
+    const r=document.querySelector('input[name=aiMode][value="'+(hasCode?'mod':'new')+'"]'); if(r) r.checked=true;
+    status('');
+    $('aiOverlay').classList.add('show');
+  };
+  window.closeAI=function(){ $('aiOverlay').classList.remove('show'); };
+  window.aiResetUrl=function(){ $('aiBaseUrl').value='http://localhost:1234'; saveSettings(); status('URL を localhost に戻しました'); };
+
+  function loadSettings(){
+    let s={};
+    try{ s=JSON.parse(localStorage.getItem(LS_KEY)||'{}'); }catch(e){}
+    return {
+      baseUrl: s.baseUrl||'http://localhost:1234',
+      apiKey:  s.apiKey||'',
+      model:   s.model||'',
+      temp:    (s.temp!=null?s.temp:0.7),
+      stream:  (s.stream!=null?s.stream:true)
+    };
+  }
+  function saveSettings(){
+    const s={ baseUrl:$('aiBaseUrl').value.trim(), apiKey:$('aiApiKey').value,
+      model:$('aiModel').value.trim(), temp:parseFloat($('aiTemp').value)||0.7, stream:$('aiStream').checked };
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(s)); }catch(e){}
+    return s;
+  }
+  // OpenAI互換のベースURL。パスがあればそのまま使う（OpenRouter: .../api/v1、DeepInfra: .../v1/openai、OpenAI: .../v1）。
+  // ホスト名だけ（例 http://localhost:1234）のときは /v1 を補う（LM Studio 等）。
+  function baseUrl(){
+    let u=($('aiBaseUrl').value.trim()||'http://localhost:1234').replace(/\/+$/,'');
+    const m=u.match(/^https?:\/\/[^\/]+(\/.*)?$/);
+    if(!(m && m[1])) u=u+'/v1';   // パスが無ければ /v1 を補う
+    return u;
+  }
+  function authHeaders(){
+    const h={'Content-Type':'application/json'};
+    const k=$('aiApiKey').value.trim(); if(k) h['Authorization']='Bearer '+k;
+    return h;
+  }
+  function status(msg,bad){ const el=$('aiStatus'); el.textContent=msg||''; el.style.color=bad?'var(--bad)':'var(--muted)'; }
+
+  window.aiFetchModels=async function(){
+    saveSettings();
+    status('モデル一覧を取得中…');
+    const base=baseUrl();
+    // OpenAI互換 /v1/models と LM Studio ネイティブ /api/v1/models を両方試す
+    const cands=[ base+'/models' ];
+    if(/\/v1$/.test(base)) cands.push(base.replace(/\/v1$/,'/api/v1')+'/models'); // LM Studio ネイティブも一応試す
+    let lastErr=null, rawDump='';
+    for(const url of cands){
+      try{
+        const r=await fetch(url,{headers:authHeaders()});
+        if(!r.ok){ lastErr=new Error('HTTP '+r.status); continue; }
+        const txt=await r.text(); rawDump=txt;
+        let j; try{ j=JSON.parse(txt); }catch(_){ lastErr=new Error('JSON解析失敗'); continue; }
+        const arr=j.data||j.models||(j.object&&j.object.data)||(Array.isArray(j)?j:[]);
+        const ids=(Array.isArray(arr)?arr:[]).map(m=>(typeof m==='string'?m:(m&&(m.id||m.key||m.modelKey||m.name||m.identifier||m.path)))).filter(Boolean);
+        if(!ids.length){ lastErr=new Error('モデルが空'); continue; }
+        const dl=$('aiModelList'); dl.innerHTML='';
+        ids.forEach(id=>{ const o=document.createElement('option'); o.value=id; dl.appendChild(o); });
+        if(!$('aiModel').value) $('aiModel').value=ids[0];
+        status(ids.length+' 件のモデルを取得しました');
+        return;
+      }catch(e){ lastErr=e; }
+    }
+    if(rawDump){ $('aiOut').textContent='[モデル一覧の生レスポンス（解析できなかった内容）]\n'+rawDump.slice(0,4000); $('aiOutWrap').style.display='block'; }
+    status('一覧の解析に失敗: '+(lastErr&&lastErr.message)+' — モデル名を手入力すれば送信できます（例 google/gemma-4-31b-qat）。生レスポンスを下に表示しました。', true);
+  };
+
+  window.aiStop=function(){ if(aiCtrl){ aiCtrl.abort(); aiCtrl=null; } };
+
+  function appendOut(c){ const el=$('aiOut'); el.textContent+=c; el.scrollTop=el.scrollHeight; }
+
+  function extractCode(text){
+    if(!text) return '';
+    const re=/```(?:javascript|js)?\s*\n([\s\S]*?)```/gi;
+    let m, last=null;
+    while((m=re.exec(text))!==null){ last=m[1]; }
+    if(last!=null) return last.replace(/\s+$/,'');
+    return text.trim();
+  }
+  window.aiInsertLast=function(auto){
+    const code=extractCode(aiLastText);
+    if(!code){ status('コードを抽出できませんでした', true); return; }
+    const ta=$('codeArea'); ta.value=code;
+    if(typeof window.syncGutter==='function') syncGutter();
+    if(typeof window.showToast==='function') showToast('AIの生成コードをコード欄に入れました。▶ 適用で実行してください');
+    if(!auto) status('コード欄へ挿入しました');
+  };
+
+  window.aiRun=async function(){
+    saveSettings();
+    const mode=document.querySelector('input[name=aiMode]:checked').value;
+    const instruction=$('aiInstruction').value;
+    if(mode==='mod' && !($('codeArea').value||'').trim()){
+      status('コード欄が空です。新規作成を選んでください。', true); return;
+    }
+    if(typeof window.buildModPrompt!=='function' || typeof window.buildNewPrompt!=='function'){
+      status('プロンプト生成関数が見つかりません', true); return;
+    }
+    const prompt=(mode==='mod') ? window.buildModPrompt(instruction) : window.buildNewPrompt(instruction);
+    const model=$('aiModel').value.trim();
+    if(!model){ status('モデル名を入力してください（🔄一覧取得で選べます）', true); return; }
+
+    aiLastText='';
+    $('aiOut').textContent=''; $('aiOutWrap').style.display='block';
+    $('aiRunBtn').disabled=true; $('aiStopBtn').disabled=false;
+    status('生成中…');
+    const useStream=$('aiStream').checked;
+    aiCtrl=new AbortController();
+    const body={ model, temperature:parseFloat($('aiTemp').value)||0.7, stream:useStream,
+      messages:[
+        {role:'system', content:'あなたは指定された Studio 用の JavaScript コードを書く専門家です。指示と仕様に厳密に従い、必ず ```javascript ... ``` のコードブロックを1つ含めて回答してください。'},
+        {role:'user', content:prompt}
+      ]};
+    try{
+      const r=await fetch(baseUrl()+'/chat/completions',{method:'POST',headers:authHeaders(),body:JSON.stringify(body),signal:aiCtrl.signal});
+      if(!r.ok){ const t=await r.text().catch(()=>''); throw new Error('HTTP '+r.status+' '+t.slice(0,200)); }
+      if(useStream && r.body){
+        const reader=r.body.getReader(); const dec=new TextDecoder(); let buf='';
+        while(true){
+          const {done,value}=await reader.read(); if(done) break;
+          buf+=dec.decode(value,{stream:true});
+          let nl;
+          while((nl=buf.indexOf('\n'))>=0){
+            const line=buf.slice(0,nl).trim(); buf=buf.slice(nl+1);
+            if(!line.startsWith('data:')) continue;
+            const data=line.slice(5).trim();
+            if(data==='[DONE]') continue;
+            try{ const j=JSON.parse(data); const d=(j.choices&&j.choices[0]&&j.choices[0].delta)||{}; const c=d.content||''; if(c){ aiLastText+=c; appendOut(c); } }catch(e){}
+          }
+        }
+      }else{
+        const j=await r.json();
+        aiLastText=(j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content)||'';
+        $('aiOut').textContent=aiLastText;
+      }
+      aiInsertLast(true);
+      status('完了。コードをコード欄へ挿入しました（▶ 適用で実行）。');
+    }catch(e){
+      if(e.name==='AbortError'){ status('停止しました'); }
+      else{ status('エラー: '+e.message+'（サーバ起動・CORS・URLを確認）', true); }
+    }finally{
+      aiCtrl=null; $('aiRunBtn').disabled=false; $('aiStopBtn').disabled=true;
+    }
+  };
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EVO Studio First Steps</title>
+
+<style>
+:root {
+  --bg:       #ffffff;
+  --text:     #1a1a1a;
+  --muted:    #555;
+  --light:    #888;
+  --border:   #e0e0e0;
+  --accent:   #1a4b8c;
+  --green:    #2a7a40;
+  --amber:    #b56800;
+  --tip-bg:   #f0f7ff;
+  --warn-bg:  #fff8f0;
+  --step-num: #1a4b8c;
+  --chat-bg:  #f0f7ff;
+  --chat-ai:  #f5f0ff;
+  --tag-bg:   #e8ecf4;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.85;
+  font-size: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1.4rem 6rem;
+  transition: background 0.3s ease;
+}
+
+/* ── Header ── */
+.page-header {
+  text-align: center;
+  padding: 2.4rem 1rem 2rem;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 2.8rem;
+}
+.page-header .eyebrow {
+  font-size: 0.78rem;
+  letter-spacing: .1em;
+  color: var(--light);
+  text-transform: uppercase;
+  margin-bottom: 0.7rem;
+}
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--accent);
+  line-height: 1.3;
+  margin-bottom: 0.6rem;
+}
+.page-header .tagline {
+  font-size: 1rem;
+  color: var(--muted);
+}
+.page-header .badges {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: .04em;
+}
+.badge-blue  { background: #dde8f5; color: #1a4b8c; }
+.badge-green { background: #d8f0e0; color: #1a6a30; }
+.badge-amber { background: #fef3dc; color: #8a5500; }
+
+/* ── Section heading ── */
+h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 1rem 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+h2 .sec-icon { font-size: 1.4rem; }
+
+h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 1.8rem 0 0.7rem;
+}
+
+p { margin-bottom: 1rem; color: var(--muted); }
+
+/* ── Big step ── */
+.steps { margin: 1.2rem 0 2rem; }
+.big-step {
+  display: flex;
+  gap: 1.1rem;
+  margin-bottom: 1.6rem;
+  align-items: flex-start;
+}
+.big-num {
+  flex-shrink: 0;
+  width: 40px; height: 40px;
+  background: var(--step-num);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 0.1rem;
+  box-shadow: 0 2px 8px rgba(26,75,140,.25);
+}
+.big-body { flex: 1; }
+.big-body .step-title {
+  font-size: 1.0rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+.big-body p { margin-bottom: 0.5rem; font-size: 0.93rem; }
+
+/* ── Info boxes ── */
+.tip, .warn, .good {
+  border-left: 3px solid;
+  padding: 0.85rem 1.1rem;
+  margin: 1.2rem 0;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.93rem;
+}
+.tip  { background: var(--tip-bg);  border-color: var(--accent); }
+.warn { background: var(--warn-bg); border-color: #c97a00; }
+.good { background: #f0fff4;        border-color: var(--green); }
+.box-label {
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.tip  .box-label { color: var(--accent); }
+.warn .box-label { color: var(--amber); }
+.good .box-label { color: var(--green); }
+
+/* ── Chat bubbles ── */
+.chat { margin: 1.2rem 0; }
+.chat-row {
+  display: flex;
+  gap: 0.7rem;
+  margin-bottom: 0.9rem;
+  align-items: flex-start;
+}
+.chat-row.ai { flex-direction: row-reverse; }
+.chat-avatar {
+  flex-shrink: 0;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  background: #e8ecf4;
+  margin-top: 2px;
+}
+.chat-row.ai .chat-avatar { background: #ede8f8; }
+.chat-bubble {
+  max-width: 82%;
+  background: var(--chat-bg);
+  border-radius: 0 14px 14px 14px;
+  padding: 0.7rem 1rem;
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.7;
+  border: 1px solid #d4e4f7;
+}
+.chat-row.ai .chat-bubble {
+  background: var(--chat-ai);
+  border-radius: 14px 0 14px 14px;
+  border-color: #ddd4f7;
+  color: #2d1a6e;
+}
+.chat-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  color: var(--light);
+  margin-bottom: 0.2rem;
+}
+
+/* ── Example prompt card ── */
+.prompt-card {
+  border: 1.5px solid var(--accent);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 1.2rem 0;
+}
+.prompt-card-header {
+  background: var(--accent);
+  color: #fff;
+  padding: 0.4rem 1rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+}
+.prompt-card-body {
+  padding: 0.85rem 1.1rem;
+  font-size: 0.88rem;
+  color: #1a1a1a;
+  line-height: 1.8;
+  background: #f8fbff;
+}
+.prompt-card-body .placeholder {
+  display: inline-block;
+  background: #fff3cd;
+  border: 1px dashed #c97a00;
+  border-radius: 3px;
+  padding: 0 5px;
+  font-weight: 700;
+  color: #7a4800;
+}
+
+/* ── Model idea cards ── */
+.idea-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.85rem;
+  margin: 1rem 0 1.5rem;
+}
+.idea-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  background: #fafafa;
+  transition: box-shadow .15s;
+}
+.idea-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+.idea-card .ic-emoji { font-size: 1.5rem; margin-bottom: 0.3rem; }
+.idea-card .ic-title { font-size: 0.88rem; font-weight: 700; margin-bottom: 0.2rem; }
+.idea-card .ic-desc  { font-size: 0.78rem; color: var(--light); line-height: 1.5; }
+
+/* ── Table ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin: 1rem 0 1.5rem;
+  background: #fff;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 0.6rem 0.85rem;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #f5f5f5; font-weight: 700; font-size: 0.82rem; }
+td:first-child { font-weight: 700; color: #b91c1c; font-size: 0.85rem; width: 25%; }
+td ul { margin: 0 0 0 1.2rem; padding: 0; }
+td li { margin-bottom: 0.3rem; color: var(--muted); }
+
+/* ── kbd & UI Labels ── */
+kbd {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8em;
+  background: #fff;
+  border: 1.5px solid #b0b8cc;
+  border-bottom: 3px solid #8090aa;
+  border-radius: 4px;
+  padding: 1px 6px;
+  color: #1e3a6e;
+}
+.ui {
+  display: inline-block;
+  background: #e8ecf4;
+  border: 1px solid #c0c8d8;
+  border-radius: 3px;
+  padding: 0px 6px;
+  font-size: 0.82em;
+  font-weight: 600;
+  color: #1e3a6e;
+  white-space: nowrap;
+}
+
+/* ── Divider ── */
+hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+
+/* ── TOC ── */
+.toc {
+  background: #f8fbff;
+  border: 1px solid #d4e4f7;
+  border-radius: 8px;
+  padding: 1.1rem 1.4rem;
+  margin: 0 0 2.5rem;
+  font-size: 0.9rem;
+}
+.toc-title { font-weight: 800; font-size: 0.85rem; color: var(--accent); margin-bottom: 0.6rem; letter-spacing: .05em; }
+.toc ol { padding-left: 1.3rem; }
+.toc li { margin-bottom: 0.25rem; }
+.toc a { color: var(--accent); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+
+/* ── Footer ── */
+.footer {
+  margin-top: 3rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--light);
+  text-align: center;
+}
+.footer a { color: var(--accent); text-decoration: none; }
+
+/* ── flow arrow ── */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 1rem 0 1.4rem;
+}
+.flow-step {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.flow-arrow { color: #aaa; font-size: 1.1rem; }
+
+/* ── Slide Mode Button & Controls ── */
+#toggle-slide-mode {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(26, 75, 140, 0.3);
+  transition: transform 0.2s, background 0.2s;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+#toggle-slide-mode:hover { background: #143a6d; transform: translateY(-2px); }
+
+#slide-controls {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(26, 75, 140, 0.95);
+  padding: 0.6rem 1.5rem;
+  border-radius: 30px;
+  display: none;
+  gap: 1.5rem;
+  align-items: center;
+  z-index: 1000;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  color: #fff;
+  font-weight: 700;
+  backdrop-filter: blur(5px);
+}
+#slide-controls button {
+  background: none; border: none; color: #fff; font-size: 1.2rem;
+  cursor: pointer; padding: 0.3rem 0.8rem; border-radius: 4px; transition: background 0.2s;
+}
+#slide-controls button:hover { background: rgba(255, 255, 255, 0.2); }
+#slide-counter { font-family: 'IBM Plex Mono', monospace; font-size: 1.1rem; min-width: 70px; text-align: center; }
+#exit-slide { font-size: 0.95rem !important; border-left: 1px solid rgba(255,255,255,0.3) !important; padding-left: 1.2rem !important; margin-left: 0.5rem; }
+
+/* ── Slide Mode Overrides ── */
+body.is-slide-mode {
+  background: #e5e7eb;
+  max-width: 100%; padding: 0; overflow: hidden;
+  display: flex; justify-content: center; align-items: center; height: 100vh;
+}
+body.is-slide-mode #toggle-slide-mode,
+body.is-slide-mode .footer,
+body.is-slide-mode hr { display: none; }
+
+.slide-section { margin-bottom: 2rem; }
+
+body.is-slide-mode .slide-section {
+  display: none;
+  background: var(--bg);
+  width: 90vw; max-width: 1200px; height: 85vh;
+  padding: 3rem 4rem; border-radius: 12px;
+  box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+  overflow-y: auto; font-size: 1.2rem; margin-bottom: 0;
+}
+body.is-slide-mode .slide-section.active {
+  display: block; animation: slideFadeIn 0.4s ease forwards;
+}
+@keyframes slideFadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Scaling up for presentation */
+body.is-slide-mode .page-header { border-bottom: none; margin-top: 8vh; }
+body.is-slide-mode .page-header h1 { font-size: 3.2rem; margin-bottom: 1.5rem; line-height: 1.3; }
+body.is-slide-mode .page-header .tagline { font-size: 1.4rem; }
+body.is-slide-mode h2 { font-size: 2.0rem; margin: 0 0 1.5rem; border-bottom: 3px solid var(--border); padding-bottom: 0.8rem; }
+body.is-slide-mode h2 .sec-icon { font-size: 2.2rem; }
+body.is-slide-mode h3 { font-size: 1.4rem; margin-top: 2rem; }
+body.is-slide-mode .toc { margin-top: 4vh; border: none; background: transparent; padding: 0; font-size: 1.3rem; }
+body.is-slide-mode .toc-title { font-size: 1.6rem; margin-bottom: 1rem; }
+body.is-slide-mode .toc ol { padding-left: 2.5rem; line-height: 2.0; }
+body.is-slide-mode p, body.is-slide-mode li { line-height: 1.7; }
+body.is-slide-mode .big-step { margin-bottom: 1.5rem; }
+body.is-slide-mode .big-num { width: 45px; height: 45px; font-size: 1.3rem; }
+body.is-slide-mode .big-body .step-title { font-size: 1.2rem; }
+body.is-slide-mode .big-body p { font-size: 1.05rem; }
+body.is-slide-mode .tip, body.is-slide-mode .warn, body.is-slide-mode .good { font-size: 1.05rem; padding: 1.2rem 1.5rem; }
+body.is-slide-mode table { font-size: 1.05rem; }
+body.is-slide-mode th, body.is-slide-mode td { padding: 0.8rem 1rem; }
+body.is-slide-mode .chat-bubble { font-size: 1.05rem; max-width: 90%; }
+</style>
+</head>
+<body>
+
+<button id="toggle-slide-mode" title="Display in slide mode" onclick="toggleSlideMode()">
+  <span>📊</span> Slide View
+</button>
+
+<div id="slide-controls">
+  <button id="prev-slide" title="Previous slide (Left arrow key)" onclick="prevSlide()">◀</button>
+  <span id="slide-counter">1 / 1</span>
+  <button id="next-slide" title="Next slide (Right arrow / Space key)" onclick="nextSlide()">▶</button>
+  <button id="exit-slide" title="Return to normal mode (Esc key)" onclick="toggleSlideMode()">✕ Close</button>
+</div>
+
+<div class="slide-section">
+  <div class="page-header">
+    <div class="eyebrow">EVO Studio Guide</div>
+    <h1>Experience "Evolution"<br>Without Programming</h1>
+    <p class="tagline">Evolve answers with a genetic algorithm (GA). Just ask a generative AI, paste, and run.</p>
+    <div class="badges">
+      <span class="badge badge-blue">No Coding Required</span>
+      <span class="badge badge-green">Works with EVO Studio v1.0</span>
+      <span class="badge badge-amber">Free-tier Generative AI OK</span>
+    </div>
+  </div>
+</div>
+
+<div class="slide-section">
+  <div class="toc">
+    <div class="toc-title">Table of Contents</div>
+    <ol>
+      <li><a href="#what">What is EVO Studio?</a></li>
+      <li><a href="#flow">The Overall Flow (3 Steps)</a></li>
+      <li><a href="#builtin">First, Try Running a Built-in Model</a></li>
+      <li><a href="#view">Viewing Only the Best / the Whole Population</a></li>
+      <li><a href="#modify">Modify a Running Model</a></li>
+      <li><a href="#gemini">Have a Generative AI Build a New Model</a></li>
+      <li><a href="#localai">Connecting Directly to a Generative AI API (Local / Cloud)</a></li>
+      <li><a href="#ideas">What Problems Can You Solve? Idea Gallery</a></li>
+      <li><a href="#trouble">If Something Doesn't Work</a></li>
+      <li><a href="#refs">References &amp; Sources</a></li>
+      <li><a href="#thanks">Acknowledgments</a></li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide-section">
+  <h2 id="what"><span class="sec-icon">🤔</span> What is EVO Studio?</h2>
+  <p>EVO Studio is <strong>a tool for running "evolution" (evolutionary computation) experiments in your browser.</strong> No installation needed: just double-click the file to use it.</p>
+  <p>A genetic algorithm (GA) is a way of solving problems modeled on biological evolution. You prepare a "population of individuals (candidate answers)," and by repeating <strong>evaluate → select → crossover (recombination) → mutate → next generation</strong>, "good answers" naturally get refined generation after generation.</p>
+  <p>In EVO Studio, <strong>the engine handles the entire GA mechanism</strong> (selection, crossover, mutation, elitism) for you. All you decide are three things: "the shape of the gene," "how to measure good vs. bad (the evaluation function)," and "how to draw the picture." And even that can be <strong>built by a generative AI and simply pasted in</strong>.</p>
+  <div class="tip">
+    <span class="box-label">The idea behind this tool</span>
+    Recent advances in generative AI are reshaping the "<strong>understanding by building</strong>" (constructive) style of modeling in complex systems and artificial life. By giving a prompt with just the skeleton of an idea, not a complete specification, you can auto-generate a wide variety of models, have the AI explain them when you want to understand them, and refine ideas through dialogue. The catch is that letting the AI generate everything tends to produce wildly inconsistent results.<br>
+    ALifeCoreStudio (the three studios, ABM / EVO / IEC) keeps a <strong>common framework for model construction, visualization, and analysis fixed</strong>, and lets generative AI produce only the <strong>essential parts</strong> of a model. This supports <strong>beginners with no programming experience giving free form to their ideas</strong>, <strong>students growing models together with AI</strong>, and <strong>researchers building prototypes quickly</strong>. By making it easy to <strong>generate possible models freely</strong> within a shared framework, we hope to accelerate the constructive approach to scientific understanding and spread the <strong>joy</strong> of imagining and running "what worlds could be."
+  </div>
+  <div class="good">
+    <span class="box-label">All You Need</span>
+    A browser with EVO Studio (an HTML file) open, plus a generative AI service (<a href="https://chatgpt.com" target="_blank">ChatGPT</a>, <a href="https://gemini.google.com" target="_blank">Gemini</a>, <a href="https://claude.ai" target="_blank">Claude</a>, etc.; the free tier is plenty)
+  </div>
+  <div class="tip">
+    <span class="box-label">Difference from ABM Studio</span>
+    ABM Studio is a tool for <strong>observing</strong> how phenomena emerge from individual rules. EVO Studio is a tool for <strong>searching for good answers through evolution</strong>. In Evo, the most important thing is defining the <strong>fitness function (fitness), a value where higher is better</strong>.
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="flow"><span class="sec-icon">🗺️</span> The Overall Flow (3 Steps)</h2>
+  <div class="flow">
+    <div class="flow-step">① Ask a generative AI</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">② Copy the code</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">③ Paste into EVO Studio</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">▶ Start evolving!</div>
+  </div>
+  <p>That's it. You never need to read or write code. Let's first experience how evolution progresses using the models that come built in.</p>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="builtin"><span class="sec-icon">▶️</span> First, Try Running a Built-in Model</h2>
+  <p>EVO Studio comes with models built in from the start. Let's try running one first.</p>
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">Choose a model</div>
+        <p>Choose a model from the dropdown in the code bar at the bottom of the screen ("── Select a model ──").</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">Press <span class="ui">▶ Start Evolution</span></div>
+        <p>Generations advance, and the chart's fitness (best/average) rises. Press it again to pause. Use <span class="ui">⏭ 1 Gen</span> to advance one generation at a time. Use <span class="ui">⟳ Reset</span> to start over from a random initial population. <strong>It stops automatically once it reaches the "max generation"</strong> (the default is <span class="ui">⏹ Stop only</span>; switch the selector on the right to <span class="ui">🔁 Loop</span> to reset and repeat at that generation).</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <span class="box-label">A Good Way to Watch</span>
+    First, choose "⑤ Traveling Salesman Problem (TSP)" and press <span class="ui">▶ Start Evolution</span>. The tangled tour that starts out messy gradually straightens into a short, tidy route as generations pass. <strong>Lowering the run speed (generations/sec)</strong> makes the improvement easier to watch.
+  </div>
+
+  <div class="good">
+    <span class="box-label">Handy Features to Know About</span>
+    <ul style="margin:.3rem 0 0 1.2rem;line-height:1.8">
+      <li><strong>Run speed:</strong> the "Run speed" slider on the left is in <strong>generations/sec</strong>. Lower it to go slowly, raise it to speed through.</li>
+      <li><strong>Compare results:</strong> evolve for a bit, then press <span class="ui">📸 Save Current</span> to keep it overlaid on the chart.</li>
+      <li><strong>Save data:</strong> use the chart's <span class="ui">💾</span> / <span class="ui">⬇ Save CSV</span> to save results as a CSV for Excel.</li>
+      <li><strong>📦 Download ZIP:</strong> the <span class="ui">📦 Download ZIP</span> button in "Save/Compare Experiments" bundles all data since initialization into a <b>ZIP</b>. It contains <code>metadata.json</code> (the experiment settings: parameters, stop condition, <b>random seed</b>, etc.), a <code>.csv</code> of per-generation fitness, <code>data.json</code> (all data), and <b>the model code itself</b> <code>model.js</code>. Handy for analyzing or reproducing later.<br>
+      Turn on <span class="ui">Record states (time-shift / replay)</span> before running and each generation's state is saved to <code>frames.jsonl</code> (leave it <b>off</b> when just observing, which is faster). Drop the exported ZIP onto the bundled <code>ALifeCoreStudio_Viewer.html</code> to <b>replay each recorded generation with the model's own drawing</b> (built-in, modified, or new models all work).</li>
+      <li><strong>Watch it back while it runs:</strong> once states are being recorded, a timeline appears under the run buttons. <span class="ui">LIVE</span> is checked by default and the display follows the newest generation. Drag the bar (or uncheck <span class="ui">LIVE</span>) to <b>go back to any earlier generation while evolution continues in the background</b>, like the seek bar on a live video. <span class="ui">▶</span> plays the recorded generations back, an amber marker on each graph shows where you are, and re-checking <span class="ui">LIVE</span> returns you to the newest generation. How far back you can go is set by <span class="ui">limit</span> next to the interval (500 MB by default, up to <b>no limit</b>).
+      <li><strong>If it's heavy:</strong> lower "Population size," or for creature models, lower "Evaluation steps" to lighten the load.</li>
+      <li><strong>💾 HTML Export:</strong> use the button in the code bar to export a standalone HTML file that runs only the model currently running. It becomes a simple screen with no editing UI, handy for distribution, submission, or presentation.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide-section">
+  <h3>List of Built-in Models</h3>
+  <div class="idea-grid">
+    <div class="idea-card">
+      <div class="ic-emoji">📈</div>
+      <div class="ic-title">① Function Optimization (Bit-String GA)</div>
+      <div class="ic-desc">Turns a bit string into real numbers x, y and searches for the function's minimum. Makes the basics of a GA clear at a glance.</div>
+    </div>
+    <div class="idea-card">
+      <div class="ic-emoji">🚗</div>
+      <div class="ic-title">② Mass-Spring Creature (2D)</div>
+      <div class="ic-desc">A creature made of point masses and springs (muscles) evolves to travel as far right as possible.</div>
+    </div>
+    <div class="idea-card">
+      <div class="ic-emoji">🧬</div>
+      <div class="ic-title">③ Soft-Body Creature</div>
+      <div class="ic-desc">The shape and motion of a 5×5 voxel body evolve together.</div>
+    </div>
+    <div class="idea-card">
+      <div class="ic-emoji">🎒</div>
+      <div class="ic-title">④ Knapsack Problem</div>
+      <div class="ic-desc">Maximizes total value without exceeding capacity. Evolves a bit string of included/excluded items.</div>
+    </div>
+    <div class="idea-card">
+      <div class="ic-emoji">🗺️</div>
+      <div class="ic-title">⑤ Traveling Salesman Problem</div>
+      <div class="ic-desc">Searches for the shortest route visiting every city once. The tour keeps getting shorter and shorter.</div>
+    </div>
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="view"><span class="sec-icon">👁️</span> Viewing Only the Best / the Whole Population</h2>
+  <p>What's shown large on screen is the generation's <strong>best individual (the single one with the top score)</strong>. Think of it as: many individuals are competing behind the scenes, and you're being shown the winner.</p>
+  <p>But looking at "the spread across the whole population" also matters for understanding evolution. You can switch this with the <span class="ui">View</span> toggle below the playback controls.</p>
+
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title"><span class="ui">Best Only</span> (default)</div>
+        <p>Shows only the best individual, enlarged. For creature models, you can see it walking, animated.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title"><span class="ui">All Individuals</span></div>
+        <p>Shows the population's <strong>top individuals as tiles, ordered by fitness</strong> (the ★ in the top-left is the best). The <span class="ui">Count</span> slider next to it lets you choose how many individuals to show (4–36). The contents of each tile update as generations advance.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <span class="box-label">Tips for Using Each Mode</span>
+    Normally run with "Best Only," and occasionally switch to "All Individuals" to check the <strong>diversity (whether various shapes/routes coexist)</strong>. This tells you whether evolution has "converged too much" or is "still exploring." If the tiles feel too small, lowering the count to something like 9 makes them bigger.
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="modify"><span class="sec-icon">✏️</span> Modify a Running Model</h2>
+  <p>If you think "I want to tweak this a bit more" about a built-in or custom model, use the <strong>"✏️ Modify Prompt" button</strong>. The current code and a modification instruction are copied together as a set.</p>
+  <div class="tip">
+    <span class="box-label">📖 Explain Prompt and Model Name</span>
+    When you want to understand "how" the currently running model works, press <span class="ui">📖 Explain Prompt</span>. A request that includes the current code is copied, so pasting it into a generative AI gets you a careful explanation with an <strong>overview, algorithm description, and pseudocode</strong>. Also, generated/modified code carries <code>const TITLE = 'model name'</code>, which is reflected in the browser tab name, the "About" heading, and the filename used by <span class="ui">💾 Save .js</span> (e.g., <code>Mass-Spring_Creature.js</code>).
+  </div>
+
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">Press "✏️ Modify Prompt"</div>
+        <p>It's in the code bar. The current code is automatically included in the prompt.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">Paste it into a generative AI and write "what you want changed"</div>
+        <p>Just write what you want changed as bullet points under <strong>[What you want changed]</strong> at the end of the pasted prompt.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">3</div>
+      <div class="big-body">
+        <div class="step-title">Replace all the code with what comes back</div>
+        <p>Select all in the code field (<kbd>Ctrl</kbd>+<kbd>A</kbd>), paste (<kbd>Ctrl</kbd>+<kbd>V</kbd>), and press "▶ Apply."</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>Example Modification Requests 💬</h3>
+  <p>Try writing ideas like the following in the [What you want changed] bullet list.</p>
+  <table>
+    <tr>
+      <th>Base Model</th>
+      <th>Ideas for Modification Instructions to the AI</th>
+    </tr>
+    <tr>
+      <td>① Function Optimization</td>
+      <td>
+        <ul>
+          <li>Change the evaluation function from Rastrigin to the Sphere function so the minimum value is 0.</li>
+          <li>Increase the number of variables from 2D to 3D (x, y, z).</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td>② Mass-Spring Creature</td>
+      <td>
+        <ul>
+          <li>Change fitness from "distance to the right" to "the highest point reached while jumping."</li>
+          <li>Add a gravity slider.</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td>③ Soft-Body Creature</td>
+      <td>
+        <ul>
+          <li>Change fitness from "movement speed" to "the height of the body's center of mass."</li>
+          <li>Place an obstacle on the ground and make it climb over it.</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td>④ Knapsack</td>
+      <td>
+        <ul>
+          <li>Increase the number of items to 50, with more variation in weight and value.</li>
+          <li>Widen the range of the capacity slider.</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td>⑤ Traveling Salesman</td>
+      <td>
+        <ul>
+          <li>Increase the number of cities to 40.</li>
+          <li>Arrange the cities in a circle (the shortest route should become a circle).</li>
+        </ul>
+      </td>
+    </tr>
+  </table>
+
+  <div class="good">
+    <span class="box-label">Tips for Modifying</span>
+    Trying to change too much at once tends to fail. It's best to request <strong>one or two small changes at a time</strong> and check that it works after each one.
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="gemini"><span class="sec-icon">✨</span> Have a Generative AI Build a New Model</h2>
+  <p>EVO Studio has a "✨ New Model Prompt" button. Pressing it copies a spec sheet to hand to a generative AI onto your clipboard.</p>
+
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">Press "✨ New Model Prompt"</div>
+        <p>It's in the code bar at the bottom of the screen. You're good once "Copied" appears.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">Paste it into a generative AI and rewrite it</div>
+        <p>Paste it into the generative AI's chat box, rewrite the <strong>[Model to implement]</strong> field with the problem you want to solve, and send it.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">3</div>
+      <div class="big-body">
+        <div class="step-title">Copy the code and paste it into EVO Studio</div>
+        <p>Copy just the contents of the code block (```javascript ... ```) that the generative AI produced, paste it into EVO Studio's code field, and press "▶ Apply."</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>Requests Like This Come Across Clearly 💬</h3>
+  <p>The trick with a GA is to convey "<strong>what to make the gene, and what you want to maximize (or minimize)</strong>."</p>
+
+  <div class="chat">
+    <div class="chat-row">
+      <div class="chat-avatar">🙋</div>
+      <div>
+        <div class="chat-label">Example Student Input</div>
+        <div class="chat-bubble">
+          Make a model with a real-valued gene that <strong>maximizes</strong> f(x,y)=sin(x)+cos(y)−0.1(x²+y²).<br>I'd like the search to be drawn as points on the x–y plane.
+        </div>
+      </div>
+    </div>
+    <div class="chat-row">
+      <div class="chat-avatar">🙋</div>
+      <div>
+        <div class="chat-label">Example Student Input</div>
+        <div class="chat-bubble">
+          I want to evolve a stick-figure-like creature so that periodic motion of its joint angles makes it <strong>walk as far right as possible</strong>.<br>I'd also like to see an animation of the best individual walking.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prompt-card">
+    <div class="prompt-card-header">📋 Example Request to a Generative AI (what to write in the [Model to implement] field)</div>
+    <div class="prompt-card-body">
+      Please make a model that solves <span class="placeholder">the problem you want to solve (e.g., shortest path, function optimization, walking creature)</span> through evolution.<br><br>
+      The gene (a candidate answer) is <span class="placeholder">what (e.g., each city's order, real-valued parameters, shape and motion)</span>.<br>
+      The fitness function (higher is better) is <span class="placeholder">what you want to maximize (e.g., −route length, a function value, distance traveled)</span>.<br><br>
+      Parameters you want to change with sliders: <span class="placeholder">e.g., population size, mutation rate, number of cities</span> (fine to omit if none)<br>
+      If you want to see the best individual move, mention that too.
+    </div>
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="localai"><span class="sec-icon">🤖</span> Connecting Directly to a Generative AI API (Local / Cloud)</h2>
+  <p>Instead of copy-and-pasting to a generative AI, you can <strong>connect directly to an LLM running on your own PC (like LM Studio)</strong> and do the modification or creation entirely inside the Studio. This saves the hassle of pasting code back and forth, and lets you run everything locally without sending anything over the network. <strong>Any OpenAI-compatible API</strong> works (LM Studio, Ollama, OpenAI, etc.).</p>
+  <div class="tip">
+    <span class="box-label">What You Need</span>
+    An OpenAI-compatible server such as LM Studio (free). Load one model and start the local server.
+  </div>
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">Start the server in LM Studio</div>
+        <p>Load a model → Start the "Local Server." <strong>Turn on "Enable CORS" in Server Settings</strong> (required for connecting from the browser).</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">Press "🤖 AI Generate"</div>
+        <p>It's in the code bar at the bottom of the screen. A settings panel opens; check the endpoint (default <code>http://localhost:1234</code>) and the model name. You can choose the model name via <span class="ui">🔄 Fetch List</span>. Settings are remembered, so you won't need to redo this next time.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">3</div>
+      <div class="big-body">
+        <div class="step-title">Choose "Modify / Create New," write your instructions, and press ▶ Send</div>
+        <p>Choose "✏️ Modify Existing Code" or "✨ Create New," write what you want, and send it. The generated code <strong>is automatically placed in the code field</strong>. Check it and press <span class="ui">▶ Apply</span> to run it.</p>
+      </div>
+    </div>
+  </div>
+  <div class="tip">
+    <span class="box-label">If the Connection Fails</span>
+    "Failed to fetch" is usually caused by the server not running, CORS not being enabled, or a wrong URL. First, try opening <code>http://localhost:1234/v1/models</code> directly in your browser to see if JSON comes back. If it does, LM Studio's side is fine. You can also type the model name in manually and still send the request.
+  </div>
+
+  <h3>Using Cloud Generative AI Services (OpenRouter, DeepInfra, OpenAI, etc.)</h3>
+  <p>Not just local: OpenAI-compatible cloud APIs can also be used <strong>from the same panel</strong>. You don't need to run your own server; just enter each service's base URL in "Endpoint," the issued key in "API Key," and the model name.</p>
+  <table>
+    <tr><th>Service</th><th>Endpoint (Base URL)</th><th>Example Model Names</th></tr>
+    <tr><td>OpenRouter</td><td><code>https://openrouter.ai/api/v1</code></td><td><code>openai/gpt-4o-mini</code>, <code>deepseek/deepseek-chat</code>, etc.</td></tr>
+    <tr><td>DeepInfra</td><td><code>https://api.deepinfra.com/v1/openai</code></td><td><code>meta-llama/Meta-Llama-3.1-8B-Instruct</code>, etc.</td></tr>
+    <tr><td>OpenAI</td><td><code>https://api.openai.com/v1</code></td><td><code>gpt-4o-mini</code>, etc.</td></tr>
+  </table>
+  <div class="tip">
+    <span class="box-label">Notes on Cloud Use</span>
+    These <strong>require an API key</strong>, and most are <strong>pay-as-you-go</strong>. Issue a key from each service's dashboard, and put it in the "API Key" field rather than writing it into code. You can also choose the model name via <span class="ui">🔄 Fetch List</span> (OpenRouter lists hundreds). Whether it can be called directly from the browser depends on each service's CORS support (OpenRouter and DeepInfra support it; with some services you'll get <code>Failed to fetch</code>, in which case it can't be used from the browser).
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="ideas"><span class="sec-icon">💡</span> What Problems Can You Solve? Idea Gallery</h2>
+  <p>If a problem has "something you want to optimize," a GA can usually handle it. Framing a request around your own field can even turn into a class report.</p>
+
+  <div class="idea-grid">
+    <div class="idea-card"><div class="ic-emoji">🗺️</div><div class="ic-title">Shortest Path / Delivery Planning</div><div class="ic-desc">Traveling salesman, delivery route optimization. Make the order the gene.</div></div>
+    <div class="idea-card"><div class="ic-emoji">📅</div><div class="ic-title">Scheduling</div><div class="ic-desc">Timetables, shift schedules. Satisfy preferences while reducing constraint violations.</div></div>
+    <div class="idea-card"><div class="ic-emoji">📈</div><div class="ic-title">Function Optimization</div><div class="ic-desc">Maximum/minimum of a multivariable function. Explores valleys that hill-climbing can't escape.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🧠</div><div class="ic-title">Neural Network Weights</div><div class="ic-desc">Evolve the weights of a small network to solve a simple control task.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🤖</div><div class="ic-title">Walking / Swimming Creatures</div><div class="ic-desc">Evolve joint or spring motion to gain locomotion (Soft-Body Creature / Mass-Spring Creature).</div></div>
+    <div class="idea-card"><div class="ic-emoji">🎨</div><div class="ic-title">Color Schemes / Layout</div><div class="ic-desc">Evolve a color scheme using legibility, contrast, etc. as the fitness function.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🎒</div><div class="ic-title">Knapsack / Subset Sum</div><div class="ic-desc">A classic constrained combinatorial optimization problem. Evolve an inclusion bit string.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🧩</div><div class="ic-title">Curve Fitting</div><div class="ic-desc">Evolve the coefficients of a formula to fit data and discover a relationship (symbolic regression).</div></div>
+    <div class="idea-card"><div class="ic-emoji">📡</div><div class="ic-title">Shape Optimization</div><div class="ic-desc">Antenna shapes, truss structures, etc.; evaluate performance and evolve the shape.</div></div>
+  </div>
+
+  <div class="tip">
+    <span class="box-label">Tips for Framing It Around Your Own Field</span>
+    Framing it as "<strong>gene = X, evaluation = maximize Y</strong>" before asking a generative AI tends to work well. It doesn't need to be perfectly precise; you can refine it later.
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="trouble"><span class="sec-icon">🔧</span> If Something Doesn't Work</h2>
+
+  <table>
+    <tr><th>Symptom</th><th>What to Do</th></tr>
+    <tr>
+      <td>An error appears and it won't run</td>
+      <td>The <strong>line number and a hint</strong> for the cause are shown. Read that first. If it's not fixed, paste the red error text as-is into a generative AI and ask it to "fix this." The <span class="ui">❔ Help</span> panel in the top right also lists syntax that can't be used.</td>
+    </tr>
+    <tr>
+      <td>Nothing is displayed</td>
+      <td>Check whether you pressed <span class="ui">▶ Apply</span>. The order is: press Apply, then <span class="ui">▶ Start Evolution</span>.</td>
+    </tr>
+    <tr>
+      <td>Fitness (the chart) isn't improving</td>
+      <td>Try raising "Mutation rate" a bit to widen the search, raising "Selection pressure (tournament)" to make it easier to keep good individuals, or increasing "Population size." If the problem is too hard, reduce its scale.</td>
+    </tr>
+    <tr>
+      <td>It converges quickly to the same answer</td>
+      <td>Raising "Mutation rate," lowering "Elitism," or increasing "Population size" helps preserve diversity. Check the spread using the <span class="ui">All Individuals</span> view.</td>
+    </tr>
+    <tr>
+      <td>It's too fast to see</td>
+      <td>Lower "Run speed (generations/sec)." Use <span class="ui">⏭ 1 Gen</span> if you want to watch one generation at a time.</td>
+    </tr>
+    <tr>
+      <td>It's heavy / stutters</td>
+      <td>Lower "Population size." For creature models, lower "Evaluation steps." If showing <span class="ui">All Individuals</span>, reduce "Count."</td>
+    </tr>
+    <tr>
+      <td>The generative AI's code doesn't run</td>
+      <td>Ask again: "Please fix this following the spec sheet. Don't use <code>document.*</code> / <code>import</code> / <code>class</code>."</td>
+    </tr>
+    <tr>
+      <td>On the free tier, the code cuts off partway / explanatory text gets mixed in</td>
+      <td>Paste <strong>only the contents of the code block</strong>. If it cuts off, prompt it to "continue," or ask again. The prompt already includes instructions for "exactly one block, output the full text without abbreviation."</td>
+    </tr>
+  </table>
+
+  <div class="warn">
+    <span class="box-label">Note When Pasting Code</span>
+    Copy <strong>only the contents of the code block (```javascript ... ```)</strong>, not the generative AI's entire reply. Using the "Copy" button in the top-right of the code block automatically copies just the contents.
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="refs"><span class="sec-icon">📚</span> References &amp; Sources</h2>
+  <p>These are the key original sources the built-in models draw on as subject matter. All code is this project's own independent implementation (for the Soft-Body Creature, the code takes inspiration from existing research as noted below, but is implemented independently).</p>
+  <ul>
+    <li><strong>Genetic algorithms (GA)</strong>: Holland, J. H. (1975). <em>Adaptation in Natural and Artificial Systems</em>. University of Michigan Press. / Goldberg, D. E. (1989). <em>Genetic Algorithms in Search, Optimization, and Machine Learning</em>. Addison-Wesley.</li>
+    <li><strong>Mass-Spring Creature (evolving virtual creatures)</strong>: Sims, K. (1994). Evolving virtual creatures. <em>SIGGRAPH '94</em>, 15–22. The origin of evolving virtual creatures. Sims evolved <b>three-dimensional creatures made of articulated blocks</b>, together with their neural controllers; the model here is not a reimplementation of that work but a far simpler <b>two-dimensional mass-spring system</b>, written independently in the spirit of that line of research.</li>
+    <li><strong>Soft-Body Creature (voxels)</strong>: Bhatia, J., Jackson, H., Tian, Y., Xu, J., &amp; Matusik, W. (2021). Evolution Gym: A large-scale benchmark for evolving soft robots. <em>NeurIPS 2021</em>. The idea of "evolving soft robots made of voxels" is drawn from Evolution Gym (<a href="https://github.com/EvolutionGym/evogym" target="_blank">github.com/EvolutionGym/evogym</a>, MIT License). All code, including the physics model (position-based dynamics), is independently implemented; no source code from EvoGym is used.</li>
+    <li><strong>Knapsack problem / traveling salesman problem (TSP)</strong>: Both are classic combinatorial optimization problems (see standard textbooks).</li>
+  </ul>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="thanks"><span class="sec-icon">🙏</span> Acknowledgments</h2>
+  <p>This tool owes a great deal to <a href="https://www.netlogo.org/" target="_blank">NetLogo</a> (Wilensky, U., 1999, Center for Connected Learning and Computer-Based Modeling, Northwestern University). The author has long used NetLogo for their own learning and teaching, and that experience underlies the concept and design of this tool. We record our deep gratitude here.</p>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <div class="footer" style="border: none; padding-top: 2vh;">
+    <p>
+      <a href="Evo_Studio.html">Open EVO Studio</a>
+      &nbsp;|&nbsp;
+      <a href="Evo_Studio_Manual.html">Detailed Manual (Advanced)</a>
+      &nbsp;|&nbsp;
+      <a href="ABM_Studio_FirstSteps.html">ABM Studio Guide</a>
+      &nbsp;|&nbsp;
+      <a href="IEC_Studio_FirstSteps.html">IEC Studio Guide</a>
+    </p>
+  </div>
+</div>
+
+<script>
+  let isSlideMode = false;
+  let currentSlide = 0;
+  let slides = [];
+
+  function initSlideMode() {
+    slides = document.querySelectorAll('.slide-section');
+  }
+
+  function toggleSlideMode() {
+    if (slides.length === 0) initSlideMode();
+    isSlideMode = !isSlideMode;
+    const body = document.body;
+    const controls = document.getElementById('slide-controls');
+    
+    if (isSlideMode) {
+      body.classList.add('is-slide-mode');
+      controls.style.display = 'flex';
+      // Reset all and show current
+      slides.forEach(s => s.classList.remove('active'));
+      currentSlide = 0;
+      updateSlideView();
+    } else {
+      body.classList.remove('is-slide-mode');
+      controls.style.display = 'none';
+      // Make all visible for standard web view
+      slides.forEach(s => s.classList.remove('active'));
+    }
+  }
+
+  function updateSlideView() {
+    if (!isSlideMode) return;
+    slides.forEach((slide, index) => {
+      if (index === currentSlide) {
+        slide.classList.add('active');
+        // Small delay to trigger animation
+        slide.style.animation = 'none';
+        slide.offsetHeight; /* trigger reflow */
+        slide.style.animation = null; 
+      } else {
+        slide.classList.remove('active');
+      }
+    });
+    document.getElementById('slide-counter').innerText = `${currentSlide + 1} / ${slides.length}`;
+  }
+
+  function nextSlide() {
+    if (currentSlide < slides.length - 1) {
+      currentSlide++;
+      updateSlideView();
+    }
+  }
+
+  function prevSlide() {
+    if (currentSlide > 0) {
+      currentSlide--;
+      updateSlideView();
+    }
+  }
+
+  // Keyboard navigation
+  window.addEventListener('keydown', (e) => {
+    if (!isSlideMode) return;
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault();
+      nextSlide();
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault();
+      prevSlide();
+    } else if (e.key === 'Escape') {
+      toggleSlideMode();
+    }
+  });
+
+  // Initialize on DOM load
+  window.addEventListener('DOMContentLoaded', initSlideMode);
+</script>
+
+</body>
+</html>

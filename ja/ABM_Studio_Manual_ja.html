@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABM Studio v1.0 — 利用方法マニュアル</title>
+<style>
+:root {
+  --bg:           #ffffff;
+  --sidebar-bg:   #f5f4f0;
+  --text:         #1a1a1a;
+  --muted:        #555;
+  --light:        #999;
+  --border:       #ddd;
+  --border-light: #eee;
+  --accent:       #1a4b8c;
+  --accent2:      #2a7a40;
+  --warn:         #7a4800;
+  --tip-bg:       #f0f7ff;
+  --tip-border:   #1a4b8c;
+  --warn-bg:      #fff8f0;
+  --warn-border:  #c97a00;
+  --step-bg:      #f5f4f0;
+  --code-bg:      #f0f2f6;
+  --tag-ca:       #1a4b8c;
+  --tag-abm:      #2a7a40;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.8;
+  font-size: 0.97rem;
+}
+
+/* ── Layout ── */
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 230px;
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 1.6rem 0 3rem;
+}
+.sidebar-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--muted);
+  padding: 0 1.2rem 0.7rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.6rem;
+  text-transform: uppercase;
+}
+.sidebar nav a {
+  display: block;
+  padding: 0.28rem 1.2rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: color .15s, border-color .15s, background .15s;
+  line-height: 1.5;
+}
+.sidebar nav a:hover { color: var(--accent); background: rgba(26,75,140,.05); }
+.sidebar nav a.active { color: var(--accent); border-left-color: var(--accent); font-weight: 600; background: rgba(26,75,140,.07); }
+.sidebar nav a.sub { padding-left: 2.0rem; font-size: 0.78rem; }
+.sidebar-section { margin-top: 1.2rem; }
+.sidebar-section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--light);
+  padding: 0.4rem 1.2rem 0.1rem;
+}
+
+.main {
+  flex: 1;
+  max-width: 860px;
+  padding: 3rem 3rem 8rem;
+  min-width: 0;
+}
+
+/* ── Header ── */
+.page-header {
+  border-bottom: 2px solid var(--text);
+  padding-bottom: 1.4rem;
+  margin-bottom: 3rem;
+}
+.page-header .breadcrumb {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+.page-header .breadcrumb a { color: var(--accent); text-decoration: none; }
+.page-header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -.01em; }
+.page-header .subtitle { font-size: 0.9rem; color: var(--muted); margin-top: 0.4rem; }
+.page-header .badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  background: var(--accent);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* ── Section headings ── */
+.section-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+  border-bottom: 1.5px solid var(--border);
+  padding-bottom: 0.5rem;
+  margin: 3.5rem 0 1.2rem;
+  scroll-margin-top: 24px;
+}
+.section-title .sec-num {
+  font-size: 0.8em;
+  color: var(--light);
+  font-weight: 400;
+  margin-right: 0.4em;
+}
+.subsection-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 2rem 0 0.8rem;
+  scroll-margin-top: 24px;
+}
+.subsection-title .sub-marker {
+  display: inline-block;
+  width: 4px; height: 1em;
+  background: var(--accent);
+  margin-right: 0.5em;
+  vertical-align: -0.1em;
+  border-radius: 2px;
+}
+
+/* ── Prose ── */
+p { margin-bottom: 1rem; }
+p + p { margin-top: 0; }
+
+/* ── Info boxes ── */
+.tip, .warn, .note {
+  border-left: 3px solid;
+  padding: 0.9rem 1.1rem;
+  margin: 1.4rem 0;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.92rem;
+}
+.tip  { background: var(--tip-bg);  border-color: var(--tip-border); }
+.warn { background: var(--warn-bg); border-color: var(--warn-border); }
+.note { background: #f9f7f4;        border-color: #888; }
+.tip .box-label, .warn .box-label, .note .box-label {
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.tip  .box-label { color: var(--accent); }
+.warn .box-label { color: var(--warn); }
+.note .box-label { color: #555; }
+
+/* ── Step boxes ── */
+.steps { margin: 1.4rem 0; }
+.step {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+  align-items: flex-start;
+}
+.step-num {
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 0.15rem;
+}
+.step-body { flex: 1; }
+.step-body strong { display: block; margin-bottom: 0.2rem; }
+
+/* ── Inline code ── */
+code {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 0.84em;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: #1e4070;
+}
+
+/* ── Code block ── */
+pre {
+  background: #0d1117;
+  color: #e6edf3;
+  border-radius: 6px;
+  padding: 1rem 1.2rem;
+  overflow-x: auto;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  margin: 1rem 0 1.4rem;
+}
+pre .cm { color: #8b949e; }     /* comment */
+pre .kw { color: #ff7b72; }     /* keyword */
+pre .str { color: #a5d6ff; }    /* string */
+pre .fn { color: #d2a8ff; }     /* function name */
+pre .num { color: #79c0ff; }    /* number */
+pre .prop { color: #ffa657; }   /* property */
+
+/* ── Screenshot frame ── */
+.screen-frame {
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 1.2rem 0 1.6rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.07);
+}
+.screen-title {
+  background: var(--sidebar-bg);
+  border-bottom: 1px solid var(--border);
+  padding: 0.4rem 1rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+}
+.screen-body {
+  background: #f4f6f9;
+  padding: 1rem 1.2rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+/* ── UI label ── */
+.ui { /* inline UI element reference */
+  display: inline-block;
+  background: #e8ecf4;
+  border: 1px solid #c0c8d8;
+  border-radius: 3px;
+  padding: 0px 6px;
+  font-size: 0.82em;
+  font-weight: 600;
+  color: #1e3a6e;
+  white-space: nowrap;
+}
+
+/* ── Keyboard keys ── */
+kbd {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 0.83em;
+  background: #fff;
+  border: 1.5px solid #b0b8cc;
+  border-bottom: 3px solid #8090aa;
+  border-radius: 4px;
+  padding: 1px 6px;
+  color: #1e3a6e;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0,0,0,.07);
+  vertical-align: middle;
+}
+.kb-badge {
+  display: inline-block;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  border-radius: 2px;
+  padding: 1px 4px;
+  vertical-align: middle;
+  margin-right: 2px;
+  font-family: sans-serif;
+}
+.kb-badge.win { background: #dde8f5; color: #1e4070; }
+.kb-badge.mac { background: #e8f5e8; color: #1a6a2a; }
+.kb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  vertical-align: middle;
+}
+.kb-divider { color: #bbb; margin: 0 0.25rem; font-size: 0.9em; }
+
+/* ── Shortcut reference box ── */
+.shortcut-box {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin: 1.4rem 0;
+  overflow: hidden;
+}
+.shortcut-box-title {
+  background: var(--sidebar-bg);
+  padding: 0.45rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+}
+.shortcut-box table {
+  margin: 0;
+  border: none;
+  font-size: 0.86rem;
+}
+.shortcut-box table th,
+.shortcut-box table td {
+  border: none;
+  border-bottom: 1px solid var(--border-light);
+  padding: 0.42rem 1rem;
+}
+.shortcut-box table tr:last-child td { border-bottom: none; }
+.shortcut-box table th {
+  background: transparent;
+  font-size: 0.74rem;
+  color: var(--muted);
+  padding-top: 0.6rem;
+  vertical-align: middle;
+}
+.shortcut-box table td:first-child {
+  color: var(--text);
+  font-family: inherit;
+  white-space: normal;
+  font-size: 0.86rem;
+  width: 38%;
+}
+.shortcut-box table td:nth-child(2),
+.shortcut-box table td:nth-child(3) { white-space: nowrap; }
+
+/* ── Model tag ── */
+.tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 3px;
+  color: #fff;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.tag-ca  { background: var(--tag-ca); }
+.tag-abm { background: var(--tag-abm); }
+
+/* ── Model card grid ── */
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  margin: 1.2rem 0 1.8rem;
+}
+.model-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.9rem 1.1rem;
+  background: #fafafa;
+}
+.model-card .mc-name { font-weight: 700; font-size: 0.92rem; margin-bottom: 0.25rem; }
+.model-card .mc-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+.model-card .mc-tips { margin-top: 0.5rem; font-size: 0.8rem; }
+.model-card .mc-tips li { margin-left: 1.2rem; color: var(--muted); margin-bottom: 0.1rem; }
+
+/* ── Error table ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin: 1.2rem 0 1.8rem;
+}
+th, td { border: 1px solid var(--border); padding: 0.55rem 0.9rem; text-align: left; vertical-align: top; }
+th { background: var(--sidebar-bg); font-weight: 700; }
+td:first-child { white-space: nowrap; color: #b91c1c; font-family: 'IBM Plex Mono',monospace; font-size: 0.82em; }
+tr:hover td { background: #fafafa; }
+
+/* ── Divider ── */
+.divider { border: none; border-top: 1px solid var(--border-light); margin: 2.5rem 0; }
+
+/* ── Scrollspy JS ── */
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-title">ABM Studio マニュアル</div>
+    <nav id="sideNav">
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">はじめに</div>
+        <a href="#overview">1. ABM Studio とは</a>
+        <a href="#screen"  >2. 画面の構成</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">基本操作</div>
+        <a href="#builtin" >3. ビルトインモデルを使う</a>
+        <a href="#controls">4. 実行・観察の操作</a>
+        <a href="#params"  >5. パラメータを変える</a>
+        <a href="#export"  >6. 結果の保存・比較</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">コード生成</div>
+        <a href="#chatgpt" >7. 生成AI でコードを作る</a>
+        <a href="#aigen" class="sub">🤖 AI生成（API直結）</a>
+        <a href="#python2py" class="sub">🐍 Python化プロンプト</a>
+        <a href="#paste"   >8. コードを貼り付けて実行</a>
+        <a href="#modify"  >9. コードを改変する</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">モデル別ガイド</div>
+        <a href="#model-eca"     class="sub">ECA（1次元 CA）</a>
+        <a href="#model-life"    class="sub">ライフゲーム</a>
+        <a href="#model-seg"     class="sub">シェリング分居</a>
+        <a href="#model-boids"   class="sub">フロッキング</a>
+        <a href="#model-aco"     class="sub">アリのフェロモンモデル（Ant-pheromone）</a>
+        <a href="#model-pd"      class="sub">囚人のジレンマ</a>
+        <a href="#model-sps"     class="sub">SPS（ソーシャル・パーティクル・スウォーム）</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">困ったときは</div>
+        <a href="#errors">10. エラーと対処法</a>
+        <a href="#faq"   >11. よくある質問</a>
+        <a href="#refs">📚 参考文献・出典</a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="breadcrumb">
+        <a href="ABM_Studio_FirstSteps_ja.html">ABM Studio はじめてガイド</a> &rsaquo; ABM Studio マニュアル
+      </div>
+      <h1><span class="badge">v1.0</span>ABM Studio 利用方法マニュアル</h1>
+      <p class="subtitle">ブラウザで動くエージェントベースモデリング環境</p>
+    </div>
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="overview"><span class="sec-num">1</span>ABM Studio とは</h2>
+
+    <p>ABM Studio は，<strong>ブラウザだけで動くエージェントベースモデル（ABM）モデリング環境です。</strong>インストール不要，アカウント登録不要，ファイルをダブルクリックするだけで起動します。</p>
+
+    <p>モデルのコードは JavaScript で書かれており，<strong>生成AI などの AI に仕様書を渡してコードを生成させ，それをそのまま貼り付けて動かす</strong>というワークフローで使います。プログラミングの経験がなくても，複雑系の各モデルをその場でカスタマイズして観察できます。</p>
+
+    <div class="note">
+      <span class="box-label">このツールのねらい（考え方）</span>
+      近年の生成AIの進展は，複雑系や人工生命の「作って理解する（構成論的）」モデリングを大きく変えつつあります。プロンプトで骨子を与えれば，完全な仕様でなくても様々なモデルを自動生成でき，必要に応じて AI に説明させて理解したり，対話しながらアイデアを洗練したりできます。一方で，全体を AI に任せると出来上がるものがばらばらになりがちです。<br>
+      ALifeCoreStudio（ABM・EVO・IEC の3スタジオ）は，<strong>モデル構築・可視化・分析の共通の枠組みを固定</strong>したうえで，モデルの<strong>本質的な部分だけ</strong>を生成AIで生み出せるようにした環境です。これにより，プログラミング未経験の初心者が発想を自由に形にする／学生が AI と協働してモデルを育てる／研究者が素早くプロトタイプを作る，といった利用が想定されています。枠組みの中で<strong>可能なモデルを自由に生み出す</strong>ことを通じて，構成論的アプローチによる科学的理解を加速し，「どんな世界がありうるか」を思い描いて動かす楽しさを広げること——それがこのツールのねらいです。
+    </div>
+
+    <div class="tip">
+      <span class="box-label">ポイント</span>
+      ABM Studio には，授業で扱う主要モデル（ECA・ライフゲーム・シェリング分居・Boids・アリのフェロモン・囚人のジレンマ）がビルトインで入っています。まずはそれらを動かしてみましょう。
+    </div>
+
+    <p><strong>できること：</strong></p>
+    <p>キャンバス上でモデルをリアルタイム描画すること，パラメータをスライダーで変えてその場で挙動を確認すること，グラフ（時系列）を記録すること，<strong>パラメータを変えた複数回の実行結果を保存してグラフに重ね，条件を比較すること</strong>，フィールドの画像保存や動画録画をすること，データを CSV ファイルでエクスポートすること，作ったモデルを <code>.js</code> ファイルに保存・再読み込みすること，<strong>モデルを Python スクリプトに変換すること</strong>，そしてコードを書き換えて新しいモデルを作ることができます。</p>
+
+    <p><strong>できないこと：</strong>インターネットへのアクセス，大規模データベースの読み込み，3D 描画，複数ウィンドウ間のデータ共有などはサポートしていません。</p>
+
+    <hr class="divider">
+
+    <hr class="divider">
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="screen"><span class="sec-num">2</span>画面の構成</h2>
+
+    <p>ABM Studio を開くと，以下の 4 つのエリアが表示されます。</p>
+
+    <div class="screen-frame">
+      <div class="screen-title">ABM Studio v1.0 — 画面レイアウト（模式図）</div>
+      <div class="screen-body">
+        <table style="font-size:.8rem;border:none;margin:0">
+          <tr>
+            <td colspan="2" style="border:1px solid #c0c8d8;background:#e8ecf4;text-align:center;padding:.4rem;font-weight:700;color:#1e3a6e">
+              ヘッダー：タイトル / Tick カウンター / <strong>FPS 表示</strong> / 実行状態バッジ / <strong>❔ ヘルプ</strong> / ⟳ 初期化
+            </td>
+          </tr>
+          <tr>
+            <td style="width:50%;border:1px solid #c0c8d8;background:#f4f6f9;padding:.8rem;vertical-align:top">
+              <strong>左エリア（キャンバス）</strong><br>
+              ・モデル画面（470×470 px）<br>
+              ・コピー / 保存 / 録画ボタン ＋ <strong>録画形式の選択</strong><br>
+              ・▶ 実行 / ⏭ 1 tick / ⟳ 初期化<br>
+              ・速度スライダー<br>
+              ・最大 tick スライダー + 到達時セレクタ（⏹ 停止のみ / 🔁 ループ）<br>
+              ・<strong>描画間引きスライダー</strong>
+            </td>
+            <td style="border:1px solid #c0c8d8;background:#f4f6f9;padding:.8rem;vertical-align:top">
+              <strong>右エリア（パラメータ／状態）</strong><br>
+              ・初期状態プリセット（プリセットがある場合）<br>
+              ・コマンドボタン（モデル固有）<br>
+              ・停止条件トグル<br>
+              ・<strong>パラメータ変更時の動作切替（即時反映/自動初期化）</strong><br>
+              ・パラメータスライダー（<strong>ⓘ 説明つき</strong>）<br>
+              ・状態表示ボックス<br>
+              ・<strong>実験の保存・比較</strong><br>
+              ・時系列グラフ（<strong>💾 CSV / 🖼 画像 / ⚙ 軸（縦軸・横軸の範囲設定）</strong>）
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2" style="border:1px solid #c0c8d8;background:#e8ecf4;text-align:center;padding:.4rem;font-weight:700;color:#1e3a6e">
+              コードバー（下部）：▸コード（<strong>行番号つき</strong>）/ ▶ 適用 / 仕様書コピー / ✨ 新規作成 / ✏️ 改変 / <strong>🐍 Python化</strong> / <strong>💾 .js保存</strong> / <strong>📂 開く</strong> / <strong>💾 HTML出力</strong> / モデルを選択 ▾
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="note">
+      <span class="box-label">スマホ・タブレットでは</span>
+      画面幅が狭いときは，左エリア（キャンバス）と右エリア（パラメータ）が<strong>上下に積み重なるレイアウト</strong>に自動的に切り替わります。キャンバスやボタンも画面幅に合わせて縮小されるので，操作方法は変わりません。
+    </div>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>各部の役割</h3>
+
+    <p><strong>ヘッダー</strong>は現在の Tick 数，実行中の <strong>FPS（フレームレート）</strong>，実行状態（RUNNING / LOOP / STOPPED）を表示します。<span class="ui">❔ ヘルプ</span>で操作の要点をいつでも確認でき，<span class="ui">⟳ 初期化</span>でモデルをリセットできます。</p>
+
+    <p><strong>左エリア（キャンバス）</strong>がモデルの本体です。エージェントの動き，格子の色変化，パターンの成長などがここに描画されます。下部に再生コントロールと，速度・最大 tick・描画間引きのスライダーが並びます。</p>
+
+    <p><strong>右エリア</strong>にはモデルを制御するコントロールが並びます。スライダーでパラメータを変えると，「即時反映」モードでは実行中のモデルにすぐ反映されます（詳しくは §5）。実験を保存してグラフを重ね，条件を比較することもできます（§6）。</p>
+
+    <p><strong>コードバー（画面下部）</strong>がコードの入力・管理エリアです。通常は折りたたまれています。<span class="ui">▸ コード</span>をクリックすると展開し，<strong>行番号つき</strong>のコード欄が表示されます。エラーがあると原因の行とヒントが下に表示されます。</p>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="builtin"><span class="sec-num">3</span>ビルトインモデルを使う</h2>
+
+    <p>ABM Studio には 8 種類のモデルがあらかじめ組み込まれています。画面下部のコードバーにある <span class="ui">── モデルを選択 ──</span> のプルダウンから選ぶだけで，すぐに動かせます。</p>
+
+    <div class="model-grid">
+      <div class="model-card">
+        <div class="mc-name"><span class="tag tag-ca">CA</span>ECA（ウルフラム 1次元 CA）</div>
+        <div class="mc-desc">ルール番号 0〜255 を変えながら，クラス1〜4のパターンを観察する。</div>
+        <ul class="mc-tips">
+          <li>速度スライダーを 1 t/f にする</li>
+          <li>ルール 30, 90, 110, 184 を試す</li>
+        </ul>
+      </div>
+      <div class="model-card">
+        <div class="mc-name"><span class="tag tag-ca">CA</span>ライフゲーム</div>
+        <div class="mc-desc">「誕生」3個・「生存」2〜3個の隣接セルで次世代が決まる。</div>
+        <ul class="mc-tips">
+          <li>グライダー銃プリセットを試す</li>
+          <li>初期密度を変えると挙動が一変する</li>
+        </ul>
+      </div>
+      <div class="model-card">
+        <div class="mc-name"><span class="tag tag-abm">ABM</span>シェリング分居</div>
+        <div class="mc-desc">幸福閾値が低くても，居住分離が自己組織的に起きる。</div>
+        <ul class="mc-tips">
+          <li>閾値 0.30 → 0.70 で比較</li>
+          <li>市松模様プリセットから観察</li>
+        </ul>
+      </div>
+      <div class="model-card">
+        <div class="mc-name"><span class="tag tag-abm">ABM</span>フロッキング（Boids）</div>
+        <div class="mc-desc">分離・整列・凝集の 3 ルールで群れの飛行が出現する。</div>
+        <ul class="mc-tips">
+          <li>整列度グラフで秩序化を確認</li>
+          <li>「全員を散乱」ボタンで再観察</li>
+        </ul>
+      </div>
+      <div class="model-card">
+        <div class="mc-name"><span class="tag tag-abm">ABM</span>アリのフェロモンモデル</div>
+        <div class="mc-desc">フェロモンで最短経路が発見される蟻の採餌行動。</div>
+        <ul class="mc-tips">
+          <li>青い光跡がフェロモン経路</li>
+          <li>「フェロモン消去」でリセット観察</li>
+        </ul>
+      </div>
+      <div class="model-card">
+        <div class="mc-name"><span class="tag tag-abm">ABM</span>空間囚人のジレンマ</div>
+        <div class="mc-desc">裏切り利得 b の値で協力者と裏切り者のパターンが変化。</div>
+        <ul class="mc-tips">
+          <li>b=1.65 が相転移の近く</li>
+          <li>協力率グラフの変化を観察</li>
+        </ul>
+      </div>
+      <div class="model-card">
+        <div class="mc-name"><span class="tag tag-abm">ABM</span>SIR 感染症モデル</div>
+        <div class="mc-desc">感受性(S)→感染(I)→回復(R) の空間 SIR モデル。</div>
+        <ul class="mc-tips">
+          <li>感染確率・回復確率を調整</li>
+          <li>「障害物追加」で拡散の変化を見る</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>画面下部のコードバーで「── モデルを選択 ──」をクリック</strong>
+          プルダウンが開きます。CA 群・ABM 群に分類されています。
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>モデル名を選ぶ</strong>
+          コードが自動的にセットされ，「▶ 適用」が実行されます。モデルが初期化されてキャンバスに描画されます。
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong><span class="ui">▶ 実行</span> ボタンを押して観察する</strong>
+          モデルが動き始めます。もう一度押すと一時停止します。
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="controls"><span class="sec-num">4</span>実行・観察の操作</h2>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>実行コントロール</h3>
+
+    <p><span class="ui">▶ 実行</span>を押すとモデルが動き始めます。もう一度押すと一時停止します。<span class="ui">⏭ 1 tick</span>を押すと，停止したまま 1 ステップだけ進めます。これは変化をゆっくり追いたいときに便利です。<span class="ui">⟳ 初期化</span>を押すとモデルを最初からやり直します。右パネルで設定したプリセットと現在のパラメータ値が使われます。</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>速度スライダー</h3>
+
+    <p>「実行速度」スライダーは，1 フレームあたり何ステップ（tick）進めるかを設定します。値が大きいほど速くなりますが，描画が粗くなります。<strong>ECA など時間変化を丁寧に見たいモデルは 1 t/f にする</strong>と，1 行ずつ積み上がる様子が観察できます。</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>描画間引きと FPS</h3>
+
+    <p>「描画間引き」スライダーは，<strong>何フレームに 1 回だけ画面を描画するか</strong>を設定します（1/2，1/4 …）。計算（step）は毎フレーム進めたまま描画だけを減らすので，<strong>エージェント数が多くて重いモデルを高速に回したいとき</strong>に有効です。計算結果（グラフや状態）は間引いても正しく記録されます。</p>
+
+    <p>ヘッダーの <span class="ui">— fps</span> 表示は，実行中の 1 秒あたりの描画回数（フレームレート）です。これが大きく下がっているときは，描画間引きを上げる・速度を下げる・エージェント数を減らすと改善します。</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>最大 tick と到達時の挙動</h3>
+
+    <p>「最大 tick」スライダーで終了 tick を設定できます。右のトグルをオンにすると，最大 tick に到達したときの挙動を選ぶセレクタが表示されます。<strong>既定は「⏹ 停止のみ」</strong>で，初期化はせずその場で一時停止します（最初には戻りません）。「🔁 ループ」に切り替えると，最大 tick に達したときに自動的にリセットして繰り返すようになります。これは長期間の自己組織化や定常状態を繰り返し観察したいときに便利です。トグルをオフにすれば最大 tick は無視され，無制限に実行し続けます。</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>停止条件</h3>
+
+    <p>モデルによっては，「全員が幸福状態になったら停止」「感染者が 0 になったら停止」などの停止条件が設定されています。右パネルの停止条件トグルで ON/OFF できます。停止条件が満たされると「■ STOPPED」バッジが点灯し，何 tick で止まったかがトーストで表示されます。</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>初期状態プリセット</h3>
+
+    <p>多くのモデルには複数の初期状態プリセットが用意されています（例：ライフゲームの「ランダム」「グライダー銃」「パルサー」）。右パネルのプリセットボタンをクリックするとその初期状態でリセットされます。<strong>プリセット選択後，必要に応じてパラメータを変えてから「⟳ 初期化」</strong>しましょう。</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>コマンドボタン</h3>
+
+    <p>モデルによっては，実行中でも押せる「コマンドボタン」が右パネルに並んでいます（例：「フェロモン消去」「グライダーを 1 つ追加」「中央に裏切り者追加」）。モデルを止めずに外乱を与えて，変化を観察できます。</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>キーボードショートカット一覧</h3>
+
+    <div class="shortcut-box">
+      <div class="shortcut-box-title">⌨ キーボードショートカット</div>
+      <table>
+        <tr>
+          <th>操作</th>
+          <th><span class="kb-badge win">Win</span> Windows</th>
+          <th><span class="kb-badge mac">Mac</span> Mac</th>
+        </tr>
+        <tr>
+          <td>全選択（コードエリア内）</td>
+          <td><kbd>Ctrl</kbd> + <kbd>A</kbd></td>
+          <td><kbd>⌘</kbd> + <kbd>A</kbd></td>
+        </tr>
+        <tr>
+          <td>コピー</td>
+          <td><kbd>Ctrl</kbd> + <kbd>C</kbd></td>
+          <td><kbd>⌘</kbd> + <kbd>C</kbd></td>
+        </tr>
+        <tr>
+          <td>貼り付け</td>
+          <td><kbd>Ctrl</kbd> + <kbd>V</kbd></td>
+          <td><kbd>⌘</kbd> + <kbd>V</kbd></td>
+        </tr>
+        <tr>
+          <td>元に戻す（コードエリア内）</td>
+          <td><kbd>Ctrl</kbd> + <kbd>Z</kbd></td>
+          <td><kbd>⌘</kbd> + <kbd>Z</kbd></td>
+        </tr>
+        <tr>
+          <td>やり直し（コードエリア内）</td>
+          <td><kbd>Ctrl</kbd> + <kbd>Y</kbd></td>
+          <td><kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></td>
+        </tr>
+        <tr>
+          <td>削除（選択中のテキスト）</td>
+          <td><kbd>Delete</kbd> または <kbd>Backspace</kbd></td>
+          <td><kbd>Delete</kbd> または <kbd>Backspace</kbd></td>
+        </tr>
+        <tr>
+          <td>ヘルプを閉じる</td>
+          <td><kbd>Esc</kbd></td>
+          <td><kbd>Esc</kbd></td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="tip">
+      <span class="box-label">コード貼り付けの基本手順</span>
+      コードエリアで
+      <span class="kb-item"><span class="kb-badge win">Win</span><kbd>Ctrl</kbd>+<kbd>A</kbd></span><span class="kb-divider">/</span><span class="kb-item"><span class="kb-badge mac">Mac</span><kbd>⌘</kbd>+<kbd>A</kbd></span>（全選択）→
+      <kbd>Delete</kbd>（削除）→
+      <span class="kb-item"><span class="kb-badge win">Win</span><kbd>Ctrl</kbd>+<kbd>V</kbd></span><span class="kb-divider">/</span><span class="kb-item"><span class="kb-badge mac">Mac</span><kbd>⌘</kbd>+<kbd>V</kbd></span>（貼り付け）
+      の流れで新しいコードに差し替えられます。
+    </div>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="params"><span class="sec-num">5</span>パラメータを変える</h2>
+
+    <p>右パネルの「パラメータ」セクションにスライダーが並んでいます。スライダーを動かすと値が即座に変わります。変更したときの動作を「<strong>即時反映</strong>」と「<strong>自動初期化</strong>」から選べます（パラメータの少し上にある切替）。</p>
+
+    <table>
+      <tr><th style="width:24%">モード</th><th>動作</th></tr>
+      <tr><td><strong>即時反映</strong>（既定）</td><td>スライダーを動かすと，実行中のモデルにすぐ反映されます。これまでの履歴（グラフ）は消えません。</td></tr>
+      <tr><td><strong>自動初期化</strong></td><td>スライダーを動かすたびに，自動で初期状態を作り直します（履歴はリセット）。初期条件を変えながら何度も見たいときに。</td></tr>
+    </table>
+
+    <div class="tip">
+      <span class="box-label">「初期化が必要」のヒントについて</span>
+      密度や初期人数のように<strong>初期配置のときだけ使う値</strong>は，実行中に動かしても結果に反映されません。即時反映モードでそうした値を変えると，パラメータ欄の下に「⟳ 初期化が必要」のヒントが出ます。<span class="ui">今すぐ初期化</span> を押すか <span class="ui">⟳ 初期化</span> で反映してください。<strong>履歴が勝手に消えることはありません。</strong>
+    </div>
+
+    <p>各パラメータ名の横に <span class="ui">ⓘ</span> がある場合は，ポインタを乗せると<strong>意味や影響の説明</strong>が表示されます（コードの <code>PARAM_DEFS</code> に <code>help</code> が書かれているモデル）。代表的なパラメータの例を示します。</p>
+
+    <table>
+      <tr><th>パラメータ名</th><th>モデル</th><th>意味と影響</th></tr>
+      <tr><td>ルール番号</td><td>ECA</td><td>0〜255 の整数。どのパターンが現れるかを決定する。</td></tr>
+      <tr><td>幸福閾値</td><td>シェリング</td><td>同じグループの隣人の比率。低くても分離が起きる。</td></tr>
+      <tr><td>分離／整列／凝集 重み</td><td>Boids</td><td>3 ルールの強さのバランスで群れの形が変わる。</td></tr>
+      <tr><td>蒸発率</td><td>アリのフェロモン</td><td>フェロモンが消える速さ。大きいと経路を維持しにくい。</td></tr>
+      <tr><td>裏切り利得 b</td><td>PD</td><td>1.0〜2.5。1.65 付近で協力・裏切りの共存がみられる。</td></tr>
+    </table>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="export"><span class="sec-num">6</span>結果の保存・比較</h2>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>実験の保存・比較</h3>
+
+    <p>右パネルの「実験の保存・比較」セクションでは，<strong>パラメータを変えた複数回の実行結果を並べて比較</strong>できます。少し実行してから <span class="ui">📸 現在を保存</span> を押すと，そのときのグラフとパラメータ一式が保存され，以降はグラフ上に<strong>色付きの破線</strong>で重ねて表示されます。条件を変えてもう一度実行すれば，前回との違いが一目で分かります。</p>
+
+    <p>保存した実験は，行頭の <span class="ui">👁</span> で表示/非表示を切り替え，<span class="ui">✕</span> で削除できます。各行にはそのときのパラメータが表示されるので，どの条件の結果かが分かります。<span class="ui">🗑 クリア</span> で全消去できます。</p>
+
+    <div class="tip">
+      <span class="box-label">発表での使い方</span>
+      シナリオ A を実行 → <span class="ui">📸 現在を保存</span> → パラメータを変えてシナリオ B を実行，とすると，A と B のグラフが重なって表示されます。「同じモデルでパラメータだけ変えるとどう変わるか」をその場で見せられます。
+    </div>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>フィールド画像のコピー・保存</h3>
+
+    <p>左エリアの下にある <span class="ui">📋 コピー</span> ボタンでキャンバスの画像をクリップボードにコピーできます。スライドや Word に直接貼り付けられます。<span class="ui">⬇ 保存</span> ボタンを押すと PNG ファイルとしてダウンロードします。ファイル名には現在の tick 数が入ります。</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>グラフの保存・CSV エクスポート</h3>
+
+    <p>各グラフの右上には次のボタンがあります。</p>
+    <table>
+      <tr><th style="width:22%">ボタン</th><th>動作</th></tr>
+      <tr><td><span class="ui">⬇ CSV</span></td><td>時系列データを<strong>クリップボード</strong>にコピー（Excel・Google スプレッドシートに貼り付け可）。</td></tr>
+      <tr><td><span class="ui">💾</span></td><td>時系列データを <strong>CSV ファイル</strong>として保存。保存した実験のデータも一緒に書き出されます。文字化けしない BOM 付き。</td></tr>
+      <tr><td><span class="ui">🖼 画像</span></td><td>グラフ画像をクリップボードにコピー。</td></tr>
+    </table>
+    <p>「実験の保存・比較」セクションの <span class="ui">⬇ CSV保存</span> を押すと，<strong>すべてのグラフと保存実験をまとめて 1 つの CSV ファイル</strong>に書き出します。複数条件を表計算ソフトでまとめて分析したいときに便利です。</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>📦 データ一式ダウンロード（ZIP・v1.0）</h3>
+    <p>同じセクションの <span class="ui">📦 一式DL</span> を押すと，<strong>初期化以降の実験データ一式を 1 つの ZIP ファイル</strong>にまとめて書き出します。あとから腰を据えて分析したり，同じ実験を再現したりするための保存形式です。ZIP の中身は次の通りです。</p>
+    <table>
+      <tr><th style="width:32%">ファイル</th><th>内容</th></tr>
+      <tr><td><code>metadata.json</code></td><td>モデル名・書き出し日時・tick 数に加え，<strong>実験設定（settings）</strong>＝パラメータ・初期状態プリセット・最大 tick・到達時の挙動（停止／ループ）・描画間引き・速度・停止条件・<strong>乱数シード（seed）</strong> をまとめたもの。</td></tr>
+      <tr><td><code>model.js</code></td><td>この実験を生成した<strong>モデルのコードそのもの</strong>。コード欄に貼り戻して <span class="ui">▶ 適用</span> すれば同じモデルを再現できます。</td></tr>
+      <tr><td><code>01_&lt;グラフ名&gt;.csv</code> ほか</td><td>グラフごとの時系列データ（現在の実行＋保存実験を <code>run</code> 列で区別，BOM 付き）。</td></tr>
+      <tr><td><code>data.json</code></td><td>設定・現在の実行・保存実験の全データを 1 つにまとめた構造化 JSON。プログラムからの読み込み向け。</td></tr>
+      <tr><td><code>frames.jsonl</code><br>（「状態を記録」ON時のみ）</td><td>各ステップの<strong>状態そのもの</strong>（1 行 1 フレームの JSON。<code>{"tick":…, "state":…}</code>）。同梱ビュワーで各ステップを再生するためのデータです。</td></tr>
+    </table>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>追っかけ再生（LIVE／過去のステップを見返す）</h3>
+    <p>「実験の保存・比較」の <span class="ui">状態を記録</span> は，<strong>PCでは既定でオン</strong>です．実行ボタンの下に最初から<strong>タイムライン</strong>があり，実行中に気づいた現象へいつでも戻れます．一方<strong>スマートフォン・タブレットでは既定でオフ</strong>になります．記録は実行中で最もメモリを使う処理であり，これらの端末では余裕が小さいためです．タイムラインを使いたいときはチェックを入れてください．乱数シードは初期化のたびに新しく引かれ，あとから指定することはできないため，記録していない実行は再現できません．記録は隣の上限で自動的に止まります．<span class="ui">LIVE</span> は既定でオンで，画面は最新のステップを表示し続けます．バーを動かすか <span class="ui">LIVE</span> のチェックを外すと，<strong>裏で実験を続けたまま</strong>，記録済みの任意のステップに戻って表示できます．ライブ配信のシークバーと同じ考え方です．</p>
+    <ul>
+      <li><span class="ui">▶</span>：記録したステップを毎秒12コマで連続再生します．最新に追いつくと自動で止まります．</li>
+      <li><strong>位置表示</strong>：「ステップ 45 / 120」のように，見ている位置と記録済みの範囲を示します．裏で実験が進むにつれて右側の数字は増え続けます．</li>
+      <li><strong>グラフのマーカー</strong>：各グラフに<strong>琥珀色の縦線</strong>が出て，時系列のどこを見ているかがわかります．</li>
+      <li><span class="ui">LIVE</span> に再びチェックすると，最新のステップの表示に戻ります．</li>
+    </ul>
+    <p>戻れる細かさは<strong>記録の間隔</strong>と同じです（「5ステップごと」なら5ステップ刻み）．どこまで遡れるかは間隔の隣の <span class="ui">上限</span> で決まり，既定は 500 MB，<strong>無制限</strong>も選べます（無制限ではブラウザのメモリが尽きるまで記録し続けます）．記録した量は「記録 ◯ フレーム・◯ MB」として表示されるので，上限に達する前に引き上げられます．</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>各ステップの再現とビュワー再生</h3>
+    <p>あとから<strong>各ステップの様子を再現</strong>できるよう，ZIP には次の2つの仕組みの情報が入ります。</p>
+    <ul>
+      <li><strong>方式A（決定的シード）：</strong>実行中の乱数はエンジンが<strong>シードで固定</strong>し，そのシードを <code>settings.seed</code> に記録します。<code>model.js</code> ＋ 設定 ＋ シードから同じ実行を再現できます（生成AI で改変・新規作成したモデルでも同様）。</li>
+      <li><strong>方式B（状態の記録）：</strong>「実験の保存・比較」にある <span class="ui">状態を記録（再生用）</span> をオンにしてから実行すると，各ステップの状態を <code>frames.jsonl</code> に保存します（記録間隔も選べます）。単に観察するだけのときは<strong>オフのまま</strong>にでき，そのぶん高速です。</li>
+    </ul>
+    <p>書き出した ZIP を，リポジトリ直下の <strong><code>ALifeCoreStudio_Viewer.html</code></strong> にドロップすると，記録した各ステップを，<strong>そのモデル自身の描画コード</strong>で<strong>タイムライン再生</strong>できます（再生／一時停止・スクラブ・速度調整）。組み込みモデルだけでなく，改変・新規作成したモデルでも動きます。</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>グラフの縦軸・横軸の範囲設定</h3>
+
+    <p>各グラフの右上にある <span class="ui">⚙ 軸</span> を押すと，縦軸（Y）・横軸（X, tick）それぞれの範囲設定欄が開きます。</p>
+
+    <table>
+      <tr><th style="width:24%">モード</th><th>動作</th></tr>
+      <tr><td><strong>自動調整</strong>（既定）</td><td>これまで通り，記録されたデータの範囲に合わせて軸の最小値・最大値を自動的に決めます。</td></tr>
+      <tr><td><strong>手動設定</strong></td><td>min／max を数値で入力して固定します。「自動調整」から切り替えた直後は，そのときの自動範囲の値が初期値として入ります。</td></tr>
+    </table>
+
+    <div class="tip">
+      <span class="box-label">使いどころ</span>
+      特定の範囲を拡大して細部を見たいとき，複数のグラフの縦軸スケールを揃えて比較したいとき，発表用に軸の見た目を固定しておきたいときに便利です。縦軸・横軸は独立して切り替えられるので，片方だけ手動設定にすることもできます。設定はモデルを実行し直しても保持されますが，別のモデルを読み込む（<span class="ui">▶ 適用</span>）と初期状態（自動調整）に戻ります。
+    </div>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>モデルのファイル保存・読み込み</h3>
+
+    <p>コードバーの <span class="ui">💾 .js保存</span> を押すと，いまコード欄にあるモデルを <code>.js</code> ファイルとして保存できます。<span class="ui">📂 開く</span> で，保存した <code>.js</code> / <code>.txt</code> ファイルを読み込んで，そのまま適用します。作ったモデルを後から再利用したり，提出・共有したりできます。</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>💾 HTML出力</h3>
+
+    <p>コードバーの <span class="ui">💾 HTML出力</span> を押すと，<strong>今動かしているモデルだけをそのまま実行できる，独立した HTML ファイル</strong>を書き出せます。コード編集エリアや ✨/✏️/🤖 などの生成AI関連 UI は含まれず，モデルの表示・操作パネル・グラフだけが残ったシンプルな画面になります。ダブルクリックするだけで（インターネット接続なしに）そのモデルが動くので，配布や授業・発表での提出物として便利です。</p>
+
+    <div class="tip">
+      <span class="box-label">仕組みと注意点</span>
+      書き出されるのは「いまコード欄にあるコード」がそのまま埋め込まれた1枚の HTML です。中身は ABM Studio 本体と同じエンジンなので，パラメータ調整・グラフ・録画などの機能はそのまま使えます。書き出した後にコードバーで別のモデルへ切り替えても，すでに書き出したファイルには影響しません。
+    </div>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>動画録画（形式を選べます）</h3>
+
+    <p>録画ボタンの隣のメニューで，出力形式を <strong>MP4 / WebM / 自動</strong> から選べます。<span class="ui">⏺ 録画</span> を押すと録画が始まり「● REC」バッジが点滅します。もう一度 <span class="ui">⏹ 停止</span> を押すと録画が終わり，ファイルがダウンロードされます。</p>
+
+    <div class="note">
+      <span class="box-label">形式の選び方</span>
+      多くの環境では <strong>MP4</strong> が PowerPoint や各種プレーヤーで再生しやすくおすすめです。MP4 は <strong>H.264</strong> で書き出すため，QuickTime Player・PowerPoint・Keynote でそのまま開けます。ブラウザが H.264 録画に対応していない場合は WebM で保存されます（その旨トーストで通知します）。WebM はブラウザや VLC では再生できますが，QuickTime Player では開けません。
+    </div>
+
+    <div class="tip">
+      <span class="box-label">ヒント</span>
+      発表資料にはフィールド画像（PNG）かグラフ画像，レポートには CSV データ（複数条件の比較）が便利です。動画は発表時のデモに活用できます。
+    </div>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="chatgpt"><span class="sec-num">7</span>生成AI でコードを作る</h2>
+
+    <p>ABM Studio 向けのモデルコードは，生成AI（無料版含む）に仕様書と指示を渡すことで生成できます。コードバーの <span class="ui">✨ 新規作成プロンプト</span> ボタンを押すと，必要な仕様書込みのプロンプトがクリップボードにコピーされます。</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>「✨ 新規作成プロンプト」ボタンを押す</strong>
+          コードバー（画面下部）にあります。「新規作成プロンプトをコピーしました」というトーストが表示されます。
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>生成AI を開いてプロンプトを貼り付ける</strong>
+          新規チャットで <span class="kb-item"><span class="kb-badge win">Win</span><kbd>Ctrl</kbd>+<kbd>V</kbd></span><span class="kb-divider">/</span><span class="kb-item"><span class="kb-badge mac">Mac</span><kbd>⌘</kbd>+<kbd>V</kbd></span> で貼り付けます。
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>「【実装するモデル】」欄を書き換えて送信する</strong>
+          プロンプトの中にある「（ここを書き換えてください：例 "Reynolds の Boids フロッキングモデル"）」の部分を，作りたいモデルの名前に変えてから送信します。
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong>生成されたコードをコピーする</strong>
+          生成AI がコードブロック（```javascript ... ```）を返します。コードブロックの右上にある「コピー」ボタンでコードをコピーします。
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <span class="box-label">プロンプト例</span>
+      「実装するモデル」欄には，具体的なモデル名やパラメータの要望を書くと精度が上がります。例えば「Wolf-Sheep 捕食者−被食者モデル（ムーア近傍，オオカミは食べなければ死ぬ）」のように書くと，より忠実なコードが生成されやすくなります。
+    </div>
+
+    <div class="warn">
+      <span class="box-label">生成AI 無料版での注意</span>
+      無料版の GPT-3.5/4o は長いプロンプトだと仕様書の一部を読み飛ばすことがあります。エラーが出た場合は「仕様書に従い，以下の禁止事項を守って修正してください：<code>document.*</code> 使用禁止，<code>import/export</code> 禁止，<code>class</code> キーワード禁止」と再指示してみてください。
+    </div>
+
+    <div class="note">
+      <span class="box-label">プロンプトについて</span>
+      <span class="ui">✨ 新規作成プロンプト</span> / <span class="ui">✏️ 改変プロンプト</span> には，禁止構文のルールに加えて「<strong>パラメータに <code>help</code>（説明）を付ける</strong>」「<strong>末尾にモデルの簡単な解説コメントを付ける</strong>」という指示が最初から含まれています。これにより，出力されたコードがどんなモデルで何を変えたのかが分かりやすくなります。最初の依頼の時点で，変更したい点はできるだけ具体的に書くと精度が上がります。
+    </div>
+
+    <h3 class="subsection-title" id="aigen"><span class="sub-marker"></span>🤖 AI生成 ─ 生成AI の API に直接つなぐ（LM Studio / クラウド）</h3>
+    <p>コードバーの <span class="ui">🤖 AI生成</span> を押すと、OpenAI 互換 API に直接接続して改変・新規作成を行えます。返ってきたコードは自動でコード欄に挿入されるので、コピー＆ペーストは不要です（実行は <span class="ui">▶ 適用</span> を押すまで行われません）。</p>
+    <ul>
+      <li><strong>ローカル（LM Studio など）</strong>：モデルをロードしてローカルサーバを起動し、サーバ設定で <strong>「Enable CORS」を ON</strong> にします。エンドポイントは <code>http://localhost:1234</code>（API キー不要）。</li>
+      <li><strong>クラウド（OpenAI 互換）</strong>：エンドポイントと API キーを入力します。例 ─ OpenRouter <code>https://openrouter.ai/api/v1</code>、DeepInfra <code>https://api.deepinfra.com/v1/openai</code>、OpenAI <code>https://api.openai.com/v1</code>。多くは従量課金です。</li>
+      <li><strong>モデル名</strong>は <span class="ui">🔄 一覧取得</span> で選べます（手入力も可）。設定はブラウザに記憶されます。</li>
+    </ul>
+    <div class="note">
+      <span class="box-label">うまく繋がらないとき</span>
+      「Failed to fetch」はサーバ未起動・CORS 未設定・URL 違いが主な原因です。まずブラウザで <code>http://localhost:1234/v1/models</code> を直接開いて JSON が出るか確認してください。クラウドはサービス側が CORS に対応している必要があります（OpenRouter・DeepInfra は対応）。
+    </div>
+
+    <h3 class="subsection-title" id="python2py"><span class="sub-marker"></span>🐍 Python化プロンプト（requirements.txt 同時生成, v1.0）</h3>
+    <p>コードバーの <span class="ui">🐍 Python化プロンプト</span> を押すと，現在コード欄にあるモデルを<strong>単体で実行できる Python スクリプト（matplotlib 使用）と <code>requirements.txt</code></strong> に変換させるプロンプトがクリップボードにコピーされます。書き換える箇所はなく，そのまま生成AI に貼り付けて送信します。</p>
+    <ul>
+      <li>生成AI からの返答は，<code>```python ... ```</code> と <code>```text ... ```</code>（requirements.txt の中身）の <strong>2つのコードブロック</strong>で返ってくるよう指示されています。</li>
+      <li>元コードの <code>setup</code> / <code>step</code> / <code>draw</code> は，それぞれ Python 側の初期化・更新・matplotlib 描画の関数に対応づけられ，対応関係がコメントで示されます。</li>
+      <li><code>PARAM_DEFS</code>（パラメータ）・<code>PLOT_DEFS</code>（グラフ）がある場合は，Python 側でも変数定義や時系列記録として引き継がれます。</li>
+      <li>手元での実行は，2つのコードブロックをそれぞれ <code>model.py</code>・<code>requirements.txt</code> として保存し，<code>pip install -r requirements.txt</code> のあと <code>python model.py</code> です。</li>
+    </ul>
+    <div class="note">
+      <span class="box-label">用途</span>
+      ブラウザでの観察から一歩進めて，Python（numpy・matplotlib・pandas など）で数値解析やレポート用の図を作りたいときに使います。生成AI が出力する内容はモデルの複雑さによって変わるため，実行前にコードの中身を確認することをおすすめします。
+    </div>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="paste"><span class="sec-num">8</span>コードを貼り付けて実行する</h2>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>コードバーの「▸ コード」をクリックして展開する</strong>
+          画面下部のコードバーが開き，コードエリア（テキストボックス）が表示されます。
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>コードエリアの中身を全選択して削除する</strong>
+          コードエリアをクリックして <span class="kb-item"><span class="kb-badge win">Win</span><kbd>Ctrl</kbd>+<kbd>A</kbd></span><span class="kb-divider">/</span><span class="kb-item"><span class="kb-badge mac">Mac</span><kbd>⌘</kbd>+<kbd>A</kbd></span>（全選択）→ <kbd>Delete</kbd> で既存のコードを消します。
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>生成AI からコピーしたコードを貼り付ける</strong>
+          <span class="kb-item"><span class="kb-badge win">Win</span><kbd>Ctrl</kbd>+<kbd>V</kbd></span><span class="kb-divider">/</span><span class="kb-item"><span class="kb-badge mac">Mac</span><kbd>⌘</kbd>+<kbd>V</kbd></span> で貼り付けます。<strong>コードブロックの ``` 記号は含めないように</strong>してください（JavaScript のコードのみ貼り付ける）。
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong>「▶ 適用」ボタンを押す</strong>
+          コードが評価されてモデルが初期化されます。右パネルのスライダーやグラフが更新され，キャンバスに初期状態が描画されます。
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <strong>「▶ 実行」ボタンを押してモデルを開始する</strong>
+          問題なければ動き始めます。エラーが出た場合はコードバー内のエラーボックス（赤文字）を確認してください。
+        </div>
+      </div>
+    </div>
+
+    <div class="warn">
+      <span class="box-label">よくある貼り付けミス</span>
+      生成AI の返答全体をコピーすると，説明文や ``` も含まれてしまいます。<strong>必ず JavaScript コードの部分だけ</strong>（<code>const PARAM_DEFS = ...</code> から始まる部分）をコピーしてください。
+    </div>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="modify"><span class="sec-num">9</span>コードを改変する</h2>
+
+    <p>動いているモデルをベースに，パラメータや挙動を変えたい場合は <span class="ui">✏️ 改変プロンプト</span> ボタンを使います。現在のコード全体と改変指示テンプレートがセットでコピーされます。</p>
+    <p><span class="ui">📖 説明プロンプト</span> を押すと、<strong>いま動かしているコードがどんなモデルかを説明させるプロンプト</strong>（概要・アルゴリズムの説明・疑似コードを求める内容）がコピーされます。生成AI に貼ると、実装に忠実な解説が得られます。また生成・改変したコードに <code>const TITLE = 'モデル名'</code> を入れておくと、ブラウザのタブ名・「このモデルの概要」の見出し・<span class="ui">💾 .js保存</span> のファイル名（例 <code>住み分けモデル.js</code>）に反映されます。</p>
+    <div class="note">
+      <span class="box-label">無料版でも失敗しにくくする工夫</span>
+      プロンプトは<strong>最小限の仕様にしぼり</strong>、冒頭と末尾で「<strong>コードブロックを1つだけ・省略せず全文出力</strong>」を強く指示しています（無料版・小型モデルでの出力切れや説明文混入を減らすため）。<span class="ui">✏️ 改変プロンプト</span> では <strong>【改変したい内容】を末尾</strong>に置いているので、そこに変更点を箇条書きします。
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>「✏️ 改変プロンプト」を押してコピーする</strong>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>生成AI に貼り付け，「【改変したい内容】」欄に箇条書きで指示を書く</strong>
+          例：「・感染範囲を半径 2 セルに拡張する」「・感染者が一定数を超えたら赤フラッシュ表示する」
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>返ってきたコードをコピーして「▶ 適用」する</strong>
+          Section 8 と同様の手順で貼り付けて実行します。
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <span class="box-label">ヒント</span>
+      改変は一度に大きく変えようとするより，<strong>1〜2 点ずつ変える</strong>方が成功しやすいです。うまくいったら次の変更へ進めましょう。
+    </div>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="model-eca">ECA（ウルフラム 1次元 CA）</h2>
+    <span class="tag tag-ca">CA</span>
+
+    <p>1 次元のセルオートマトンです。各セルは左右の隣接セルの状態を参照してルールを適用し，次の行のセル状態を決めます。時間発展を縦方向に積み上げて表示するので，キャンバスは「時間を下に向かって進む時空図」になっています。</p>
+
+    <p><strong>速度スライダーを 1 t/f</strong> にすることを強く推奨します。1 行ずつ描かれていく様子が視覚的にわかりやすく，どのルールでどのパターンが生まれるかが確認しやすくなります。</p>
+
+    <p>観察すべきルール番号の例は，規則的パターンを生成するルール 28（クラス1），周期的パターンのルール 90（クラス2），複雑（カオス的）なルール 30（クラス3），そして計算普遍性を持つと言われるルール 110（クラス4）です。ルール番号の表示はキャンバスの左上に表示されます。</p>
+
+    <div class="tip">
+      <span class="box-label">授業ワークのポイント</span>
+      ルール番号を変えながら，同じ初期状態（中央 1 セル ON）から4クラスに相当するパターンを各自が1つずつ見つける，という探索が効果的です。
+    </div>
+
+    <h2 class="section-title" id="model-life">ライフゲーム（Conway's Life）</h2>
+    <span class="tag tag-ca">CA</span>
+
+    <p>2 次元セルオートマトンの古典です。ルールは「生存セルは隣接生存セルが 2 または 3 個のとき生き残り，死セルは 3 個のとき誕生する」の 2 条件だけです。それでも驚くほど多様なパターン（静物・振動子・グライダー）が生じます。</p>
+
+    <p>「グライダー銃」プリセットは，Gosper のグライダー銃（1970）で，グライダーを定期的に生成し続けます。「パルサー」プリセットは周期 3 で振動する対称的なパターンです。初期密度スライダーを 0.1〜0.5 の範囲で試すと，相転移的な挙動の変化が見られます。</p>
+
+    <h2 class="section-title" id="model-seg">シェリング分居モデル</h2>
+    <span class="tag tag-abm">ABM</span>
+
+    <p>2 種類のエージェント（青・赤）が格子上に住み，「自分の近隣に同じ色が一定割合以上いないと不満を感じて引越す」というルールです。驚くべきことに，幸福閾値が低くても（例 30%）強い居住分離が生まれます。</p>
+
+    <p>停止条件「全員が幸福状態になったら停止」が設定されており，何 tick で安定したかがわかります。幸福閾値を 0.30 → 0.70 と変えて比較すると，より強い分離が速く起きることが確認できます。</p>
+
+    <h2 class="section-title" id="model-boids">フロッキング（Reynolds Boids）</h2>
+    <span class="tag tag-abm">ABM</span>
+
+    <p>Reynolds（1987）の Boids モデルです。3 つの局所ルール（分離: 近づきすぎない，整列: 近くの個体と同じ方向を向く，凝集: 近くの個体の中心に引き寄せられる）だけで，鳥の群れや魚の群泳のような創発的な整列が生まれます。</p>
+
+    <p>グラフに表示される整列度 φ（秩序パラメータ）は 0 が無秩序，1 が完全整列を意味します。「全員を散乱」ボタンを押して φ が上昇していく過程を観察しましょう。分離半径・整列半径・凝集半径の 3 つの空間スケールのバランスが群れの形を決定します。</p>
+
+    <h2 class="section-title" id="model-aco">アリのフェロモンモデル（Ant-pheromone）</h2>
+    <span class="tag tag-abm">ABM</span>
+
+    <p>フェロモンを使って食料源への経路を発見する蟻の採餌行動モデルです（本ツールでの表記は Ant-pheromone。NetLogo の "Ants" と同じ題材を扱いますが、帰巣の仕組み・拡散/蒸発の計算式・パラメータ構成は独自に実装したもので、NetLogo のコードは使用していません）。アリは食料を見つけるとフェロモンを落としながら巣に帰ります。他のアリはフェロモン濃度の高い方向に向かうことで，次第に効率的な経路が強化されます。ACO（アリのコロニー最適化アルゴリズム）の原型となった自然現象そのものです。</p>
+
+    <p>キャンバスでは，白いエリアが巣，緑のエリアが食料源，青い光跡がフェロモンの濃い経路です。「フェロモン消去」ボタンを押すと，フェロモン記憶がリセットされ，アリが再び探索モードに入ります。蒸発率が高いと経路が維持されにくくなります。</p>
+
+    <h2 class="section-title" id="model-pd">空間囚人のジレンマ（Nowak &amp; May 1992）</h2>
+    <span class="tag tag-abm">ABM</span>
+
+    <p>格子上の各エージェントが協力者（C，青）か裏切り者（D，赤）かを選び，ムーア近傍の全隣人とゲームを行います。協力者同士は +1 点，裏切り者が協力者から搾取すると +b 点（b > 1），裏切り者同士は 0 点です。毎ステップ，各エージェントは最高得点の近傍の戦略をコピーします。</p>
+
+    <p>裏切り利得 b のわずかな変化で，協力者が全滅したり，美しい空間パターン（フラクタル状のクラスター）が出現したり，協力と裏切りが共存したりと，劇的に変化します。b を 1.5 から 2.0 の間でゆっくり上げながら協力率グラフを見るのが最も効果的な観察方法です。</p>
+
+    <h2 class="section-title" id="model-sps">SPS（ソーシャル・パーティクル・スウォーム）</h2>
+    <span class="tag tag-abm">ABM</span>
+
+    <p>粒子を「個人」とみなし，協力(C)／裏切り(D)の2戦略に加えて「距離＝関係の強さ」も同時に変化していく，本プロジェクト著者グループ独自のモデルです（Nishimoto, Suzuki, &amp; Arita, 2023, <em>Psychologia</em>）。各粒子は固有の「協力しやすさ（閾値 ct）」を持ち，相互作用半径 R 以内の近傍における協力者の割合を見て，自分の閾値と比べることで次の戦略を決めます（近傍の協力率が高いほど自分も協力しやすくなる，一般化された tit-for-tat）。</p>
+
+    <p>移動は，隣接する相手との利得（協力どうしは +1，裏切りどうしは -1，搾取した側は裏切りの誘惑 Tem，搾取された側はカモの利得 Suc）を距離の逆二乗で重み付けした合力の向きへ，一定速度 v で進むことで決まります。つまり良い関係（利得が正）の相手には引き寄せられ，悪い関係（利得が負）の相手からは離れていきます。この単純な規則から，「協力クラスタが形成される → 裏切り者が侵入する → クラスタが崩壊して再分散する」という周期的なパターンが現れることがあります。</p>
+
+    <p>裏切りの誘惑 Tem を大きくするほど裏切り者がクラスタに侵入しやすくなり，カモの利得 Suc を小さく（負に大きく）するほど協力者が逃げて分散しやすくなります。撹乱確率 pd は毎ステップ戦略がランダムに反転する確率で，0 に設定しても周期的な崩壊は起こり得ます。初期状態プリセットを「ランダム配置（ct 多様）」にすると崩壊の周期が現れやすく，「ct を一律 0.5（多様性なし）」にすると比較的安定した協力クラスタになりやすい点を比較すると分かりやすいです。</p>
+
+    <div class="tip">
+      <span class="box-label">授業ワークのポイント</span>
+      2枚のグラフ「協力者の割合」と「平均近傍数（集合と分散の指標）」を並べて観察しましょう。平均近傍数の増加（集合）→ 協力率の低下（裏切り侵入）→ 平均近傍数の急減（崩壊）→ 再集合，という周期がグラフ上でも追えます。研究等で参照する場合は上記の論文を引用してください。
+    </div>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="errors"><span class="sec-num">10</span>エラーと対処法</h2>
+
+    <p>「▶ 適用」を押したときや実行中にエラーが起きると，コードバー内に赤いエラーメッセージが表示されます。<strong>原因の行番号・その行の内容・初心者向けのヒントが日本語で表示</strong>され，コード欄が自動で開きます。<code>class</code> や <code>document.*</code>，<code>fetch</code> などの<strong>使えない構文は適用前に検出</strong>され，「何が使えないか・どう直すか」を案内します。以下の表も参考にしてください。</p>
+
+    <div class="tip">
+      <span class="box-label">まず ❔ ヘルプ を見る</span>
+      ヘッダーの <span class="ui">❔ ヘルプ</span> に，使えない構文の一覧と書き方のコツがまとまっています。エラーが続くときはここを確認してください。
+    </div>
+
+    <table>
+      <tr>
+        <th style="width:34%">エラーメッセージ</th>
+        <th>原因</th>
+        <th>対処法</th>
+      </tr>
+      <tr>
+        <td>setup() 関数が見つかりません</td>
+        <td>コードに <code>function setup(...)</code> が定義されていない</td>
+        <td>生成AI に「setup / step / draw の 3 関数を必ず定義してください」と再指示する</td>
+      </tr>
+      <tr>
+        <td>step() 関数が見つかりません</td>
+        <td>同上（step が欠けている）</td>
+        <td>同上</td>
+      </tr>
+      <tr>
+        <td>document.* は使えません（DOM 操作は不可）</td>
+        <td>コードが <code>document.getElementById()</code> などの DOM 操作を含む（適用前に検出し行番号を表示）</td>
+        <td>描画は <code>draw(ctx, ...)</code> 内で Canvas（ctx）だけを使う。生成AI には「document.* の使用は禁止」と再指示</td>
+      </tr>
+      <tr>
+        <td>class キーワードは使えません</td>
+        <td><code>class</code> でクラス定義をしている</td>
+        <td>オブジェクトリテラル <code>{}</code> やファクトリ関数で代替する（ヒントに例が出ます）</td>
+      </tr>
+      <tr>
+        <td>import 文は使えません</td>
+        <td><code>import</code> / <code>export</code> 文が含まれている</td>
+        <td>外部ライブラリは使えません。純粋な JS + Canvas のみで書くよう再指示する</td>
+      </tr>
+      <tr>
+        <td>step() エラー: Cannot read properties of undefined</td>
+        <td><code>setup()</code> で初期化していないプロパティを <code>step()</code> で参照している</td>
+        <td>「setup() で state のすべてのプロパティを初期化してください」と再指示する</td>
+      </tr>
+      <tr>
+        <td>draw() エラー: ctx.xxx is not a function</td>
+        <td>Canvas 2D API に存在しないメソッドを呼んでいる</td>
+        <td>「ctx は Canvas 2D コンテキストです。存在しないメソッド呼び出しを修正してください」と再指示する</td>
+      </tr>
+      <tr>
+        <td>キャンバスが真っ暗のまま動かない</td>
+        <td>draw() がエラーなく実行されているが何も描画していない，または step() がエラーを無視している</td>
+        <td>コードバーのエラーボックスを確認。「⏭ 1 tick」で 1 ステップだけ進めて状態を確認する</td>
+      </tr>
+      <tr>
+        <td>実行が極端に遅い・フリーズする</td>
+        <td>step() 内で重いループ処理をしている（例：エージェント数が多すぎる）</td>
+        <td><strong>描画間引きを上げる（1/4 など）</strong>，速度スライダーを下げる，またはエージェント数パラメータを減らす。ヘッダーの FPS 表示で改善を確認できる</td>
+      </tr>
+    </table>
+
+    <div class="note">
+      <span class="box-label">一般的な対処手順</span>
+      エラーが出たら，まずコードバーのエラーボックスの赤文字をそのまま 生成AI に「このエラーを修正してください：〔エラー文〕」と伝えると，的確に修正コードを返してくれることが多いです。
+    </div>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="faq"><span class="sec-num">11</span>よくある質問</h2>
+
+    <p><strong>Q. コードを貼り付けたら右パネルのスライダーが消えました。</strong><br>
+    A. 新しいコードに <code>PARAM_DEFS</code> が定義されていない場合，スライダーは表示されません。パラメータが必要な場合は 生成AI に「PARAM_DEFS を追加して」と依頼してください。</p>
+
+    <p><strong>Q. グラフが表示されません。</strong><br>
+    A. <code>PLOT_DEFS</code> がコードに定義されていない場合，グラフは表示されません。生成AI に「PLOT_DEFS でグラフを追加して」と依頼してください。</p>
+
+    <p><strong>Q. ブラウザを閉じるとコードが消えてしまいます。</strong><br>
+    A. ABM Studio はコードを自動保存しません。コードバーの <span class="ui">💾 .js保存</span> で現在のモデルを <code>.js</code> ファイルに保存できます。次回 <span class="ui">📂 開く</span> で読み込めば，すぐに続きから使えます（生成AI のチャット履歴に残しておくのも有効です）。</p>
+
+    <p><strong>Q. 「📋 コピー」ボタンを押しても何も起きません（HTTPS が必要という警告）。</strong><br>
+    A. クリップボードへのアクセスは HTTPS 環境が必要です。ローカルファイルで開いている場合はコピー機能が使えないことがあります。代わりに「⬇ 保存」ボタンでファイルとして保存してください。</p>
+
+    <p><strong>Q. グラフの CSV データをコピーしたら文字化けします。</strong><br>
+    A. クリップボード経由（<span class="ui">⬇ CSV</span>）で Excel に貼り付ける場合は，「テキストをインポート」機能で UTF-8 を選択してください。<span class="ui">💾</span>（CSV ファイル保存）や <span class="ui">⬇ CSV保存</span> は <strong>BOM 付きで保存するため，Excel でそのまま開いても文字化けしません</strong>。Google スプレッドシートにはどちらも問題なく読み込めます。</p>
+
+    <p><strong>Q. パラメータを変えた複数の結果を見比べたいです。</strong><br>
+    A. 右パネルの「実験の保存・比較」を使います。少し実行してから <span class="ui">📸 現在を保存</span> を押すと，グラフに重ねて表示されます。条件を変えて実行し直すと前回と比較できます（§6）。すべての条件を表計算でまとめたいときは <span class="ui">⬇ CSV保存</span> で 1 ファイルに書き出せます。</p>
+
+    <p><strong>Q. エージェント数を増やすと重くなります。</strong><br>
+    A. 左下の「描画間引き」スライダーを 1/4 などに上げると，計算はそのまま・描画だけを減らして高速化できます。ヘッダーの FPS 表示で効果を確認できます。速度スライダーを下げるのも有効です（§4）。</p>
+
+    <p><strong>Q. 録画した動画が再生できない環境があります。</strong><br>
+    A. 録画ボタン隣のメニューで <strong>MP4</strong> を選べます。多くのプレーヤーや PowerPoint で再生しやすくなります。MP4 に未対応のブラウザでは自動的に WebM で保存されます（§6）。</p>
+
+    <p><strong>Q. このパラメータが何をするのか分かりません。</strong><br>
+    A. パラメータ名の横に <span class="ui">ⓘ</span> があれば，ポインタを乗せると説明が出ます。出ない場合は，生成AI への依頼時に「PARAM_DEFS に help（説明）を付けて」と頼むと，次回から表示されるようになります。</p>
+
+    <p><strong>Q. ECA がものすごい速さで流れて見えません。</strong><br>
+    A. 速度スライダーを 1 t/f まで下げてください。ECA は 1 ステップ = 1 行なので，速度が高いと行が素早く積み上がって流れるように見えます。</p>
+
+    <p><strong>Q. 生成AI が生成したコードが長すぎてコードエリアに収まらない気がします。</strong><br>
+    A. コードエリアはスクロール可能です。どれだけ長くても問題ありません。<span class="kb-item"><span class="kb-badge win">Win</span><kbd>Ctrl</kbd>+<kbd>A</kbd></span><span class="kb-divider">/</span><span class="kb-item"><span class="kb-badge mac">Mac</span><kbd>⌘</kbd>+<kbd>A</kbd></span>（全選択）してから貼り付けてください。</p>
+
+    <p><strong>Q. ビルトインモデルのコードを見て参考にしたい。</strong><br>
+    A. モデルを選択して「▶ 適用」した後，「▸ コード」をクリックするとコードエリアにそのモデルのコードが表示されます。自由に読んだり改変したりできます。<span class="ui">📋 仕様書コピー</span> ボタンを押すと仕様書と現在のコードがまとめてコピーされ，生成AI に渡せます。</p>
+
+    <hr class="divider">
+
+    <h2 class="section-title" id="refs"><span class="sec-num">📚</span>参考文献・出典</h2>
+    <p>ビルトインモデルが題材にしている代表的な原典です。コードはすべて本プロジェクトによる独自実装です。</p>
+    <ul>
+      <li><strong>初等セルオートマトン（ECA）</strong>：Wolfram, S. (1983). Statistical mechanics of cellular automata. <em>Reviews of Modern Physics</em>, 55(3), 601–644. ／ Wolfram, S. (2002). <em>A New Kind of Science</em>. Wolfram Media.</li>
+      <li><strong>ライフゲーム</strong>：Gardner, M. (1970). Mathematical Games: The fantastic combinations of John Conway's new solitaire game "life". <em>Scientific American</em>, 223(4), 120–123.</li>
+      <li><strong>住み分け（分居）モデル</strong>：Schelling, T. C. (1971). Dynamic models of segregation. <em>Journal of Mathematical Sociology</em>, 1(2), 143–186.</li>
+      <li><strong>群れ（フロッキング／Boids）</strong>：Reynolds, C. W. (1987). Flocks, herds and schools: A distributed behavioral model. <em>Computer Graphics (SIGGRAPH '87)</em>, 21(4), 25–34.</li>
+      <li><strong>アリのフェロモン</strong>：Deneubourg, J.-L., Aron, S., Goss, S., &amp; Pasteels, J. M. (1990). The self-organizing exploratory pattern of the Argentine ant. <em>Journal of Insect Behavior</em>, 3(2), 159–168.</li>
+      <li><strong>空間囚人のジレンマ</strong>：Nowak, M. A., &amp; May, R. M. (1992). Evolutionary games and spatial chaos. <em>Nature</em>, 359, 826–829.</li>
+      <li><strong>SIR 感染症モデル</strong>：Kermack, W. O., &amp; McKendrick, A. G. (1927). A contribution to the mathematical theory of epidemics. <em>Proceedings of the Royal Society A</em>, 115(772), 700–721.</li>
+      <li><strong>ソーシャル・パーティクル・スウォーム（SPS）</strong>：Nishimoto, K., Suzuki, R., &amp; Arita, T. (2023). Social Particle Swarm model for investigating the complex dynamics of social relationships. <em>Psychologia</em>, 65(2), 185–210. <a href="https://doi.org/10.2117/psysoc.2023-B039" target="_blank">https://doi.org/10.2117/psysoc.2023-B039</a></li>
+    </ul>
+
+    <hr class="divider">
+
+    <h2 class="section-title"><span class="sec-num">★</span>謝辞</h2>
+    <p>本ツールは <a href="https://www.netlogo.org/" target="_blank">NetLogo</a>（Wilensky, U., 1999, Center for Connected Learning and Computer-Based Modeling, Northwestern University）から大きな影響を受けています。著者はこれまで NetLogo を自身の理解や授業に活用しており、その経験が本ツールの着想と設計の土台になっています。ここに記して深く感謝します。</p>
+
+    <hr class="divider">
+
+    <p style="font-size:.82rem;color:var(--light);text-align:center;padding-top:1rem">
+      ABM Studio v1.0 &nbsp;|&nbsp;
+      <a href="ABM_Studio_ja.html" style="color:var(--accent)">ABM Studio を開く</a>
+      &nbsp;|&nbsp;
+      <a href="ABM_Studio_FirstSteps_ja.html" style="color:var(--accent)">はじめてガイド</a>
+    </p>
+
+  </main>
+</div>
+
+<script>
+// Scroll-spy
+const links = document.querySelectorAll('#sideNav a');
+const sections = Array.from(links).map(l => {
+  const id = l.getAttribute('href').replace('#','');
+  return document.getElementById(id);
+}).filter(Boolean);
+
+function onScroll() {
+  const scrollY = window.scrollY + 80;
+  let current = null;
+  for (const s of sections) {
+    if (s.offsetTop <= scrollY) current = s.id;
+  }
+  links.forEach(l => {
+    const id = l.getAttribute('href').replace('#','');
+    l.classList.toggle('active', id === current);
+  });
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+</script>
+</body>
+</html>

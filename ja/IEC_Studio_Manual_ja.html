@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IEC Studio v1.0 — 利用方法マニュアル</title>
+<style>
+:root {
+  --bg:           #ffffff;
+  --sidebar-bg:   #f5f4f0;
+  --text:         #1a1a1a;
+  --muted:        #555;
+  --light:        #999;
+  --border:       #ddd;
+  --border-light: #eee;
+  --accent:       #1a4b8c;
+  --accent2:      #2a7a40;
+  --warn:         #7a4800;
+  --tip-bg:       #f0f7ff;
+  --tip-border:   #1a4b8c;
+  --warn-bg:      #fff8f0;
+  --warn-border:  #c97a00;
+  --step-bg:      #f5f4f0;
+  --code-bg:      #f0f2f6;
+  --tag-ca:       #1a4b8c;
+  --tag-abm:      #2a7a40;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.8;
+  font-size: 0.97rem;
+}
+
+/* ── Layout ── */
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 230px;
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 1.6rem 0 3rem;
+}
+.sidebar-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--muted);
+  padding: 0 1.2rem 0.7rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.6rem;
+  text-transform: uppercase;
+}
+.sidebar nav a {
+  display: block;
+  padding: 0.28rem 1.2rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: color .15s, border-color .15s, background .15s;
+  line-height: 1.5;
+}
+.sidebar nav a:hover { color: var(--accent); background: rgba(26,75,140,.05); }
+.sidebar nav a.active { color: var(--accent); border-left-color: var(--accent); font-weight: 600; background: rgba(26,75,140,.07); }
+.sidebar nav a.sub { padding-left: 2.0rem; font-size: 0.78rem; }
+.sidebar-section { margin-top: 1.2rem; }
+.sidebar-section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--light);
+  padding: 0.4rem 1.2rem 0.1rem;
+}
+
+.main {
+  flex: 1;
+  max-width: 860px;
+  padding: 3rem 3rem 8rem;
+  min-width: 0;
+}
+
+/* ── Header ── */
+.page-header {
+  border-bottom: 2px solid var(--text);
+  padding-bottom: 1.4rem;
+  margin-bottom: 3rem;
+}
+.page-header .breadcrumb {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+.page-header .breadcrumb a { color: var(--accent); text-decoration: none; }
+.page-header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -.01em; }
+.page-header .subtitle { font-size: 0.9rem; color: var(--muted); margin-top: 0.4rem; }
+.page-header .badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  background: var(--accent);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* ── Section headings ── */
+.section-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+  border-bottom: 1.5px solid var(--border);
+  padding-bottom: 0.5rem;
+  margin: 3.5rem 0 1.2rem;
+  scroll-margin-top: 24px;
+}
+.section-title .sec-num {
+  font-size: 0.8em;
+  color: var(--light);
+  font-weight: 400;
+  margin-right: 0.4em;
+}
+.subsection-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 2rem 0 0.8rem;
+  scroll-margin-top: 24px;
+}
+.subsection-title .sub-marker {
+  display: inline-block;
+  width: 4px; height: 1em;
+  background: var(--accent);
+  margin-right: 0.5em;
+  vertical-align: -0.1em;
+  border-radius: 2px;
+}
+
+/* ── Prose ── */
+p { margin-bottom: 1rem; }
+p + p { margin-top: 0; }
+
+/* ── Info boxes ── */
+.tip, .warn, .note {
+  border-left: 3px solid;
+  padding: 0.9rem 1.1rem;
+  margin: 1.4rem 0;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.92rem;
+}
+.tip  { background: var(--tip-bg);  border-color: var(--tip-border); }
+.warn { background: var(--warn-bg); border-color: var(--warn-border); }
+.note { background: #f9f7f4;        border-color: #888; }
+.tip .box-label, .warn .box-label, .note .box-label {
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.tip  .box-label { color: var(--accent); }
+.warn .box-label { color: var(--warn); }
+.note .box-label { color: #555; }
+
+/* ── Step boxes ── */
+.steps { margin: 1.4rem 0; }
+.step {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+  align-items: flex-start;
+}
+.step-num {
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 0.15rem;
+}
+.step-body { flex: 1; }
+.step-body strong { display: block; margin-bottom: 0.2rem; }
+
+/* ── Inline code ── */
+code {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 0.84em;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: #1e4070;
+}
+
+/* ── Code block ── */
+pre {
+  background: #0d1117;
+  color: #e6edf3;
+  border-radius: 6px;
+  padding: 1rem 1.2rem;
+  overflow-x: auto;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  margin: 1rem 0 1.4rem;
+}
+pre .cm { color: #8b949e; }     /* comment */
+pre .kw { color: #ff7b72; }     /* keyword */
+pre .str { color: #a5d6ff; }    /* string */
+pre .fn { color: #d2a8ff; }     /* function name */
+pre .num { color: #79c0ff; }    /* number */
+pre .prop { color: #ffa657; }   /* property */
+
+/* ── Screenshot frame ── */
+.screen-frame {
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 1.2rem 0 1.6rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.07);
+}
+.screen-title {
+  background: var(--sidebar-bg);
+  border-bottom: 1px solid var(--border);
+  padding: 0.4rem 1rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+}
+.screen-body {
+  background: #f4f6f9;
+  padding: 1rem 1.2rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+/* ── UI label ── */
+.ui { /* inline UI element reference */
+  display: inline-block;
+  background: #e8ecf4;
+  border: 1px solid #c0c8d8;
+  border-radius: 3px;
+  padding: 0px 6px;
+  font-size: 0.82em;
+  font-weight: 600;
+  color: #1e3a6e;
+  white-space: nowrap;
+}
+
+/* ── Keyboard keys ── */
+kbd {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 0.83em;
+  background: #fff;
+  border: 1.5px solid #b0b8cc;
+  border-bottom: 3px solid #8090aa;
+  border-radius: 4px;
+  padding: 1px 6px;
+  color: #1e3a6e;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0,0,0,.07);
+  vertical-align: middle;
+}
+.kb-badge {
+  display: inline-block;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  border-radius: 2px;
+  padding: 1px 4px;
+  vertical-align: middle;
+  margin-right: 2px;
+  font-family: sans-serif;
+}
+.kb-badge.win { background: #dde8f5; color: #1e4070; }
+.kb-badge.mac { background: #e8f5e8; color: #1a6a2a; }
+.kb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  vertical-align: middle;
+}
+.kb-divider { color: #bbb; margin: 0 0.25rem; font-size: 0.9em; }
+
+/* ── Shortcut reference box ── */
+.shortcut-box {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin: 1.4rem 0;
+  overflow: hidden;
+}
+.shortcut-box-title {
+  background: var(--sidebar-bg);
+  padding: 0.45rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+}
+.shortcut-box table {
+  margin: 0;
+  border: none;
+  font-size: 0.86rem;
+}
+.shortcut-box table th,
+.shortcut-box table td {
+  border: none;
+  border-bottom: 1px solid var(--border-light);
+  padding: 0.42rem 1rem;
+}
+.shortcut-box table tr:last-child td { border-bottom: none; }
+.shortcut-box table th {
+  background: transparent;
+  font-size: 0.74rem;
+  color: var(--muted);
+  padding-top: 0.6rem;
+  vertical-align: middle;
+}
+.shortcut-box table td:first-child {
+  color: var(--text);
+  font-family: inherit;
+  white-space: normal;
+  font-size: 0.86rem;
+  width: 38%;
+}
+.shortcut-box table td:nth-child(2),
+.shortcut-box table td:nth-child(3) { white-space: nowrap; }
+
+/* ── Model tag ── */
+.tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 3px;
+  color: #fff;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.tag-ca  { background: var(--tag-ca); }
+.tag-abm { background: var(--tag-abm); }
+
+/* ── Model card grid ── */
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  margin: 1.2rem 0 1.8rem;
+}
+.model-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.9rem 1.1rem;
+  background: #fafafa;
+}
+.model-card .mc-name { font-weight: 700; font-size: 0.92rem; margin-bottom: 0.25rem; }
+.model-card .mc-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+.model-card .mc-tips { margin-top: 0.5rem; font-size: 0.8rem; }
+.model-card .mc-tips li { margin-left: 1.2rem; color: var(--muted); margin-bottom: 0.1rem; }
+
+/* ── Error table ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin: 1.2rem 0 1.8rem;
+}
+th, td { border: 1px solid var(--border); padding: 0.55rem 0.9rem; text-align: left; vertical-align: top; }
+th { background: var(--sidebar-bg); font-weight: 700; }
+td:first-child { white-space: nowrap; color: #b91c1c; font-family: 'IBM Plex Mono',monospace; font-size: 0.82em; }
+tr:hover td { background: #fafafa; }
+
+/* ── Divider ── */
+.divider { border: none; border-top: 1px solid var(--border-light); margin: 2.5rem 0; }
+
+/* ── Scrollspy JS ── */
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-title">IEC Studio マニュアル</div>
+    <nav id="sideNav">
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">はじめに</div>
+        <a href="#overview">1. IEC Studio とは</a>
+        <a href="#screen">2. 画面の構成</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">基本操作</div>
+        <a href="#builtin">3. ビルトインモデルを使う</a>
+        <a href="#evolve">4. 進化の操作</a>
+        <a href="#params">5. パラメータと遺伝子</a>
+        <a href="#save">6. 結果の保存・再現</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">コード生成</div>
+        <a href="#chatgpt">7. 生成AI でコードを作る</a>
+        <a href="#aigen" class="sub">🤖 AI生成（API直結）</a>
+        <a href="#paste">8. 貼り付けて実行</a>
+        <a href="#modify">9. コードを改変する</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">モデル別ガイド</div>
+        <a href="#model-bio"     class="sub">枝分かれ図形</a>
+        <a href="#model-face"    class="sub">顔の進化</a>
+        <a href="#model-stained" class="sub">ステンドグラス</a>
+        <a href="#model-mathart" class="sub">数式アート</a>
+        <a href="#model-boids"   class="sub">群れ（フロッキング）</a>
+        <a href="#model-softbody"  class="sub">仮想生物（ソフトボディ）</a>
+        <a href="#model-sound"   class="sub">音の進化</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">困ったときは</div>
+        <a href="#errors">10. エラーと対処法</a>
+        <a href="#faq">11. よくある質問</a>
+        <a href="#refs">📚 参考文献・出典</a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="breadcrumb"><a href="IEC_Studio_FirstSteps_ja.html">IEC Studio はじめてガイド</a> &rsaquo; IEC Studio マニュアル</div>
+      <h1><span class="badge">v1.0</span>IEC Studio 利用方法マニュアル</h1>
+      <p class="subtitle">ブラウザで動く対話型進化計算（IEC）ツール</p>
+    </div>
+
+    <!-- ───────── 1 ───────── -->
+    <h2 class="section-title" id="overview"><span class="sec-num">1</span>IEC Studio とは</h2>
+
+    <p>IEC Studio は，<strong>ブラウザだけで動く対話型進化計算（IEC：Interactive Evolutionary Computation）ツールです。</strong>インストール不要，ファイルをダブルクリックするだけで起動します。</p>
+
+    <p>通常の進化計算（GA）は「評価関数」で自動的に良し悪しを決めますが，IEC では<strong>人間の好みそのものが選択圧</strong>になります。画面の 3×3＝9 個体から「いいな」と思うものを選ぶと，それを親に次世代 9 個体が作られます。これをくり返すだけで，<strong>数式では測りにくい「美しさ・面白さ」</strong>に向かって形が進化します（リチャード・ドーキンスの「バイオモルフ」が古典例）。</p>
+
+    <div class="note">
+      <span class="box-label">このツールのねらい（考え方）</span>
+      近年の生成AIの進展は，複雑系や人工生命の「作って理解する（構成論的）」モデリングを大きく変えつつあります。プロンプトで骨子を与えれば，完全な仕様でなくても様々なモデルを自動生成でき，必要に応じて AI に説明させて理解したり，対話しながらアイデアを洗練したりできます。一方で，全体を AI に任せると出来上がるものがばらばらになりがちです。<br>
+      ALifeCoreStudio（ABM・EVO・IEC の3スタジオ）は，<strong>モデル構築・可視化・分析の共通の枠組みを固定</strong>したうえで，モデルの<strong>本質的な部分だけ</strong>を生成AIで生み出せるようにした環境です。これにより，プログラミング未経験の初心者が発想を自由に形にする／学生が AI と協働してモデルを育てる／研究者が素早くプロトタイプを作る，といった利用が想定されています。枠組みの中で<strong>可能なモデルを自由に生み出す</strong>ことを通じて，構成論的アプローチによる科学的理解を加速し，「どんな世界がありうるか」を思い描いて動かす楽しさを広げること——それがこのツールのねらいです。
+    </div>
+
+    <div class="tip">
+      <span class="box-label">EVO Studio との違い</span>
+      EVO Studio は評価関数で自動的に最良を選びます。IEC Studio は<strong>あなた自身がクリックで選ぶ</strong>のがちがい。正解がなく好みで決まる題材（デザイン・形・模様）に向いています。
+    </div>
+
+    <p><strong>できること：</strong>9 個体を見比べて選び進化させる／1 親（変異のみ）と 2 親（交叉＋変異）を切り替える／変異率・変異幅をスライダーで調整する／遺伝子の定義と中央個体の中身を確認する／気に入った個体の遺伝子をコピー・保存・再現する／アニメーションする個体を動かす／作ったモデルを <code>.js</code> に保存・再読み込みする，など。</p>
+
+    <p><strong>できないこと：</strong>インターネットアクセス，外部データ読み込み，3D 描画などはサポートしていません。</p>
+
+    <hr class="divider">
+
+
+    <!-- ───────── 2 ───────── -->
+    <h2 class="section-title" id="screen"><span class="sec-num">2</span>画面の構成</h2>
+
+    <p>上部の<strong>ヘッダー</strong>，中央左の<strong>9 個体グリッド</strong>，右の<strong>操作パネル</strong>，下部の<strong>コードバー</strong>からできています。</p>
+
+    <table>
+      <tr><th>場所</th><th>内容</th></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">ヘッダー</td><td>タイトル，<span class="ui">世代</span> 表示，<span class="ui">● アニメ</span>（アニメーション動作中バッジ），<span class="ui">⛶ 全画面</span>，<span class="ui">💾 HTML出力</span>，<span class="ui">❔ ヘルプ</span>。（初期化はグリッド下の操作バーにあります）</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">9 個体グリッド（左）</td><td>3×3 の候補。クリックで選択。各セルにマウスを乗せると <span class="ui">📋 遺伝子</span> が出ます。</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">操作パネル（右）</td><td>選び方の切替（1 親／2 親・交叉方式），<span class="ui">演算パラメータ</span>，<span class="ui">アニメーション</span>（アニメ対応モデルのみ），<span class="ui">遺伝子（定義と中央個体）</span>，<span class="ui">遺伝子エディタ</span>，状態表示。</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">コードバー（下）</td><td><span class="ui">▸ コード</span> で開閉。<span class="ui">▶ 適用</span>・各種プロンプト・保存／読込・モデル選択。行番号つきエディタとエラー表示。</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">ヘルプ</td><td><span class="ui">❔ ヘルプ</span> で重なって開きます（<kbd>Esc</kbd> で閉じる）。</td></tr>
+    </table>
+
+    <hr class="divider">
+
+    <!-- ───────── 3 ───────── -->
+    <h2 class="section-title" id="builtin"><span class="sec-num">3</span>ビルトインモデルを使う</h2>
+
+    <p>コードバーのドロップダウン「── モデルを選択 ──」から選ぶと，コードが自動でセットされ，9 個体が表示されます。</p>
+
+    <div class="model-grid">
+      <div class="model-card"><div class="mc-name">枝分かれ図形（9遺伝子・静止）</div><div class="mc-desc">ドーキンスのバイオモルフどおり 9 個の整数。枝分かれの木が虫や植物のような形へ進化する。</div></div>
+      <div class="model-card"><div class="mc-name">顔の進化（静止・美的選択）</div><div class="mc-desc">目・眉・鼻・口・髪などの形を好みで選ぶ。IEC の分かりやすい例。</div></div>
+      <div class="model-card"><div class="mc-name">ステンドグラス（静止・ボロノイ）</div><div class="mc-desc">種点で平面を分けるボロノイ図に着色。空間分割の可視化。</div></div>
+      <div class="model-card"><div class="mc-name">数式アート（静止・z=f(x,y)）</div><div class="mc-desc">sin の重ね合わせを色にマッピング。係数で模様が連続変化。</div></div>
+      <div class="model-card"><div class="mc-name">群れ（フロッキング・アニメーション）</div><div class="mc-desc">分離・整列・凝集の3ルールで動く群れ。動きの個性を進化させる。</div></div>
+      <div class="model-card"><div class="mc-name">仮想生物（ソフトボディ・ボクセル）</div><div class="mc-desc">ボクセルの体とアクチュエータの伸縮で歩く生物（アニメーション）。</div></div>
+      <div class="model-card"><div class="mc-name">音の進化（メロディ）</div><div class="mc-desc">8音の短いメロディを「▶ 鳴らす」で聴きながら好みで進化させる。</div></div>
+    </div>
+
+    <div class="tip">
+      <span class="box-label">コードを読みたいとき</span>
+      モデルを適用したあと <span class="ui">▸ コード</span> を開くと全コードが見られます。<span class="ui">📋 仕様書コピー</span> で仕様書＋現在のコードをまとめて 生成AI に渡せます。
+    </div>
+
+    <hr class="divider">
+
+    <!-- ───────── 4 ───────── -->
+    <h2 class="section-title" id="evolve"><span class="sec-num">4</span>進化の操作</h2>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>個体を選ぶ</h3>
+    <p>9 個体の中から好みのものをクリックします。すると、その個体を親に少しずつ変化させた次世代 9 個体が生まれます。<strong>中央のセル（★）は親そのまま</strong>なので、選んだ形が必ず1つは残ります。</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>1親モードと2親モード</h3>
+    <table>
+      <tr><th>モード</th><th>内容</th></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">1親 ─ 変異のみ（既定）</td><td>気に入った個体を <strong>1 つ</strong>クリック。それを親に変異させた 9 個体が生まれる。1 方向にじっくり育てたいときに。</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">2親 ─ 交叉＋変異</td><td>親 A・親 B の <strong>2 つ</strong>を順にクリック。両者の遺伝子を<strong>交叉（混合）</strong>した子が生まれる。2 つの良さを掛け合わせたいときに。</td></tr>
+    </table>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>交叉方式</h3>
+    <p>2 親モードでは、左下の <span class="ui">交叉方式</span> で <strong>一様交叉／一点交叉／二点交叉</strong>を選べます。一様は遺伝子ごとにランダムに親を選び、一点・二点は配列を切れ目で分けて受け継ぎます。</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>初期化</h3>
+    <p>グリッド下の操作バーにある <span class="ui">⟳ 初期化</span> で、ランダムな初期 9 個体に戻ります。行き詰まったら新しい出発点から探索できます。</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>集団の録画</h3>
+    <p>グリッド下の <span class="ui">⏺ 録画</span> ボタンで、<strong>9個体をまとめて1本の動画</strong>として記録できます。隅に世代数が焼き込まれます。アニメーションするモデル（群れ、仮想生物）は動きごと、静止画のモデルは世代が進むごとの変化が記録されるので、選択のセッションをそのまま1本の動画として見せられます。もう一度押すと録画が終わり、ファイルがダウンロードされます。</p>
+    <p>隣の形式メニューでは <strong>MP4 / WebM / 自動</strong> を選べます。MP4 は <strong>H.264</strong> で書き出すため、QuickTime Player・PowerPoint・Keynote でそのまま開けます。動画は現在のサムネイルサイズで記録されるので、解像度を上げたいときは録画前に <span class="ui">サイズ:大</span> 以上を選んでください。</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>アニメーション</h3>
+    <p>アニメ対応モデル（群れ・仮想生物）では、右に <span class="ui">アニメーション</span> が表示され、再生／停止と速度（0.1×〜8×）を調整できます。動作中はヘッダーに <span class="ui">● アニメ</span> が点灯します。</p>
+
+    <hr class="divider">
+
+    <!-- ───────── 5 ───────── -->
+    <h2 class="section-title" id="params"><span class="sec-num">5</span>パラメータと遺伝子</h2>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>演算パラメータ</h3>
+    <p>右の「演算パラメータ」で変異の強さを調整します（次に生成する世代から反映。各項目の <span class="ui">ⓘ</span> に説明）。</p>
+    <table>
+      <tr><th>パラメータ</th><th>意味</th></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">変異率 mutRate</td><td>各遺伝子が変化する確率。大きいほど 9 個体が大きくばらつく。</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">変異幅 mutScale</td><td>1 回の変化の大きさ（倍率）。小さいと親に近く、大きいと大胆に変わる。</td></tr>
+    </table>
+    <p>モデルによっては独自パラメータを持ちます（例：枝分かれ図形は <strong>変異遺伝子数 nMut</strong>・<strong>変異の大きさ stepSize</strong>）。</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>遺伝子（定義と中央個体）</h3>
+    <p>いま使われている遺伝子の<strong>定義</strong>（数値配列の長さ・各遺伝子の範囲 <code>GENE_RANGES</code>）と、<strong>中央個体（★）の遺伝子そのもの</strong>がチップで表示されます。仮想生物のように <code>geneGrid</code> を持つモデルでは、形態や位相が<strong>色つきのグリッド</strong>として分かりやすく表示されます。</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>遺伝子エディタ</h3>
+    <p>気に入った個体を保存・再現するための欄です。</p>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><strong>セルの <span class="ui">📋 遺伝子</span> で取り込む</strong>各セルにマウスを乗せると出るボタン。押すとその個体の遺伝子（JSON の数値配列）がエディタに入り、同時にコピーされます。メモ帳などに貼って保存できます。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><strong><span class="ui">↓ 中央に配置</span> / <span class="ui">⊕ 全体に展開</span></strong>保存しておいた遺伝子をエディタに貼り、中央個体に置いたり、親として 9 個体に展開したりできます。前に気に入った形から再開できます。</div></div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- ───────── 6 ───────── -->
+    <h2 class="section-title" id="save"><span class="sec-num">6</span>結果の保存・再現</h2>
+    <p>IEC では「気に入った形」を残すことが大切です。次の 3 通りで保存・再現できます。</p>
+    <table>
+      <tr><th>方法</th><th>用途</th></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">遺伝子をコピー</td><td>各セルの <span class="ui">📋 遺伝子</span> で個体の遺伝子をコピー。テキストとして保存し、後で「遺伝子エディタ」に貼って復元（§5）。</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">.js 保存／開く</td><td>コードバーの <span class="ui">💾 .js保存</span> でモデル（コード）を保存、<span class="ui">📂 開く</span> で読み込み。自作モデルは必ず保存を。</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">仕様書コピー</td><td><span class="ui">📋 仕様書コピー</span> で仕様書＋現在のコードを 生成AI に渡し、改良を相談できます。</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">📦 データ一式DL（ZIP・v1.0）</td><td>系統チェックの隣の <span class="ui">📦 データ一式DL</span> で、初期化以降のデータ一式を ZIP に書き出します。あとからの分析・再現に。詳細は下記。</td></tr>
+    </table>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>系統と枝分かれ</h3>
+    <p>グリッド下の <span class="ui">系統を表示</span> をオンにすると、各世代で選ばれた親が左から右へ並びます。サムネイルをクリックすると、その祖先から育種を続けられます。</p>
+    <p><strong>それまでの系統は消えません。</strong>薄く表示されたまま <span class="ui">過去</span> として残り、次に個体を選んだ時点で、クリックした祖先から<strong>新しい系統</strong>が <span class="ui">現在</span> として始まります。過去の系統の祖先もクリックできるので、どこからでも何度でも枝分かれできます。保持されるのは直近4本までで、それを超えると古いものから消えます。<span class="ui">⟳ 初期化</span> ですべて消去されます。</p>
+    <p>ZIP 出力では、現在の系統が <code>lineage.csv</code> に、保持されている全系統が <code>data.json</code> の <code>lineageBranches</code> に記録されます。</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>📦 データ一式ダウンロード（ZIP・v1.0）</h3>
+    <p>グリッド下、<span class="ui">系統を表示</span> の隣の <span class="ui">📦 データ一式DL</span> を押すと、<strong>初期化以降のデータ一式を 1 つの ZIP</strong> に書き出します。中身は次の通りです。</p>
+    <table>
+      <tr><th style="width:32%">ファイル</th><th>内容</th></tr>
+      <tr><td><code>metadata.json</code></td><td>モデル名・書き出し日時・世代数・遺伝子長に加え、<strong>実験設定（settings）</strong>＝パラメータ・選択モード（変異のみ／交叉＋変異）・交叉方式・遺伝子の範囲・<strong>乱数シード（seed）</strong>。</td></tr>
+      <tr><td><code>model.js</code></td><td>この実験を生成した<strong>モデルのコードそのもの</strong>。コード欄に貼り戻して <span class="ui">▶ 適用</span> すれば再現できます。</td></tr>
+      <tr><td><code>frames.jsonl</code></td><td>各世代の<strong>全9個体の遺伝子</strong>（1 行 1 世代の JSON。<code>{"tick":&lt;世代&gt;, "state":{"population":…, "chosen":…}}</code>）。IEC は軽いので常に記録され、同梱ビュワーで各世代を再生できます。</td></tr>
+      <tr><td><code>lineage.csv</code></td><td>各世代で選んだ親（中央 ★ 個体）の遺伝子履歴。列は <code>step, gen, g0, g1, …</code>。</td></tr>
+      <tr><td><code>population.csv</code></td><td>現在の9個体の遺伝子。<code>is_center=1</code> が中央（★）個体。</td></tr>
+      <tr><td><code>data.json</code></td><td>設定・系統・現在の個体群の全データをまとめた構造化 JSON。プログラムからの読み込み向け。</td></tr>
+    </table>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>各世代の再現とビュワー再生</h3>
+    <p>あとから<strong>各世代の様子を再現</strong>できるよう、IEC では<strong>各世代の全9個体</strong>を <code>frames.jsonl</code> に常に記録します（1回のクリック＝1世代ぶんの軽いデータなので、記録のオン／オフは不要です）。あわせて変異・交叉の乱数を固定する<strong>シード（seed）</strong>も記録します。</p>
+    <p>書き出した ZIP を、リポジトリ直下の <strong><code>ALifeCoreStudio_Viewer.html</code></strong> にドロップすると、各世代の9個体を、<strong>そのモデル自身の描画コード</strong>でグリッド表示しながら<strong>タイムライン再生</strong>できます（選んだ個体には ★）。組み込みモデルだけでなく、改変・新規作成したモデルでも動きます。</p>
+
+    <hr class="divider">
+
+    <!-- ───────── 7 ───────── -->
+    <h2 class="section-title" id="chatgpt"><span class="sec-num">7</span>生成AI でコードを作る</h2>
+
+    <p><span class="ui">✨ 新規作成プロンプト</span> を押すと仕様書がコピーされます。生成AI に貼り、【実装する題材】を書いて送ると、貼り付けるだけのコードが返ります。</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>モデルの記述仕様（要点）</h3>
+    <pre><span class="cm">// 静止画モデル：必須の3関数</span>
+<span class="kw">function</span> <span class="fn">createInitialGenome</span>() { <span class="cm">/* 数値の配列を返す（個体の遺伝子）*/</span> }
+<span class="kw">function</span> <span class="fn">mutateGenome</span>(genome, params) { <span class="cm">/* 変異させた新しい配列を返す */</span> }
+<span class="kw">function</span> <span class="fn">drawPhenotype</span>(ctx, genome, W, H) { <span class="cm">/* 遺伝子を絵にして描く */</span> }
+
+<span class="cm">// アニメーションモデル：ANIMATED=true と3関数（drawPhenotype の代わり）</span>
+<span class="kw">const</span> <span class="prop">ANIMATED</span> = <span class="kw">true</span>;
+<span class="kw">function</span> <span class="fn">initState</span>(genome, W, H) { <span class="cm">/* アニメ初期状態を返す */</span> }
+<span class="kw">function</span> <span class="fn">stepState</span>(state, dt, genome, W, H) { <span class="cm">/* 1フレーム進める */</span> }
+<span class="kw">function</span> <span class="fn">drawFrame</span>(ctx, state, genome, W, H) { <span class="cm">/* 現在の状態を描く */</span> }
+
+<span class="cm">// 任意</span>
+<span class="kw">const</span> <span class="prop">GENE_RANGES</span> = [ [min,max], ... ]; <span class="cm">// 各遺伝子の範囲</span>
+<span class="kw">const</span> <span class="prop">PARAM_DEFS</span> = [ ... ];            <span class="cm">// スライダー（help を付けると親切）</span>
+<span class="kw">function</span> <span class="fn">geneGrid</span>(genome) { ... }       <span class="cm">// 遺伝子を色つきグリッドで表示</span></pre>
+
+    <div class="note">
+      <span class="box-label">補足</span>
+      静止画モデルの <code>mutateGenome</code> だけが <code>params</code>（スライダーの値）を受け取ります。<code>drawPhenotype</code>／<code>initState</code> 等は遺伝子と描画領域だけを受け取ります。アニメ速度スライダーは <code>ANIMATED=true</code> のとき自動表示され、<code>dt</code>（経過時間×速度）が <code>stepState</code> に渡されます。
+    </div>
+
+    <div class="tip">
+      <span class="box-label">伝え方のコツ</span>
+      <strong>「何の形・模様を」「どんな遺伝子（変えられる要素）で」</strong>を明確に。遺伝子を少し変えると見た目が<strong>連続的に</strong>変わるようにしてもらうと、9 個体の見比べがうまくいきます。動かしたいときは「アニメーションで」と添えてください。
+    </div>
+
+    <hr class="divider">
+
+    <!-- ───────── 8 ───────── -->
+    <h2 class="section-title" id="paste"><span class="sec-num">8</span>貼り付けて実行する</h2>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><strong>コードをコピー</strong>生成AI のコードブロック右上「コピー」で、中身だけをコピーします。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><strong>コード欄に貼る</strong><span class="ui">▸ コード</span> を開き、<kbd>Ctrl</kbd>+<kbd>A</kbd>（Mac: <kbd>⌘</kbd>+<kbd>A</kbd>）で全選択してから貼り付け。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><strong><span class="ui">▶ 適用</span></strong>すぐに 9 個体が表示されます。エラーがあれば、原因の行番号とヒントが日本語で出ます。<code>class</code>・<code>document.*</code>・<code>window.*</code>・<code>fetch</code>・<code>setTimeout</code>・<code>import</code> 等は使えません。</div></div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- ───────── 9 ───────── -->
+    <h2 class="section-title" id="modify"><span class="sec-num">9</span>コードを改変する</h2>
+    <p><span class="ui">✏️ 改変プロンプト</span> を押すと、現在のコードと改変指示の枠がコピーされます。生成AI に貼り、変えたいことを箇条書きすれば、改変後のコード全体が返ります。コード欄を全選択して入れ替え、<span class="ui">▶ 適用</span>。</p>
+    <p><span class="ui">📖 説明プロンプト</span> を押すと、<strong>いま動かしているコードがどんな題材かを説明させるプロンプト</strong>（概要・アルゴリズムの説明・疑似コードを求める内容）がコピーされます。生成AI に貼ると、実装に忠実な解説が得られます。また生成・改変したコードに <code>const TITLE = 'モデル名'</code> を入れておくと、ブラウザのタブ名・「このモデルの説明」の見出し・<span class="ui">💾 .js保存</span> のファイル名（例 <code>枝分かれ図形.js</code>）に反映されます。</p>
+    <div class="note">
+      <span class="box-label">無料版でも失敗しにくくする工夫</span>
+      プロンプトは<strong>最小限の仕様にしぼり</strong>、冒頭と末尾で「<strong>コードブロックを1つだけ・省略せず全文出力</strong>」を強く指示しています（無料版・小型モデルでの出力切れや説明文混入を減らすため）。<span class="ui">✏️ 改変プロンプト</span> では <strong>【改変したい内容】を末尾</strong>に置いているので、そこに変更点を箇条書きします。
+    </div>
+    <div class="good">
+      <span class="box-label">改変のコツ</span>
+      一度に大きく変えず、<strong>小さな変更を 1〜2 個ずつ</strong>。気に入った状態は <span class="ui">💾 .js保存</span> や遺伝子のコピーで残しておくと安全です。
+    </div>
+
+    <h3 class="subsection-title" id="aigen"><span class="sub-marker"></span>🤖 AI生成 ─ 生成AI の API に直接つなぐ（LM Studio / クラウド）</h3>
+    <p>コードバーの <span class="ui">🤖 AI生成</span> を押すと、OpenAI 互換 API に直接つないで改変・新規作成ができます。返ってきたコードは自動でコード欄に挿入されます（実行は <span class="ui">▶ 適用</span> を押すまで行われません）。コピー＆ペーストは不要です。</p>
+    <ul>
+      <li><strong>ローカル（LM Studio など）</strong>：ローカルサーバを起動し、サーバ設定で「Enable CORS」を ON。エンドポイントは <code>http://localhost:1234</code>（API キー不要）。</li>
+      <li><strong>クラウド（OpenAI 互換）</strong>：例 ─ OpenRouter <code>https://openrouter.ai/api/v1</code>、DeepInfra <code>https://api.deepinfra.com/v1/openai</code>、OpenAI <code>https://api.openai.com/v1</code>。API キーが必要（多くは従量課金）。</li>
+      <li>モデル名は <span class="ui">🔄 一覧取得</span> で選べます（手入力も可）。設定はブラウザに記憶されます。</li>
+    </ul>
+    <div class="note">
+      <span class="box-label">うまく繋がらないとき</span>
+      「Failed to fetch」はサーバ未起動・CORS 未設定・URL 違いが主な原因です。ブラウザで <code>http://localhost:1234/v1/models</code> を直接開いて JSON が出るか確認してください。クラウドはサービス側が CORS に対応している必要があります（OpenRouter・DeepInfra は対応）。
+    </div>
+
+    <hr class="divider">
+
+    <!-- ───────── モデル別 ───────── -->
+    <h2 class="section-title" id="model-bio">枝分かれ図形（ドーキンス9遺伝子）</h2>
+    <p>リチャード・ドーキンス『盲目の時計職人』の「バイオモルフ」を再現したモデルです。遺伝子は <strong>9 個の整数</strong>。最初の 8 個が枝の方向・長さを、9 個目が枝分かれの深さを決めます。中心から左右対称に再帰的に枝を伸ばし、白黒で描きます。</p>
+    <p><strong>変異の特徴：</strong>原典どおり「いくつかの遺伝子を ±1 ずつ変える」ように設計され、<span class="ui">変異遺伝子数 nMut</span>・<span class="ui">変異の大きさ stepSize</span> で調整できます（既定は 2／1 ＝ 2つの遺伝子が1段階ずつ動く）。世代を重ねると、木が虫・鳥・植物のような形へ次々と変わっていきます。</p>
+
+    <h2 class="section-title" id="model-face">顔の進化</h2>
+    <p>目・眉・鼻・口・輪郭・髪などのパーツの形や配置を遺伝子に持ち、好みの顔つきへ進化させます。「かわいい」「こわい」など<strong>言葉にしにくい基準</strong>で選べるのが IEC らしいモデルです。眉や口角の角度を変えると表情が変わります。</p>
+
+    <h2 class="section-title" id="model-stained">ステンドグラス</h2>
+    <p>平面に置いた複数の<strong>種点</strong>から<strong>ボロノイ図</strong>（各点に最も近い領域への分割）を作り、各領域に色を塗ります。遺伝子は種点の位置と色。空間分割がそのまま模様になり、種点が動くとガラスの割り付けが変化します。</p>
+
+    <h2 class="section-title" id="model-mathart">数式アート</h2>
+    <p>2 変数関数 z = f(x, y)（sin の重ね合わせなど）の値を色にマッピングして模様を描きます。遺伝子は式の係数。係数が少し変わると模様が<strong>連続的に</strong>変化するので、IEC で「好きな模様」を探すのに向いています。</p>
+
+    <h2 class="section-title" id="model-boids">群れ（フロッキング）</h2>
+    <p>Reynolds の Boids（分離・整列・凝集の 3 ルール）で動く群れのアニメーションです。遺伝子は 3 ルールの強さや知覚半径・速度など。<strong>動きの個性</strong>（まとまり方・散らばり方）を見比べて選び、好みの群れ挙動へ進化させます。右の <span class="ui">アニメーション</span> で再生・速度を調整します。</p>
+
+    <h2 class="section-title" id="model-softbody">仮想生物（ソフトボディ・ボクセル）</h2>
+    <p>5×5 のボクセル（空・剛体・軟体・水平／垂直アクチュエータ）で体を作り、アクチュエータの周期的な伸縮で動くソフトボディ生物です。遺伝子は<strong>形態（各マスの種類）と制御（位相）</strong>。<code>geneGrid</code> により、形態と位相が<strong>色つきの 5×5 グリッド</strong>として表示されます。動きや体つきの面白さで選んで進化させます（アニメーション）。</p>
+
+    <h2 class="section-title" id="model-sound">音の進化</h2>
+    <p>8 音の短い<strong>メロディ</strong>を遺伝子に持ち、各セルの <span class="ui">▶ 鳴らす</span> で実際に聴いてから選べるモデルです。目で見る形ではなく<strong>耳で選ぶ</strong> IEC の例で、心地よい・面白いと感じたメロディをクリックして進化させます。</p>
+
+    <hr class="divider">
+
+    <!-- ───────── 10 ───────── -->
+    <h2 class="section-title" id="errors"><span class="sec-num">10</span>エラーと対処法</h2>
+    <p><span class="ui">▶ 適用</span> 時にエラーが起きると、コードバーに赤いメッセージが出ます。<strong>原因の行番号・その行の内容・ヒント</strong>が日本語で表示されます。使えない構文（<code>class</code>・<code>document.*</code>・<code>window.*</code>・<code>fetch</code>・<code>setTimeout</code>・<code>import</code> など）は適用前に検出されます。</p>
+    <table>
+      <tr><th>メッセージ／症状</th><th>対処法</th></tr>
+      <tr><td>createInitialGenome が必要</td><td>3 つの必須関数（createInitialGenome／mutateGenome／drawPhenotype）がそろっているか確認。アニメ時は drawPhenotype の代わりに initState／stepState／drawFrame。</td></tr>
+      <tr><td>addEventListener は使えません</td><td>入力は <code>PARAM_DEFS</code> のスライダーで受け取ってください。</td></tr>
+      <tr><td>... is not defined</td><td>変数名のスペルミス、または定義前に使用。<code>GENE_RANGES</code> 等の const は使えます。</td></tr>
+      <tr><td>Unexpected token …</td><td>括弧 () {} [] の対応や、カンマ・セミコロンの抜けを確認。</td></tr>
+      <tr><td>9個体が真っ白／同じに見える</td><td>drawPhenotype が遺伝子を使って描いているか、変異率が小さすぎないかを確認。</td></tr>
+    </table>
+
+    <hr class="divider">
+
+    <!-- ───────── 11 ───────── -->
+    <h2 class="section-title" id="faq"><span class="sec-num">11</span>よくある質問</h2>
+
+    <p><strong>Q. 9 個体が似すぎていて選べません。</strong><br>
+    A. 右の <span class="ui">変異率</span>・<span class="ui">変異幅</span> を上げると、もっとばらつきます。逆に変わりすぎるなら下げてください。</p>
+
+    <p><strong>Q. 変わりすぎて方向が定まりません。</strong><br>
+    A. <span class="ui">変異率</span>・<span class="ui">変異幅</span> を下げると、親に近い穏やかな変化になります。1 親モードでじっくり育てるのも有効です。</p>
+
+    <p><strong>Q. 気に入った形に戻したいです。</strong><br>
+    A. 気に入った個体は <span class="ui">📋 遺伝子</span> でコピーして保存。あとで「遺伝子エディタ」に貼って <span class="ui">↓ 中央に配置</span> で復元できます（§5）。</p>
+
+    <p><strong>Q. スライダーが出ません。</strong><br>
+    A. <code>PARAM_DEFS</code> が無い場合は、既定の <span class="ui">変異率</span>・<span class="ui">変異幅</span> の 2 つだけ表示されます。独自スライダーが欲しいときは 生成AI に「PARAM_DEFS を追加して。help も付けて」と依頼してください。</p>
+
+    <p><strong>Q. アニメーションが動きません。</strong><br>
+    A. アニメには <code>const ANIMATED = true</code> と <code>initState</code>／<code>stepState</code>／<code>drawFrame</code> が必要です。静止画モデルには <span class="ui">アニメーション</span> パネルは出ません。</p>
+
+    <p><strong>Q. 2 親モードで子ができません。</strong><br>
+    A. 2 親モードでは <strong>2 個体を順にクリック</strong>する必要があります。1 つだけだと選択待ちのままです。交叉方式は左下で選べます。</p>
+
+    <p><strong>Q. ブラウザを閉じるとコードが消えます。</strong><br>
+    A. 自動保存はしません。<span class="ui">💾 .js保存</span> でファイルに残し、次回 <span class="ui">📂 開く</span> で読み込んでください。気に入った個体の遺伝子もコピーして保存しておくと安心です。</p>
+
+    <hr class="divider">
+
+    <h2 class="section-title" id="refs"><span class="sec-num">📚</span>参考文献・出典</h2>
+    <p>ビルトインの題材が依拠している代表的な原典です。コードはすべて本プロジェクトによる独自実装です（仮想生物は下記の着想を参考に、コードは独自に実装しています）。</p>
+    <ul>
+      <li><strong>対話型進化計算（IEC）全般</strong>：Takagi, H. (2001). Interactive evolutionary computation: Fusion of the capabilities of EC optimization and human evaluation. <em>Proceedings of the IEEE</em>, 89(9), 1275–1296.</li>
+      <li><strong>枝分かれ図形（Biomorphs）</strong>：Dawkins, R. (1986). <em>The Blind Watchmaker</em>. Longman Scientific &amp; Technical.</li>
+      <li><strong>画像の対話的進化</strong>：Sims, K. (1991). Artificial evolution for computer graphics. <em>Computer Graphics (SIGGRAPH '91)</em>, 25(4), 319–328.</li>
+      <li><strong>群れ（フロッキング／Boids）</strong>：Reynolds, C. W. (1987). Flocks, herds and schools: A distributed behavioral model. <em>Computer Graphics (SIGGRAPH '87)</em>, 21(4), 25–34.</li>
+      <li><strong>仮想生物（ソフトボディ・ボクセル）</strong>：Bhatia, J., Jackson, H., Tian, Y., Xu, J., &amp; Matusik, W. (2021). Evolution Gym: A large-scale benchmark for evolving soft robots. <em>NeurIPS 2021</em>. — 着想を <a href="https://github.com/EvolutionGym/evogym" target="_blank">Evolution Gym</a>（MIT License）から得たもので、コードは独自に実装しています。</li>
+      <li><strong>ステンドグラス</strong>：ボロノイ図（Voronoi diagram）にもとづく平面分割。</li>
+      <li><strong>顔・数式アート・音の進化</strong>：IEC の一般的な応用例で、特定の原典はありません。</li>
+    </ul>
+
+    <hr class="divider">
+
+    <h2 class="section-title"><span class="sec-num">★</span>謝辞</h2>
+    <p>本ツールは <a href="https://www.netlogo.org/" target="_blank">NetLogo</a>（Wilensky, U., 1999, Center for Connected Learning and Computer-Based Modeling, Northwestern University）から大きな影響を受けています。著者はこれまで NetLogo を自身の理解や授業に活用しており、その経験が本ツールの着想と設計の土台になっています。ここに記して深く感謝します。</p>
+
+    <hr class="divider">
+
+    <p style="font-size:.82rem;color:var(--light);text-align:center;padding-top:1rem">
+      IEC Studio v1.0 &nbsp;|&nbsp;
+      <a href="IEC_Studio_ja.html" style="color:var(--accent)">IEC Studio を開く</a>
+      &nbsp;|&nbsp;
+      <a href="IEC_Studio_FirstSteps_ja.html" style="color:var(--accent)">はじめてガイド</a>
+    </p>
+
+  </main>
+</div>
+
+<script>
+const links = document.querySelectorAll('#sideNav a');
+const sections = Array.from(links).map(l => document.getElementById(l.getAttribute('href').replace('#',''))).filter(Boolean);
+function onScroll(){
+  const y = window.scrollY + 80; let cur = null;
+  for (const s of sections) if (s.offsetTop <= y) cur = s.id;
+  links.forEach(l => l.classList.toggle('active', l.getAttribute('href').replace('#','') === cur));
+}
+window.addEventListener('scroll', onScroll, { passive:true });
+onScroll();
+</script>
+</body>
+</html>

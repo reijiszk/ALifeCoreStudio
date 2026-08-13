@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALifeCoreStudio Viewer: Experiment data replay / 実験データ再生</title>
+<style>
+  :root{ --bg:#f5f4f0; --surface:#fff; --text:#1a1a1a; --muted:#666; --border:#d8d5cf; --accent:#0284c7; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Hiragino Sans','Yu Gothic','Meiryo',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:16px}
+  .wrap{max-width:760px;margin:0 auto}
+  h1{font-size:1.15rem;font-weight:700;display:flex;align-items:center;gap:8px}
+  h1 .en{font-size:.72rem;color:var(--muted);font-weight:400}
+  .lead{font-size:.82rem;color:var(--muted);margin:6px 0 14px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:12px}
+  .drop{border:2px dashed var(--border);border-radius:8px;padding:22px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+  .drop.over{border-color:var(--accent);background:rgba(2,132,199,.05)}
+  .drop b{color:var(--accent)}
+  input[type=file]{display:none}
+  .meta{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.72rem;color:var(--muted);display:grid;grid-template-columns:auto 1fr;gap:2px 12px}
+  .meta b{color:var(--text)}
+  canvas{display:block;width:100%;max-width:600px;margin:0 auto;background:#0b1020;border:1px solid var(--border);border-radius:6px;image-rendering:auto}
+  .controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .controls button{font-family:inherit;font-size:.8rem;padding:5px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);cursor:pointer}
+  .controls button.primary{background:rgba(2,132,199,.09);border-color:var(--accent);color:var(--accent)}
+  .controls button:disabled{opacity:.4;cursor:default}
+  .controls input[type=range]{flex:1;min-width:120px;accent-color:var(--accent)}
+  .tickbadge{font-family:'IBM Plex Mono',monospace;font-size:.75rem;padding:2px 9px;border-radius:12px;background:rgba(2,132,199,.1);color:var(--accent);white-space:nowrap}
+  .spd{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--muted)}
+  .warn{background:#fff8f0;border:1px solid #e0b070;color:#7a4800;border-radius:8px;padding:12px;font-size:.82rem;margin-top:10px}
+  .hide{display:none}
+  a{color:var(--accent)}
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#14141a; --surface:#1e1e26; --text:#e8e8ee; --muted:#9a9aa6; --border:#33333f; --accent:#38bdf8; }
+    .warn{background:#2a2010;border-color:#7a5a20;color:#e0b878}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>▶ ALifeCoreStudio Viewer <span class="en">Replay exported experiment data (ZIP) / 実験データ（ZIP）の再生</span></h1>
+  <p class="lead">Load a ZIP exported with <b>📦 Download ZIP</b> from ABM / EVO / IEC Studio, and each recorded step / generation is replayed by the model's own drawing code, for built-in, AI-modified, and newly created models alike.<br>
+  ABM / EVO / IEC Studio の「📦 一式DL / Download ZIP」で書き出した ZIP を読み込むと、記録された各ステップ・世代の状態を、そのモデル自身の描画コードで再生します（組み込み・改変・新規作成のどのモデルでも動きます）。<br>
+  <span style="font-size:.95em">Replay needs <code>frames.jsonl</code> inside the ZIP (the frames saved by <b>Record states</b>). IEC always records; for ABM / EVO, switch <b>Record states</b> on before exporting.<br>
+  再生には ZIP 内の <code>frames.jsonl</code>（＝「状態を記録」で保存したフレーム）が必要です。IEC は常に記録されます。ABM / EVO は書き出し前に「状態を記録」をオンにしてください。</span></p>
+
+  <div class="card">
+    <label class="drop" id="drop">
+      <input type="file" id="file" accept=".zip">
+      Drop a ZIP here, or <b>click to choose</b><br><span style="font-size:.9em;opacity:.75">ここに ZIP をドロップ、または <b>クリックして選択</b></span>
+    </label>
+  </div>
+
+  <div class="card hide" id="player">
+    <div class="meta" id="metaBox"></div>
+    <div style="margin-top:12px"><canvas id="cv" width="600" height="600"></canvas></div>
+    <div class="controls">
+      <button id="playBtn" class="primary">▶ Play / 再生</button>
+      <span class="tickbadge" id="tickBadge">—</span>
+      <input type="range" id="scrub" min="0" max="0" value="0">
+      <label class="spd">Speed / 速度 <input type="range" id="spd" min="1" max="60" value="12" style="width:90px;flex:0 0 auto"><span id="spdVal">12</span> fps</label>
+    </div>
+    <div class="warn hide" id="warn"></div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+let V = null;          // { app, model, params, frames:[{tick,state}], defs:{draw|drawPhenotype|...} }
+let playing = false, rafId = null, lastT = 0, acc = 0;
+
+// ── minimal ZIP reader (store method only, matching the studios' export) ──
+async function readZip(file){
+  const buf = new Uint8Array(await file.arrayBuffer());
+  const u16 = o => buf[o]|(buf[o+1]<<8);
+  const u32 = o => (buf[o]|(buf[o+1]<<8)|(buf[o+2]<<16)|(buf[o+3]<<24))>>>0;
+  const dec = new TextDecoder(); const out = {}; let o = 0;
+  while(o+4 <= buf.length && u32(o) === 0x04034b50){
+    const method = u16(o+8), nL = u16(o+26), eL = u16(o+28), csize = u32(o+18);
+    const name = dec.decode(buf.slice(o+30, o+30+nL));
+    const ds = o+30+nL+eL;
+    const data = buf.slice(ds, ds+csize);
+    out[name.split('/').pop()] = (method===0) ? dec.decode(data) : null; // basename; null if compressed (unsupported)
+    o = ds + csize;
+  }
+  return out;
+}
+
+// ── evaluate the model's own code to obtain its draw functions (same sandbox idea as the studios) ──
+function instantiateModel(code){
+  const SoundStub = { beep(){}, note(){}, ctx:null };
+  const wrapped = code + `
+;return {
+  TITLE: (typeof TITLE!=='undefined')?TITLE:null,
+  draw: (typeof draw!=='undefined')?draw:null,
+  drawPhenotype: (typeof drawPhenotype!=='undefined')?drawPhenotype:null,
+  initState: (typeof initState!=='undefined')?initState:null,
+  stepState: (typeof stepState!=='undefined')?stepState:null,
+  drawFrame: (typeof drawFrame!=='undefined')?drawFrame:null
+};`;
+  // eslint-disable-next-line no-new-func
+  return new Function('Sound', wrapped)(SoundStub);
+}
+
+function warn(msg){ const w=$('warn'); if(!msg){ w.classList.add('hide'); return; } w.textContent=msg; w.classList.remove('hide'); }
+
+async function loadZipFile(file){
+  stopPlay();
+  let files;
+  try{ files = await readZip(file); }
+  catch(e){ alert('Could not read the ZIP / ZIP を読み込めませんでした: '+e.message); return; }
+  const metaTxt = files['metadata.json'];
+  if(!metaTxt){ alert('metadata.json not found. Please choose a ZIP exported by ALifeCoreStudio.\nmetadata.json が見つかりません。ALifeCoreStudio が書き出した ZIP を選んでください。'); return; }
+  let meta; try{ meta = JSON.parse(metaTxt); }catch(e){ alert('Could not parse metadata.json / metadata.json を解析できません'); return; }
+  const app = meta.app || '(unknown)';
+  const code = files['model.js'] || '';
+  const params = (meta.settings && meta.settings.params) || {};
+  let defs = {};
+  try{ defs = instantiateModel(code); }
+  catch(e){ warn('Error evaluating the model code (model.js): '+e.message+'. Drawing may fail. / モデルコード（model.js）の評価でエラーです。'); }
+
+  // frames
+  let frames = [];
+  const fTxt = files['frames.jsonl'];
+  if(fTxt){
+    frames = fTxt.trim().split('\n').filter(Boolean).map(l=>{ try{ return JSON.parse(l); }catch(_){ return null; } }).filter(Boolean);
+  }
+
+  V = { app, model: meta.model, params, frames, defs, meta };
+  renderMeta();
+  $('player').classList.remove('hide');
+
+  if(!frames.length){
+    warn('This ZIP has no frames.jsonl (recorded states). For ABM / EVO, switch "Record states" on before exporting (IEC always records). This ZIP only carries the data needed to re-run from the seed (method A). / この ZIP には frames.jsonl（記録された状態）がありません。ABM / EVO では書き出し前に「状態を記録」をオンにしてください。');
+    $('scrub').max = 0; $('scrub').value = 0; $('playBtn').disabled = true; $('tickBadge').textContent = '—';
+    ctx.clearRect(0,0,cv.width,cv.height);
+    return;
+  }
+  warn('');
+  $('playBtn').disabled = false;
+  $('scrub').max = frames.length-1; $('scrub').value = 0;
+  showAt(0);
+}
+
+function renderMeta(){
+  const m = V.meta, fr = m.frameRecording || {};
+  const rows = [
+    ['Studio', V.app],
+    ['Model / モデル', V.model || '—'],
+    ['Exported / 書き出し', m.exportedAt || '—'],
+    ['Seed / シード', (m.settings && m.settings.seed!=null) ? m.settings.seed : '—'],
+    ['Frames / フレーム', V.frames.length + (fr.truncated?' (capped / 上限で打ち切り)':'') + (fr.interval&&fr.interval>1?(' · interval / 間隔 '+fr.interval):'')],
+  ];
+  $('metaBox').innerHTML = rows.map(r=>`<span>${r[0]}</span><b>${escapeHtml(String(r[1]))}</b>`).join('');
+}
+function escapeHtml(s){ return s.replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+// ── render one frame ──
+function showAt(i){
+  if(!V || !V.frames.length) return;
+  i = Math.max(0, Math.min(V.frames.length-1, i|0));
+  $('scrub').value = i;
+  const fr = V.frames[i];
+  const W = cv.width, H = cv.height;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#0b1020'; ctx.fillRect(0,0,W,H);
+  try{
+    if(V.app === 'IEC Studio'){ drawIEC(fr, W, H); }
+    else { drawABMEVO(fr, W, H); }
+  }catch(e){ ctx.fillStyle='#f88'; ctx.font='13px monospace'; ctx.fillText('draw error: '+e.message, 12, 22); }
+  $('tickBadge').textContent = (V.app==='IEC Studio'?'gen / 世代 ':'tick ') + (fr.tick!=null?fr.tick:i);
+}
+
+function drawABMEVO(fr, W, H){
+  const d = V.defs;
+  if(typeof d.draw === 'function'){ d.draw(ctx, fr.state, W, H, V.params); }
+  else { ctx.fillStyle='#f88'; ctx.font='13px monospace'; ctx.fillText('model.js has no draw() / model.js に draw() がありません', 12, 22); }
+}
+
+function drawIEC(fr, W, H){
+  const d = V.defs;
+  const pop = fr.state && fr.state.population; if(!pop){ return; }
+  const chosen = fr.state.chosen;
+  const n = 3, gap = 6, cell = Math.floor((Math.min(W,H) - gap*(n+1)) / n);
+  const off = document.createElement('canvas'); off.width = cell; off.height = cell; const octx = off.getContext('2d');
+  for(let k=0;k<Math.min(9,pop.length);k++){
+    const r = Math.floor(k/3), c = k%3;
+    const x = gap + c*(cell+gap), y = gap + r*(cell+gap);
+    octx.clearRect(0,0,cell,cell); octx.fillStyle='#0b1020'; octx.fillRect(0,0,cell,cell);
+    try{
+      if(typeof d.drawPhenotype === 'function'){ d.drawPhenotype(octx, pop[k], cell, cell); }
+      else if(typeof d.initState === 'function' && typeof d.drawFrame === 'function'){ const st = d.initState([...pop[k]], cell, cell); d.drawFrame(octx, st, pop[k], cell, cell); }
+    }catch(e){ octx.fillStyle='#f88'; octx.font='10px monospace'; octx.fillText('err', 4, 14); }
+    ctx.drawImage(off, x, y);
+    ctx.strokeStyle = (chosen===k) ? '#f5a623' : 'rgba(255,255,255,.12)';
+    ctx.lineWidth = (chosen===k) ? 3 : 1; ctx.strokeRect(x+0.5, y+0.5, cell-1, cell-1);
+    if(chosen===k){ ctx.fillStyle='#f5a623'; ctx.font='16px sans-serif'; ctx.fillText('★', x+6, y+20); }
+  }
+}
+
+// ── playback ──
+function tickLoop(t){
+  if(!playing){ return; }
+  if(!lastT) lastT = t;
+  const dt = (t - lastT)/1000; lastT = t;
+  acc += dt * (parseInt($('spd').value)||12);
+  if(acc >= 1){
+    let i = (parseInt($('scrub').value)||0) + Math.floor(acc);
+    acc -= Math.floor(acc);
+    if(i >= V.frames.length-1){ i = V.frames.length-1; showAt(i); stopPlay(); return; }
+    showAt(i);
+  }
+  rafId = requestAnimationFrame(tickLoop);
+}
+function startPlay(){
+  if(!V || !V.frames.length) return;
+  if(parseInt($('scrub').value) >= V.frames.length-1){ showAt(0); }
+  playing = true; lastT = 0; acc = 0; $('playBtn').textContent = '⏸ Pause / 停止';
+  rafId = requestAnimationFrame(tickLoop);
+}
+function stopPlay(){ playing = false; if(rafId){ cancelAnimationFrame(rafId); rafId=null; } $('playBtn').textContent = '▶ Play / 再生'; }
+
+// ── wire up ──
+$('playBtn').onclick = () => { playing ? stopPlay() : startPlay(); };
+$('scrub').oninput = e => { stopPlay(); showAt(parseInt(e.target.value)||0); };
+$('spd').oninput = e => { $('spdVal').textContent = e.target.value; };
+$('file').onchange = e => { if(e.target.files[0]) loadZipFile(e.target.files[0]); };
+const drop = $('drop');
+['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if(f) loadZipFile(f); });
+</script>
+</body>
+</html>

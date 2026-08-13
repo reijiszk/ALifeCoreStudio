@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="ALifeCoreStudio: a browser-based environment for building and running complex-systems and artificial-life models. Three single-file HTML studios: ABM, EVO, IEC.">
+<title>ALifeCoreStudio</title>
+<style>
+:root{
+  --bg:#ffffff; --text:#1a1a1a; --muted:#555; --light:#888; --border:#e0e0e0;
+  --accent:#1a4b8c; --green:#2a7a40; --amber:#b56800;
+  --surface:#f7f9fc; --tag-bg:#e8ecf4;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0 auto; padding:2.4rem 1.3rem 4rem; max-width:940px;
+  font-family:'Hiragino Sans','Yu Gothic','Meiryo',sans-serif;
+  color:var(--text); background:var(--bg); line-height:1.75; font-size:16px;
+}
+a{color:var(--accent)}
+header{border-bottom:2px solid var(--accent); padding-bottom:1.1rem; margin-bottom:1.1rem}
+h1{margin:0 0 .35rem; font-size:clamp(1.9rem,4.4vw,2.7rem); letter-spacing:-.02em; color:var(--accent)}
+.tagline{margin:0; color:var(--muted); font-size:1.02rem}
+.tagline .ja{display:block; font-size:.92rem; color:var(--light); margin-top:.15rem}
+.badges{display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.9rem}
+.badge{background:var(--tag-bg); color:var(--accent); font-size:.72rem; font-weight:700;
+       padding:.22rem .6rem; border-radius:999px; letter-spacing:.02em}
+
+.langbar{display:flex; gap:.5rem; align-items:center; margin:0 0 2rem; font-size:.82rem; color:var(--light)}
+.langbar a{text-decoration:none; font-weight:700; border:1px solid var(--border);
+           padding:.24rem .8rem; border-radius:999px; background:var(--surface)}
+.langbar a:hover{background:var(--tag-bg)}
+
+.edition{border-top:1px solid var(--border); padding-top:1.9rem; margin-top:2.6rem}
+.edition:first-of-type{border-top:0; padding-top:0; margin-top:0}
+.edition > h2{font-size:1.34rem; margin:0 0 .2rem; color:var(--accent); border:0; padding:0}
+.edition > .sub{margin:0 0 1.3rem; color:var(--light); font-size:.84rem}
+.lead{color:var(--muted); margin:0 0 1.6rem}
+
+h3.sec{font-size:1.06rem; margin:2rem 0 .8rem; color:var(--accent);
+   border-left:4px solid var(--accent); padding-left:.55rem}
+
+.studios{display:grid; grid-template-columns:repeat(auto-fit,minmax(258px,1fr)); gap:1rem}
+.studio{border:1px solid var(--border); border-radius:10px; padding:1.05rem 1.15rem; background:var(--surface)}
+.studio h4{margin:0 0 .1rem; font-size:1.06rem; color:var(--text)}
+.studio .sub{margin:0; font-size:.82rem; color:var(--light)}
+.studio p{margin:.45rem 0 .85rem; font-size:.87rem; color:var(--muted)}
+.studio .n{font-size:.74rem; color:var(--light); font-weight:700}
+.run{display:inline-block; background:var(--accent); color:#fff; text-decoration:none;
+     font-weight:700; font-size:.87rem; padding:.42rem 1rem; border-radius:6px}
+.run:hover{background:#123963}
+.docs{margin:.7rem 0 0; font-size:.79rem; color:var(--light)}
+.docs a{margin-right:.55rem; white-space:nowrap}
+
+table{width:100%; border-collapse:collapse; font-size:.87rem; margin:.4rem 0 0}
+th,td{border:1px solid var(--border); padding:.5rem .65rem; text-align:left; vertical-align:top}
+th{background:var(--tag-bg); color:var(--accent); font-size:.8rem}
+
+.note{background:#f0f7ff; border-left:4px solid var(--accent); border-radius:0 8px 8px 0;
+      padding:.85rem 1rem; margin:1.1rem 0; font-size:.87rem; color:var(--muted)}
+.note b{color:var(--text)}
+footer{margin-top:2.8rem; padding-top:1.1rem; border-top:1px solid var(--border);
+       font-size:.8rem; color:var(--light)}
+footer a{margin-right:.9rem}
+@media(max-width:640px){
+  body{padding:1.4rem .9rem 3rem}
+  .studios{grid-template-columns:1fr}
+
+  /* keep the language switch reachable while scrolling the long page */
+  .langbar{position:sticky; top:0; z-index:10; background:var(--bg);
+           margin:0 0 1.4rem; padding:.5rem 0; border-bottom:1px solid var(--border)}
+  /* the sticky bar is ~50px tall: keep anchor jumps from landing under it */
+  .edition{scroll-margin-top:60px}
+
+  /* stack the feature table: a 2-column table squeezes the first column to ~110px */
+  table,tbody,tr,td{display:block; width:auto}
+  tr:first-child{display:none}                 /* the header row means nothing once stacked */
+  tr{border:1px solid var(--border); border-radius:8px; margin-bottom:.55rem; padding:.35rem 0}
+  td{border:0; padding:.1rem .75rem}
+  td:first-child{font-weight:700; color:var(--text)}
+  td:last-child{padding-bottom:.4rem}
+
+  /* comfortable tap targets */
+  .run{padding:.6rem 1.2rem; font-size:.92rem}
+  .docs a{display:inline-block; padding:.28rem 0; margin-right:1.15rem; font-size:.84rem}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ALifeCoreStudio</h1>
+  <p class="tagline">A browser-based environment for building and running complex-systems and artificial-life models
+    <span class="ja">複雑系・人工生命モデリングのためのブラウザ開発・実行環境</span></p>
+  <div class="badges">
+    <span class="badge">v1.0</span>
+    <span class="badge">MIT License</span>
+    <span class="badge">No installation</span>
+    <span class="badge">20 built-in models</span>
+  </div>
+</header>
+
+<div class="langbar">
+  <a href="#en">English</a>
+  <a href="#ja">日本語</a>
+</div>
+
+
+<!-- ─────────────  ENGLISH  ───────────── -->
+<section class="edition" id="en">
+  <h2>English edition</h2>
+  <p class="sub">The studios and documents in English.</p>
+
+  <p class="lead">Three studios, each a single self-contained HTML file. Click <b>Run</b> and it starts in this
+  browser: nothing to install, build, or serve. Describe a model in plain language, let a generative AI write the
+  code, paste it in, and run it.</p>
+
+  <h3 class="sec">Run a studio</h3>
+  <div class="studios">
+
+    <div class="studio">
+      <h4>ABM Studio</h4>
+      <p class="sub">Agent-based modeling</p>
+      <p>What global pattern emerges from simple local rules? Cellular automata, Game of Life, Schelling
+         segregation, flocking, ant pheromones, spatial Prisoner's Dilemma, SIR, Social Particle Swarm.</p>
+      <p class="n">8 built-in models</p>
+      <a class="run" href="ABM_Studio.html">▶ Run</a>
+      <p class="docs">
+        <a href="ABM_Studio_FirstSteps.html">First Steps</a>
+        <a href="ABM_Studio_Manual.html">Manual</a>
+      </p>
+    </div>
+
+    <div class="studio">
+      <h4>EVO Studio</h4>
+      <p class="sub">Evolutionary computation</p>
+      <p>What does an evolutionary algorithm converge on? Bit-string GA, mass-spring creatures, soft-body voxel
+         creatures, the knapsack problem, the traveling salesman problem.</p>
+      <p class="n">5 built-in models</p>
+      <a class="run" href="Evo_Studio.html">▶ Run</a>
+      <p class="docs">
+        <a href="Evo_Studio_FirstSteps.html">First Steps</a>
+        <a href="Evo_Studio_Manual.html">Manual</a>
+      </p>
+    </div>
+
+    <div class="studio">
+      <h4>IEC Studio</h4>
+      <p class="sub">Interactive evolutionary computation</p>
+      <p>What happens when <i>you</i> are the fitness function? Pick the one you like and it becomes the next
+         generation's parent. Branching shapes, faces, stained glass, math art, creatures, sound.</p>
+      <p class="n">7 built-in models</p>
+      <a class="run" href="IEC_Studio.html">▶ Run</a>
+      <p class="docs">
+        <a href="IEC_Studio_FirstSteps.html">First Steps</a>
+        <a href="IEC_Studio_Manual.html">Manual</a>
+      </p>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <b>New here?</b> Open the <b>First Steps</b> guide for the studio you picked. It is the shortest path from
+    opening the file to running a model you changed yourself.
+  </div>
+
+  <h3 class="sec">Replay an experiment</h3>
+  <p class="lead">Each studio exports a ZIP holding the model's own code, the settings, the random seed, and the
+  recorded state of every step. Drop that ZIP onto the viewer and the run replays along a timeline, drawn by the
+  model's own code, for built-in and AI-generated models alike.</p>
+  <p><a class="run" href="ALifeCoreStudio_Viewer.html">▶ Open the viewer</a></p>
+
+  <h3 class="sec">Authoring with generative AI</h3>
+  <table>
+    <tr><th style="width:31%">Button</th><th>What it does</th></tr>
+    <tr><td>✏️ Modify / ✨ New model</td><td>Copies a ready-to-paste prompt for ChatGPT, Gemini, Claude, or any chat LLM. One <i>paste and apply</i> click brings the answer back into the running model.</td></tr>
+    <tr><td>📖 Explain</td><td>Asks the AI to describe the current model in plain language and pseudocode, so you can understand it without reading the JavaScript.</td></tr>
+    <tr><td>🐍 Python conversion</td><td>ABM and EVO: converts the current model into an equivalent self-contained Python (matplotlib) script.</td></tr>
+    <tr><td>🤖 AI Generate</td><td>Calls an OpenAI-compatible endpoint directly from the page (a local server such as LM Studio, or a cloud provider) and inserts the generated code.</td></tr>
+  </table>
+</section>
+
+
+<!-- ─────────────  JAPANESE  ───────────── -->
+<section class="edition" id="ja" lang="ja">
+  <h2>日本語版</h2>
+  <p class="sub">日本語のアプリとドキュメントはこちらです。</p>
+
+  <p class="lead">3つのアプリはいずれも単一のHTMLファイルで自己完結しています。<b>実行</b>を押せばこのブラウザで
+  そのまま動きます。インストールもビルドもサーバも不要です。作りたいモデルを自然言語で説明し、生成AIに
+  コードを書いてもらい、貼り付けて動かせます。</p>
+
+  <h3 class="sec">アプリを開く</h3>
+  <div class="studios">
+
+    <div class="studio">
+      <h4>ABM Studio</h4>
+      <p class="sub">エージェントベース・モデリング</p>
+      <p>単純な局所ルールから、どんな全体のパターンが生まれるか。セルオートマトン、ライフゲーム、住み分け、
+         群れ、アリのフェロモン、空間囚人のジレンマ、SIR感染症、ソーシャル・パーティクル・スウォーム。</p>
+      <p class="n">組み込みモデル 8種</p>
+      <a class="run" href="ja/ABM_Studio_ja.html">▶ 実行</a>
+      <p class="docs">
+        <a href="ja/ABM_Studio_FirstSteps_ja.html">はじめてガイド</a>
+        <a href="ja/ABM_Studio_Manual_ja.html">マニュアル</a>
+      </p>
+    </div>
+
+    <div class="studio">
+      <h4>EVO Studio</h4>
+      <p class="sub">進化計算</p>
+      <p>進化のアルゴリズムは何に行き着くか。ビット列GA、質点バネ生物、ソフトボディ生物、
+         ナップザック問題、巡回セールスマン問題。</p>
+      <p class="n">組み込みモデル 5種</p>
+      <a class="run" href="ja/Evo_Studio_ja.html">▶ 実行</a>
+      <p class="docs">
+        <a href="ja/Evo_Studio_FirstSteps_ja.html">はじめてガイド</a>
+        <a href="ja/Evo_Studio_Manual_ja.html">マニュアル</a>
+      </p>
+    </div>
+
+    <div class="studio">
+      <h4>IEC Studio</h4>
+      <p class="sub">対話型進化計算</p>
+      <p>評価関数が<i>あなた自身</i>だったら何が起きるか。好きな個体を選ぶと、それが次世代の親になります。
+         枝分かれ図形、顔、ステンドグラス、数式アート、仮想生物、音。</p>
+      <p class="n">組み込みモデル 7種</p>
+      <a class="run" href="ja/IEC_Studio_ja.html">▶ 実行</a>
+      <p class="docs">
+        <a href="ja/IEC_Studio_FirstSteps_ja.html">はじめてガイド</a>
+        <a href="ja/IEC_Studio_Manual_ja.html">マニュアル</a>
+      </p>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <b>はじめての方へ:</b> まず選んだアプリの<b>はじめてガイド</b>をご覧ください。ファイルを開くところから、
+    自分で改変したモデルを動かすところまでを最短で案内します。
+  </div>
+
+  <h3 class="sec">実験データの再生</h3>
+  <p class="lead">各アプリは、モデルのコード・設定・乱数シード・各ステップの状態をまとめた ZIP を書き出せます。
+  その ZIP をビュワーにドロップすると、モデル自身の描画コードでタイムライン再生できます。組み込みモデルでも、
+  生成AIで作ったモデルでも動きます。</p>
+  <p><a class="run" href="ALifeCoreStudio_Viewer.html">▶ ビュワーを開く</a></p>
+
+  <h3 class="sec">生成AIでモデルを作る</h3>
+  <table>
+    <tr><th style="width:31%">ボタン</th><th>できること</th></tr>
+    <tr><td>✏️ 改変 / ✨ 新規作成</td><td>そのまま貼り付けられるプロンプトをコピーします。ChatGPT・Gemini・Claude などの返答は「貼り付けて適用」の1操作で動作中のモデルに反映されます。</td></tr>
+    <tr><td>📖 説明</td><td>現在のモデルの動作を、平易な言葉と疑似コードで説明してもらえます。JavaScript を読まずに理解できます。</td></tr>
+    <tr><td>🐍 Python変換</td><td>ABM・EVO：現在のモデルを、同等で自己完結した Python（matplotlib）スクリプトへ変換します。</td></tr>
+    <tr><td>🤖 AI生成</td><td>OpenAI互換エンドポイント（LM Studio などのローカルサーバ、またはクラウド）をページから直接呼び出し、生成されたコードを挿入します。</td></tr>
+  </table>
+</section>
+
+
+<footer>
+  <a href="https://github.com/reijiszk/ALifeCoreStudio">GitHub repository</a>
+  <a href="https://github.com/reijiszk/ALifeCoreStudio/releases/latest">Releases</a>
+  <a href="https://github.com/reijiszk/ALifeCoreStudio/blob/main/README.md">README</a>
+  <a href="https://github.com/reijiszk/ALifeCoreStudio/blob/main/ja/README.md">README（日本語）</a>
+  <br><br>
+  MIT License &nbsp;·&nbsp; Reiji Suzuki (Nagoya University) &nbsp;·&nbsp;
+  <a href="mailto:reiji@nagoya-u.jp">reiji@nagoya-u.jp</a>
+</footer>
+
+</body>
+</html>

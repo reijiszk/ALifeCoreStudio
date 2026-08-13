@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABM Studio First Steps</title>
+
+<style>
+:root {
+  --bg:       #ffffff;
+  --text:     #1a1a1a;
+  --muted:    #555;
+  --light:    #888;
+  --border:   #e0e0e0;
+  --accent:   #1a4b8c;
+  --green:    #2a7a40;
+  --amber:    #b56800;
+  --tip-bg:   #f0f7ff;
+  --warn-bg:  #fff8f0;
+  --step-num: #1a4b8c;
+  --chat-bg:  #f0f7ff;
+  --chat-ai:  #f5f0ff;
+  --tag-bg:   #e8ecf4;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.85;
+  font-size: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1.4rem 6rem;
+  transition: background 0.3s ease;
+}
+
+/* ── Header ── */
+.page-header {
+  text-align: center;
+  padding: 2.4rem 1rem 2rem;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 2.8rem;
+}
+.page-header .eyebrow {
+  font-size: 0.78rem;
+  letter-spacing: .1em;
+  color: var(--light);
+  text-transform: uppercase;
+  margin-bottom: 0.7rem;
+}
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--accent);
+  line-height: 1.3;
+  margin-bottom: 0.6rem;
+}
+.page-header .tagline {
+  font-size: 1rem;
+  color: var(--muted);
+}
+.page-header .badges {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: .04em;
+}
+.badge-blue  { background: #dde8f5; color: #1a4b8c; }
+.badge-green { background: #d8f0e0; color: #1a6a30; }
+.badge-amber { background: #fef3dc; color: #8a5500; }
+
+/* ── Section heading ── */
+h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 1rem 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+h2 .sec-icon { font-size: 1.4rem; }
+
+h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 1.8rem 0 0.7rem;
+}
+
+p { margin-bottom: 1rem; color: var(--muted); }
+
+/* ── Big step ── */
+.steps { margin: 1.2rem 0 2rem; }
+.big-step {
+  display: flex;
+  gap: 1.1rem;
+  margin-bottom: 1.6rem;
+  align-items: flex-start;
+}
+.big-num {
+  flex-shrink: 0;
+  width: 40px; height: 40px;
+  background: var(--step-num);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 0.1rem;
+  box-shadow: 0 2px 8px rgba(26,75,140,.25);
+}
+.big-body { flex: 1; }
+.big-body .step-title {
+  font-size: 1.0rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+.big-body p { margin-bottom: 0.5rem; font-size: 0.93rem; }
+
+/* ── Info boxes ── */
+.tip, .warn, .good {
+  border-left: 3px solid;
+  padding: 0.85rem 1.1rem;
+  margin: 1.2rem 0;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.93rem;
+}
+.tip  { background: var(--tip-bg);  border-color: var(--accent); }
+.warn { background: var(--warn-bg); border-color: #c97a00; }
+.good { background: #f0fff4;        border-color: var(--green); }
+.box-label {
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.tip  .box-label { color: var(--accent); }
+.warn .box-label { color: var(--amber); }
+.good .box-label { color: var(--green); }
+
+/* ── Chat bubbles ── */
+.chat { margin: 1.2rem 0; }
+.chat-row {
+  display: flex;
+  gap: 0.7rem;
+  margin-bottom: 0.9rem;
+  align-items: flex-start;
+}
+.chat-row.ai { flex-direction: row-reverse; }
+.chat-avatar {
+  flex-shrink: 0;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  background: #e8ecf4;
+  margin-top: 2px;
+}
+.chat-row.ai .chat-avatar { background: #ede8f8; }
+.chat-bubble {
+  max-width: 82%;
+  background: var(--chat-bg);
+  border-radius: 0 14px 14px 14px;
+  padding: 0.7rem 1rem;
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.7;
+  border: 1px solid #d4e4f7;
+}
+.chat-row.ai .chat-bubble {
+  background: var(--chat-ai);
+  border-radius: 14px 0 14px 14px;
+  border-color: #ddd4f7;
+  color: #2d1a6e;
+}
+.chat-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  color: var(--light);
+  margin-bottom: 0.2rem;
+}
+
+/* ── Example prompt card ── */
+.prompt-card {
+  border: 1.5px solid var(--accent);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 1.2rem 0;
+}
+.prompt-card-header {
+  background: var(--accent);
+  color: #fff;
+  padding: 0.4rem 1rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+}
+.prompt-card-body {
+  padding: 0.85rem 1.1rem;
+  font-size: 0.88rem;
+  color: #1a1a1a;
+  line-height: 1.8;
+  background: #f8fbff;
+}
+.prompt-card-body .placeholder {
+  display: inline-block;
+  background: #fff3cd;
+  border: 1px dashed #c97a00;
+  border-radius: 3px;
+  padding: 0 5px;
+  font-weight: 700;
+  color: #7a4800;
+}
+
+/* ── Model idea cards ── */
+.idea-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.85rem;
+  margin: 1rem 0 1.5rem;
+}
+.idea-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  background: #fafafa;
+  transition: box-shadow .15s;
+}
+.idea-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+.idea-card .ic-emoji { font-size: 1.5rem; margin-bottom: 0.3rem; }
+.idea-card .ic-title { font-size: 0.88rem; font-weight: 700; margin-bottom: 0.2rem; }
+.idea-card .ic-desc  { font-size: 0.78rem; color: var(--light); line-height: 1.5; }
+
+/* ── Table ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin: 1rem 0 1.5rem;
+  background: #fff;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 0.6rem 0.85rem;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #f5f5f5; font-weight: 700; font-size: 0.82rem; }
+td:first-child { font-weight: 700; color: #b91c1c; font-size: 0.85rem; width: 25%; }
+td ul { margin: 0 0 0 1.2rem; padding: 0; }
+td li { margin-bottom: 0.3rem; color: var(--muted); }
+
+/* ── kbd & UI Labels ── */
+kbd {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8em;
+  background: #fff;
+  border: 1.5px solid #b0b8cc;
+  border-bottom: 3px solid #8090aa;
+  border-radius: 4px;
+  padding: 1px 6px;
+  color: #1e3a6e;
+}
+.ui {
+  display: inline-block;
+  background: #e8ecf4;
+  border: 1px solid #c0c8d8;
+  border-radius: 3px;
+  padding: 0px 6px;
+  font-size: 0.82em;
+  font-weight: 600;
+  color: #1e3a6e;
+  white-space: nowrap;
+}
+
+/* ── Divider ── */
+hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+
+/* ── TOC ── */
+.toc {
+  background: #f8fbff;
+  border: 1px solid #d4e4f7;
+  border-radius: 8px;
+  padding: 1.1rem 1.4rem;
+  margin: 0 0 2.5rem;
+  font-size: 0.9rem;
+}
+.toc-title { font-weight: 800; font-size: 0.85rem; color: var(--accent); margin-bottom: 0.6rem; letter-spacing: .05em; }
+.toc ol { padding-left: 1.3rem; }
+.toc li { margin-bottom: 0.25rem; }
+.toc a { color: var(--accent); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+
+/* ── Footer ── */
+.footer {
+  margin-top: 3rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--light);
+  text-align: center;
+}
+.footer a { color: var(--accent); text-decoration: none; }
+
+/* ── flow arrow ── */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 1rem 0 1.4rem;
+}
+.flow-step {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.flow-arrow { color: #aaa; font-size: 1.1rem; }
+
+/* ── Slide Mode Button & Controls ── */
+#toggle-slide-mode {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(26, 75, 140, 0.3);
+  transition: transform 0.2s, background 0.2s;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+#toggle-slide-mode:hover { background: #143a6d; transform: translateY(-2px); }
+
+#slide-controls {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(26, 75, 140, 0.95);
+  padding: 0.6rem 1.5rem;
+  border-radius: 30px;
+  display: none;
+  gap: 1.5rem;
+  align-items: center;
+  z-index: 1000;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  color: #fff;
+  font-weight: 700;
+  backdrop-filter: blur(5px);
+}
+#slide-controls button {
+  background: none; border: none; color: #fff; font-size: 1.2rem;
+  cursor: pointer; padding: 0.3rem 0.8rem; border-radius: 4px; transition: background 0.2s;
+}
+#slide-controls button:hover { background: rgba(255, 255, 255, 0.2); }
+#slide-counter { font-family: 'IBM Plex Mono', monospace; font-size: 1.1rem; min-width: 70px; text-align: center; }
+#exit-slide { font-size: 0.95rem !important; border-left: 1px solid rgba(255,255,255,0.3) !important; padding-left: 1.2rem !important; margin-left: 0.5rem; }
+
+/* ── Slide Mode Overrides ── */
+body.is-slide-mode {
+  background: #e5e7eb;
+  max-width: 100%; padding: 0; overflow: hidden;
+  display: flex; justify-content: center; align-items: center; height: 100vh;
+}
+body.is-slide-mode #toggle-slide-mode,
+body.is-slide-mode .footer,
+body.is-slide-mode hr { display: none; }
+
+.slide-section { margin-bottom: 2rem; }
+
+body.is-slide-mode .slide-section {
+  display: none;
+  background: var(--bg);
+  width: 90vw; max-width: 1200px; height: 85vh;
+  padding: 3rem 4rem; border-radius: 12px;
+  box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+  overflow-y: auto; font-size: 1.2rem; margin-bottom: 0;
+}
+body.is-slide-mode .slide-section.active {
+  display: block; animation: slideFadeIn 0.4s ease forwards;
+}
+@keyframes slideFadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Scaling up for presentation */
+body.is-slide-mode .page-header { border-bottom: none; margin-top: 8vh; }
+body.is-slide-mode .page-header h1 { font-size: 3.2rem; margin-bottom: 1.5rem; line-height: 1.3; }
+body.is-slide-mode .page-header .tagline { font-size: 1.4rem; }
+body.is-slide-mode h2 { font-size: 2.0rem; margin: 0 0 1.5rem; border-bottom: 3px solid var(--border); padding-bottom: 0.8rem; }
+body.is-slide-mode h2 .sec-icon { font-size: 2.2rem; }
+body.is-slide-mode h3 { font-size: 1.4rem; margin-top: 2rem; }
+body.is-slide-mode .toc { margin-top: 4vh; border: none; background: transparent; padding: 0; font-size: 1.3rem; }
+body.is-slide-mode .toc-title { font-size: 1.6rem; margin-bottom: 1rem; }
+body.is-slide-mode .toc ol { padding-left: 2.5rem; line-height: 2.0; }
+body.is-slide-mode p, body.is-slide-mode li { line-height: 1.7; }
+body.is-slide-mode .big-step { margin-bottom: 1.5rem; }
+body.is-slide-mode .big-num { width: 45px; height: 45px; font-size: 1.3rem; }
+body.is-slide-mode .big-body .step-title { font-size: 1.2rem; }
+body.is-slide-mode .big-body p { font-size: 1.05rem; }
+body.is-slide-mode .tip, body.is-slide-mode .warn, body.is-slide-mode .good { font-size: 1.05rem; padding: 1.2rem 1.5rem; }
+body.is-slide-mode table { font-size: 1.05rem; }
+body.is-slide-mode th, body.is-slide-mode td { padding: 0.8rem 1rem; }
+body.is-slide-mode .chat-bubble { font-size: 1.05rem; max-width: 90%; }
+</style>
+</head>
+<body>
+
+<button id="toggle-slide-mode" title="Display in slide mode" onclick="toggleSlideMode()">
+  <span>📊</span> Slide View
+</button>
+
+<div id="slide-controls">
+  <button id="prev-slide" title="Previous slide (Left arrow key)" onclick="prevSlide()">◀</button>
+  <span id="slide-counter">1 / 1</span>
+  <button id="next-slide" title="Next slide (Right arrow / Space key)" onclick="nextSlide()">▶</button>
+  <button id="exit-slide" title="Return to normal mode (Esc key)" onclick="toggleSlideMode()">✕ Close</button>
+</div>
+
+<div class="slide-section">
+  <div class="page-header">
+    <div class="eyebrow">ABM Studio Guide</div>
+    <h1>Build a Model (Experiment)<br>Without Programming</h1>
+    <p class="tagline">Complex phenomena emerge from simple rules followed by many individuals. Just ask generative AI, paste the code, and run it.</p>
+    <div class="badges">
+      <span class="badge badge-blue">No coding needed</span>
+      <span class="badge badge-green">Works with ABM Studio v1.0</span>
+      <span class="badge badge-amber">Free-tier generative AI OK</span>
+      <span class="badge badge-blue">Mobile-friendly</span>
+    </div>
+  </div>
+</div>
+
+<div class="slide-section">
+  <div class="toc">
+    <div class="toc-title">Contents</div>
+    <ol>
+      <li><a href="#what">What is ABM Studio?</a></li>
+      <li><a href="#flow">Overall Flow (3 Steps)</a></li>
+      <li><a href="#builtin">First, Try Running a Built-in Model</a></li>
+      <li><a href="#screen">Reading the Screen (Overview, Graph, Speed)</a></li>
+      <li><a href="#modify">Modify a Running Model (Start Here First)</a></li>
+      <li><a href="#gemini">Have Generative AI Create a New Model</a></li>
+      <li><a href="#python">Convert Code to Python (with requirements.txt)</a></li>
+      <li><a href="#localai">Connect Directly to a Generative AI API (Local / Cloud)</a></li>
+      <li><a href="#ideas">What Kinds of Models Can You Build? Idea Collection</a></li>
+      <li><a href="#trouble">When Things Don't Work</a></li>
+      <li><a href="#refs">References and Sources</a></li>
+      <li><a href="#thanks">Acknowledgments</a></li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide-section">
+  <h2 id="what"><span class="sec-icon">🤔</span> What is ABM Studio?</h2>
+  <p>ABM Studio is <strong>a tool for building "models (experiments)" that run in your browser.</strong> No installation needed: just double-click the file to use it. It works not only on PCs but also on <strong>smartphones and tablets</strong>, with the screen automatically adjusting.</p>
+  <p>An agent-based model (ABM) is a model (experiment) in which "many individuals (agents) each move according to simple rules." Flocking, epidemic spread, social segregation: in every case, surprisingly complex phenomena emerge <strong>purely from individual-level rules</strong>.</p>
+  <p>Normally this would require programming, but with ABM Studio you can run models you're interested in <strong>simply by having generative AI write the code and pasting it in</strong>.</p>
+  <div class="tip">
+    <span class="box-label">The idea behind this tool</span>
+    Recent advances in generative AI are reshaping the "<strong>understanding by building</strong>" (constructive) style of modeling in complex systems and artificial life. By giving a prompt with just the skeleton of an idea, not a complete specification, you can auto-generate a wide variety of models, have the AI explain them when you want to understand them, and refine ideas through dialogue. The catch is that letting the AI generate everything tends to produce wildly inconsistent results.<br>
+    ALifeCoreStudio (the three studios, ABM / EVO / IEC) keeps a <strong>common framework for model construction, visualization, and analysis fixed</strong>, and lets generative AI produce only the <strong>essential parts</strong> of a model. This supports <strong>beginners with no programming experience giving free form to their ideas</strong>, <strong>students growing models together with AI</strong>, and <strong>researchers building prototypes quickly</strong>. By making it easy to <strong>generate possible models freely</strong> within a shared framework, we hope to accelerate the constructive approach to scientific understanding and spread the <strong>joy</strong> of imagining and running "what worlds could be."
+  </div>
+  <div class="good">
+    <span class="box-label">All you need</span>
+    A browser with the ABM Studio HTML file open, plus a generative AI service (<a href="https://chatgpt.com" target="_blank">ChatGPT</a>, <a href="https://gemini.google.com" target="_blank">Gemini</a>, <a href="https://claude.ai" target="_blank">Claude</a>, etc.; the free tier is sufficient)
+  </div>
+  <div class="tip">
+    <span class="box-label">Difference from EVO Studio</span>
+    ABM Studio is a tool for <strong>observing</strong> how phenomena emerge from individual-level rules. EVO Studio is a tool for <strong>searching for good answers through evolution</strong>. In ABM, the most important thing is deciding the three elements: <strong>agents, environment, and interaction</strong>.
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="flow"><span class="sec-icon">🗺️</span> Overall Flow (3 Steps)</h2>
+  <div class="flow">
+    <div class="flow-step">① Ask generative AI</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">② Copy the code</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">③ Paste into ABM Studio</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">▶ Run!</div>
+  </div>
+  <p>That's it. You don't need to read or write any code. Let's start by experiencing how phenomena emerge, using one of the models that come built in.</p>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="builtin"><span class="sec-icon">▶️</span> First, Try Running a Built-in Model</h2>
+  <p>ABM Studio comes with models built in. Let's try running one first.</p>
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">Choose a model</div>
+        <p>Select a model from the dropdown ("── Select a Model ──") in the code bar at the bottom of the screen. Clicking it sets everything up automatically.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">Press <span class="ui">▶ Run</span></div>
+        <p>The model (experiment) starts moving on the canvas. Press again to pause. Move the sliders in the right panel to change parameters in real time.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <span class="box-label">Recommended way to explore</span>
+    First run "Flocking" and try moving <strong>each of the three weights (0–6) for separation, alignment, and cohesion</strong> one at a time. Increasing alignment brings the <strong>alignment index φ</strong> in the top-left of the screen closer to 1; increasing cohesion causes <strong>clustering</strong>; and increasing separation causes <strong>spacing to widen</strong>. You'll understand "which rule affects what" without reading any code.
+  </div>
+
+  <div class="good">
+    <span class="box-label">Handy features to know about</span>
+    <ul style="margin:.3rem 0 0 1.2rem;line-height:1.8">
+      <li><strong>Model overview:</strong> at the top of the right panel, you'll see explanations of the <strong>agents, environment, and interaction</strong>. Reading this before running helps you understand faster.</li>
+      <li><strong>Direct numeric input:</strong> in the number field to the right of each slider, you can type an exact value from the keyboard.</li>
+      <li><strong>Observe slowly:</strong> the speed slider can be set very slow, letting you follow it one step at a time (handy for ECA, one row at a time).</li>
+      <li><strong>Quantify with graphs:</strong> a graph tracking state counts over time (e.g., S/I/R populations for SIR, number of ON cells for ECA) lets you verify the phenomenon.</li>
+      <li><strong>Compare results:</strong> use <span class="ui">📸 Save Snapshot</span> to overlay results on the graph for A/B comparison. Use <span class="ui">⬇ Save CSV</span> to export for Excel.</li>
+      <li><strong>📦 Download ZIP:</strong> the <span class="ui">📦 Download ZIP</span> button in "Save/Compare Experiments" bundles all data since initialization into a <b>ZIP</b>. It contains <code>metadata.json</code> (the experiment settings: parameters, initial state, stop condition, <b>random seed</b>, etc.), one <code>.csv</code> per graph, <code>data.json</code> (all data), and <b>the model code itself</b> <code>model.js</code>. Handy for analyzing later or reproducing the same experiment.<br>
+      Turn on <span class="ui">Record states (time-shift / replay)</span> before running and each step's state is saved to <code>frames.jsonl</code> (leave it <b>off</b> when just observing, which is faster). Drop the exported ZIP onto the bundled <code>ALifeCoreStudio_Viewer.html</code> to <b>replay each recorded step with the model's own drawing</b> (built-in, modified, or new models all work).</li>
+      <li><strong>Watch it back while it runs:</strong> once states are being recorded, a timeline appears under the run buttons. <span class="ui">LIVE</span> is checked by default and the field follows the newest step. Drag the bar (or uncheck <span class="ui">LIVE</span>) to <b>go back to any earlier step while the run continues in the background</b>, like the seek bar on a live video. <span class="ui">▶</span> plays the recorded steps back, an amber marker on each graph shows where you are, and re-checking <span class="ui">LIVE</span> returns you to the newest step. How far back you can go is set by <span class="ui">limit</span> next to the interval (500 MB by default, up to <b>no limit</b>).
+      <li><strong>When it's heavy:</strong> raising "Draw Skip" to something like 1/4 lightens the load. Also make use of <span class="ui">❔ Help</span> and the <span class="ui">ⓘ</span> icon next to each parameter.</li>
+      <li><strong>💾 HTML export:</strong> a button in the code bar lets you export the currently running model as a standalone HTML file that runs that model alone. It comes with a simple screen with no editing UI, making it ideal for saving to distribute, submit, or present.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide-section">
+  <h3>List of Built-in Models</h3>
+  <div class="idea-grid">
+    <div class="idea-card"><div class="ic-emoji">📏</div><div class="ic-title">ECA (Elementary Cellular Automaton)</div><div class="ic-desc">A minimal rule where the next state depends only on both neighbors and itself. The rule number drastically changes the pattern.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🔲</div><div class="ic-title">Game of Life</div><div class="ic-desc">Simple birth/death rules produce moving, still, and vanishing patterns.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🏘</div><div class="ic-title">Segregation Model</div><div class="ic-desc">A classic model where small individual "preferences" lead to city-wide segregation.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🐦</div><div class="ic-title">Flocking</div><div class="ic-desc">A flock of birds emerges from just three rules. Watch the alignment index φ.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🐜</div><div class="ic-title">Ant Pheromones</div><div class="ic-desc">Foraging behavior in which the shortest path is discovered collectively via pheromones.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🤝</div><div class="ic-title">Prisoner's Dilemma</div><div class="ic-desc">Cooperation and defection compete spatially; see whether cooperation can survive.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🦠</div><div class="ic-title">SIR Epidemic</div><div class="ic-desc">Simple infection/recovery rules reproduce waves of an epidemic.</div></div>
+    <div class="idea-card"><div class="ic-emoji">⚪</div><div class="ic-title">SPS (Social Particle Swarm)</div><div class="ic-desc">Cooperation/defection and "distance = relationship" co-evolve, including cycles of gathering and collapse.</div></div>
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="screen"><span class="sec-icon">👁️</span> Reading the Screen (Overview, Graph, Speed)</h2>
+  <p>Checking the following four areas, before and after running, will greatly deepen your understanding.</p>
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">Model overview</div>
+        <p>At the very top of the right panel, you'll see explanations of the <strong>agents (what moves), environment, and interaction</strong>. Start by reading this.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">Parameters (sliders + numeric input)</div>
+        <p>In addition to using the sliders, you can type an <strong>exact value into the number field</strong> on the right (e.g., rule number 110). The <span class="ui">ⓘ</span> icon next to it explains what it means.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">3</div>
+      <div class="big-body">
+        <div class="step-title">Speed (slow to fast)</div>
+        <p>The speed slider can be set <strong>very slow</strong>, which is useful for following changes one step at a time.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">4</div>
+      <div class="big-body">
+        <div class="step-title">Graph (state counts over time)</div>
+        <p>Most models come with a time-series graph. Use the <strong>numerical trends</strong> to quantitatively verify the phenomenon, and use <span class="ui">📸 Save Snapshot</span> to compare conditions. Clicking <span class="ui">⚙ Axes</span> in the top-right of the graph lets you choose whether the vertical/horizontal axis ranges stay "auto-scaled" or are <strong>set manually</strong> by specifying min/max.</p>
+      </div>
+    </div>
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="modify"><span class="sec-icon">✏️</span> Modify a Running Model (Start Here First)</h2>
+  <p><strong>This is the easiest entry point.</strong> Making small changes to a built-in model lets you tailor it to your own interests. Pressing the <strong>"✏️ Modify Prompt" button</strong> copies the current code together with modification instructions, which is more reliable than writing from scratch.</p>
+  <div class="tip">
+    <span class="box-label">📖 Explain Prompt and Model Names</span>
+    If you want to know how the currently running model "works," press <span class="ui">📖 Explain Prompt</span>. This copies an explanation request that includes the current code, so pasting it into a generative AI gives you a detailed walkthrough covering <strong>the overview, an explanation of the algorithm, and pseudocode</strong>. Also, generated or modified code includes <code>const TITLE = 'Model Name'</code>, which is reflected in the browser tab name, the "Overview" heading, and the filename used by <span class="ui">💾 Save .js</span> (e.g., <code>SegregationModel.js</code>).
+  </div>
+
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">Press "✏️ Modify Prompt"</div>
+        <p>Found in the code bar. The current code is automatically included in the prompt.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">Paste into generative AI and describe what you want to change</div>
+        <p>In the <strong>[What to Change] section at the end</strong> of the pasted prompt, list what you want to change as bullet points, <strong>1–2 items at a time</strong>.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">3</div>
+      <div class="big-body">
+        <div class="step-title">Replace all of the returned code</div>
+        <p>Select all in the code field (<kbd>Ctrl</kbd>+<kbd>A</kbd>), paste (<kbd>Ctrl</kbd>+<kbd>V</kbd>), and press "▶ Apply".</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>Example Modification Requests by Model (2 Each) 💬</h3>
+  <table>
+    <tr><th>Base Model</th><th>Ideas for modification requests to the generative AI</th></tr>
+    <tr><td>📏 ECA</td><td><ul><li>Instead of a rule number, let me specify the output for each of the 8 neighborhood patterns (111–000) using 8 individual ON/OFF switches.</li><li>Extend the state to three values (0/1/2) and display each in a different color.</li></ul></td></tr>
+    <tr><td>🔲 Game of Life</td><td><ul><li>Let me change the neighbor-count conditions for "birth" and "survival" with sliders (e.g., B36/S23).</li><li>Gradually darken each cell's color based on its "age" (how many generations it has stayed alive), so long-lived stable structures are visible at a glance.</li></ul></td></tr>
+    <tr><td>🏘 Segregation</td><td><ul><li>Increase the number of resident types to three, each shown in a different color.</li><li>Make the satisfaction threshold (tolerance) a separate slider for each type, so I can compare how segregation progresses.</li></ul></td></tr>
+    <tr><td>🐦 Flocking</td><td><ul><li>Add one predator that chases agents when they come within a certain distance, and make the predator's speed a slider.</li><li>Place circular obstacles on the screen that agents avoid, with the radius controlled by a slider.</li></ul></td></tr>
+    <tr><td>🐜 Ants</td><td><ul><li>Increase the number of nests to two, so I can watch which of the two colonies collects more food in a competition.</li><li>Split the pheromone into two kinds, "returning to nest" and "searching for food," and display them in different colors.</li></ul></td></tr>
+    <tr><td>🤝 Prisoner's Dilemma</td><td><ul><li>Let me toggle the imitation neighborhood between "4-neighbor" and "8-neighbor," so I can compare how the shape of cooperation clusters changes.</li><li>Highlight only the cells whose strategy changed from the previous generation, so the "battle line" between cooperation and defection becomes visible.</li></ul></td></tr>
+    <tr><td>🦠 SIR</td><td><ul><li>Add initially vaccinated (immune) individuals, plus a vaccination-rate slider (0–1).</li><li>Turn it into an SIRS model where recovered individuals gradually lose immunity and can be reinfected, with an immunity-loss-rate slider.</li></ul></td></tr>
+    <tr><td>⚪ SPS</td><td><ul><li>Leave a short trailing trail behind each moving particle, so the flow of clustering and scattering can be followed visually.</li><li>Count and display the current number of "clusters" on screen, so the repeated cycle of aggregation (count decreasing) and collapse (count increasing) can be tracked numerically.</li></ul></td></tr>
+  </table>
+
+  <div class="good">
+    <span class="box-label">Tips for modification</span>
+    Trying to change too much at once tends to fail. It's best to request <strong>small changes, 1–2 at a time</strong>, and check that it works after each one.
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="gemini"><span class="sec-icon">✨</span> Have Generative AI Create a New Model</h2>
+  <p>Once you're comfortable modifying models, you can also build <strong>a brand-new model from scratch</strong>. Pressing the "✨ New Model Prompt" button copies a specification to hand to the generative AI onto your clipboard.</p>
+
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">Press "✨ New Model Prompt"</div>
+        <p>Found in the code bar at the bottom of the screen. If you see "Copied," you're good to go.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">Paste into generative AI and edit it</div>
+        <p>Paste it into the generative AI's chat field, rewrite the <strong>[Model to Implement]</strong> section to describe the model you want to build, and send it.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">3</div>
+      <div class="big-body">
+        <div class="step-title">Copy the code and paste it into ABM Studio</div>
+        <p>Copy only the contents of the code block (```javascript ... ```) that the generative AI produced, paste it into the code field, and press "▶ Apply".</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>Phrasing Your Request So It Comes Across Clearly 💬</h3>
+  <p>In ABM, the key is to convey "<strong>who (the agents), in what environment, and how they interact</strong>."</p>
+  <div class="chat">
+    <div class="chat-row">
+      <div class="chat-avatar">🙋</div>
+      <div>
+        <div class="chat-label">Example student input</div>
+        <div class="chat-bubble">Build a model where an infectious disease spreads and recovered people become immune.<br>Let me change the infection probability and recovery probability with sliders, and also show a time-series graph of the number of infected people.</div>
+      </div>
+    </div>
+    <div class="chat-row">
+      <div class="chat-avatar">🙋</div>
+      <div>
+        <div class="chat-label">Example student input</div>
+        <div class="chat-bubble">Build a traffic model where car agents move on a grid and stop at red lights.<br>I want the signal interval and car density to be parameters, and I want to see how congestion builds up.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prompt-card">
+    <div class="prompt-card-header">📋 Example Request to Generative AI (content to write in the [Model to Implement] field)</div>
+    <div class="prompt-card-body">
+      Please build a model about <span class="placeholder">theme (e.g., epidemic, traffic, ecosystem)</span>.<br><br>
+      The agents are <span class="placeholder">what kind of individuals (e.g., people, cars, birds)</span>,<br>
+      the environment is <span class="placeholder">what kind of space (e.g., grid, toroidal plane, with obstacles)</span>,<br>
+      and the interaction is <span class="placeholder">what they do (e.g., avoid nearby others, infect on contact, follow pheromones)</span>.<br><br>
+      Parameters I want to change with sliders: <span class="placeholder">e.g., population, infection probability, speed</span><br>
+      What I want to see on the graph: <span class="placeholder">e.g., number of infected over time, cooperation rate</span> (omit if none)
+    </div>
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="python"><span class="sec-icon">🐍</span> Convert Code to Python (with requirements.txt)</h2>
+  <p>When you want to convert an ABM Studio JavaScript model into <strong>a Python script you can use directly in a report or research</strong>, use the "🐍 Python Prompt" button, found in the code bar.</p>
+
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">Press "🐍 Python Prompt"</div>
+        <p>The contents of the model currently in the code field are automatically included in the prompt.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">Paste into generative AI and send it</div>
+        <p>Just paste it as-is; there's nothing you need to edit.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">3</div>
+      <div class="big-body">
+        <div class="step-title">Save the two code blocks</div>
+        <p>The generative AI returns two code blocks: a <strong>Python script</strong> and a <strong><code>requirements.txt</code></strong>. Save them as <code>model.py</code> and <code>requirements.txt</code> respectively, in the same folder.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">4</div>
+      <div class="big-body">
+        <div class="step-title">Run it in your local environment</div>
+        <p>In a terminal, run <code>pip install -r requirements.txt</code>, then <code>python model.py</code>, and the same model will run in a matplotlib window.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <span class="box-label">When this is handy</span>
+    This is useful when you want to move past browser-based observation and do careful <strong>numerical computation, statistical analysis, or figure-making for papers and reports</strong> in Python (numpy, matplotlib, pandas, etc.). The explanations you wrote in ABM Studio's "Overview" field and the meaning of each parameter (<code>help</code>) are also carried over as comments during conversion.
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="localai"><span class="sec-icon">🤖</span> Connect Directly to a Generative AI API (Local / Cloud)</h2>
+  <p>Instead of copying and pasting to a generative AI, you can also <strong>connect directly to an LLM running on your own PC (such as LM Studio)</strong> and complete both modification and creation entirely within Studio. This saves you the trouble of pasting code back and forth, and lets you run everything locally without sending anything over the network. <strong>Any OpenAI-compatible API</strong> works (LM Studio, Ollama, OpenAI, etc.).</p>
+  <div class="tip">
+    <span class="box-label">What you need</span>
+    An OpenAI-compatible server such as LM Studio (free). Load one model and start the local server.
+  </div>
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">Start the server in LM Studio</div>
+        <p>Load a model → click Start on "Local Server." Make sure to <strong>turn "Enable CORS" ON in Server Settings</strong> (this is required for connecting from a browser).</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">Press "🤖 AI Generate"</div>
+        <p>Found in the code bar at the bottom of the screen. A settings panel opens, where you check the endpoint (default <code>http://localhost:1234</code>) and the model name. You can choose a model name via <span class="ui">🔄 Fetch List</span>. Settings are remembered, so you won't need to do this again next time.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">3</div>
+      <div class="big-body">
+        <div class="step-title">Choose "Modify / Create New," write your instructions, and press ▶ Send</div>
+        <p>Choose either "✏️ Modify Existing Code" or "✨ Create New," write what you want, and send. The generated code is <strong>automatically placed in the code field</strong>. Review it and press <span class="ui">▶ Apply</span> to run it.</p>
+      </div>
+    </div>
+  </div>
+  <div class="tip">
+    <span class="box-label">When the connection doesn't work</span>
+    "Failed to fetch" is usually caused by the server not running, CORS not being enabled, or a wrong URL. First try opening <code>http://localhost:1234/v1/models</code> directly in your browser and check whether JSON is returned. If it is, LM Studio is working correctly. You can also type the model name manually.
+  </div>
+
+  <h3>Using Cloud Generative AI Services (OpenRouter, DeepInfra, OpenAI, etc.)</h3>
+  <p>Beyond local models, you can also use OpenAI-compatible cloud APIs <strong>from the same panel</strong>. You don't need to run your own server: just enter each service's base URL as the "Endpoint," your issued key as the "API Key," and the model name.</p>
+  <table>
+    <tr><th>Service</th><th>Endpoint (Base URL)</th><th>Example model names</th></tr>
+    <tr><td>OpenRouter</td><td><code>https://openrouter.ai/api/v1</code></td><td><code>openai/gpt-4o-mini</code>, <code>deepseek/deepseek-chat</code>, etc.</td></tr>
+    <tr><td>DeepInfra</td><td><code>https://api.deepinfra.com/v1/openai</code></td><td><code>meta-llama/Meta-Llama-3.1-8B-Instruct</code>, etc.</td></tr>
+    <tr><td>OpenAI</td><td><code>https://api.openai.com/v1</code></td><td><code>gpt-4o-mini</code>, etc.</td></tr>
+  </table>
+  <div class="tip">
+    <span class="box-label">Note on cloud usage</span>
+    These all <strong>require an API key</strong>, and most are <strong>pay-as-you-go</strong>. Issue your key from each service's dashboard, and enter it in the "API Key" field rather than writing it into the code. You can also choose a model name using <span class="ui">🔄 Fetch List</span> (OpenRouter lists hundreds of models). Whether you can call the API directly from the browser depends on each service's CORS support (OpenRouter and DeepInfra support it; some services will return <code>Failed to fetch</code>, in which case they can't be used from the browser).
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="ideas"><span class="sec-icon">💡</span> What Kinds of Models Can You Build? Idea Collection</h2>
+  <p>Requesting a model on "a theme related to your own field" can also make a great class report.</p>
+  <div class="idea-grid">
+    <div class="idea-card"><div class="ic-emoji">🚗</div><div class="ic-title">Traffic Congestion</div><div class="ic-desc">Cars move on a grid and stop at signals. Explore the conditions under which congestion arises.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🐟</div><div class="ic-title">Predator–Prey</div><div class="ic-desc">A predator–prey model where herbivore and carnivore populations oscillate periodically.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🌿</div><div class="ic-title">Forest Fire</div><div class="ic-desc">The higher the tree density, the more the fire spreads. Explore the critical density threshold.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🏙</div><div class="ic-title">Urban Population Movement</div><div class="ic-desc">People move based on "livability." An extended version of the segregation model.</div></div>
+    <div class="idea-card"><div class="ic-emoji">💬</div><div class="ic-title">Rumor Spread</div><div class="ic-desc">Who talks to whom? Network structure changes the speed of spread.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🦟</div><div class="ic-title">Spatial Spread of Disease</div><div class="ic-desc">An extension of SIR where individuals move around while infecting others.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🏭</div><div class="ic-title">Market Model</div><div class="ic-desc">An economic ABM where prices are determined through interactions between buyers and sellers.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🧠</div><div class="ic-title">Opinion Formation</div><div class="ic-desc">Opinions converge or polarize as they're pulled toward nearby people.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🐝</div><div class="ic-title">Bee Foraging</div><div class="ic-desc">A waggle dance guides fellow bees to flower patches. Modeling information transfer.</div></div>
+  </div>
+  <div class="tip">
+    <span class="box-label">Tips for tailoring it to your field</span>
+    It works well to first organize things into the form "<strong>agent = ○○, environment = △△, interaction = □□</strong>" before asking the generative AI. It doesn't need to be perfectly accurate; you can always modify it later.
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="trouble"><span class="sec-icon">🔧</span> When Things Don't Work</h2>
+  <table>
+    <tr><th>Symptom</th><th>Solution</th></tr>
+    <tr><td>An error appears and it won't run</td><td>The <strong>line number and a hint</strong> about the cause are shown. Read them first. If it still doesn't work, paste the red error text as-is into the generative AI and ask it to fix it. <span class="ui">❔ Help</span> also lists syntax that can't be used.</td></tr>
+    <tr><td>Nothing is displayed</td><td>Check whether you pressed <span class="ui">▶ Apply</span>. The order is: press it, then press <span class="ui">▶ Run</span>.</td></tr>
+    <tr><td>Too fast to see</td><td>Lower the "Speed." Set it to very slow if you want to see one step at a time.</td></tr>
+    <tr><td>Heavy / stuttering</td><td>Reduce the number of agents, or raise "Draw Skip" to something like 1/4.</td></tr>
+    <tr><td>The generative AI's code doesn't work</td><td>Ask again: "Please fix this according to the specification. Do not use <code>document.*</code>, <code>import</code>, or <code>class</code>."</td></tr>
+    <tr><td>On the free tier, code gets cut off partway / explanatory text gets mixed in</td><td>Paste <strong>only the contents of the code block</strong>. If it's cut off, prompt it to "continue," or ask again. The prompt already includes instructions to "output only one block, in full, without omissions."</td></tr>
+  </table>
+  <div class="warn">
+    <span class="box-label">Note when pasting code</span>
+    Copy <strong>only the contents of the code block (```javascript ... ```)</strong>, not the generative AI's entire reply. Using the "Copy" button in the top-right of the code block automatically copies only its contents.
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="refs"><span class="sec-icon">📚</span> References and Sources</h2>
+  <p>These are the primary sources on which the built-in models are based. All code is an original implementation by this project.</p>
+  <ul>
+    <li><strong>Elementary Cellular Automaton (ECA)</strong>: Wolfram, S. (1983). Statistical mechanics of cellular automata. <em>Reviews of Modern Physics</em>, 55(3), 601–644. / Wolfram, S. (2002). <em>A New Kind of Science</em>. Wolfram Media.</li>
+    <li><strong>Game of Life</strong>: Gardner, M. (1970). Mathematical Games: The fantastic combinations of John Conway's new solitaire game "life". <em>Scientific American</em>, 223(4), 120–123.</li>
+    <li><strong>Segregation Model</strong>: Schelling, T. C. (1971). Dynamic models of segregation. <em>Journal of Mathematical Sociology</em>, 1(2), 143–186.</li>
+    <li><strong>Flocking (Boids)</strong>: Reynolds, C. W. (1987). Flocks, herds and schools: A distributed behavioral model. <em>Computer Graphics (SIGGRAPH '87)</em>, 21(4), 25–34.</li>
+    <li><strong>Ant Pheromones</strong>: Deneubourg, J.-L., Aron, S., Goss, S., &amp; Pasteels, J. M. (1990). The self-organizing exploratory pattern of the Argentine ant. <em>Journal of Insect Behavior</em>, 3(2), 159–168.</li>
+    <li><strong>Spatial Prisoner's Dilemma</strong>: Nowak, M. A., &amp; May, R. M. (1992). Evolutionary games and spatial chaos. <em>Nature</em>, 359, 826–829.</li>
+    <li><strong>SIR Epidemic Model</strong>: Kermack, W. O., &amp; McKendrick, A. G. (1927). A contribution to the mathematical theory of epidemics. <em>Proceedings of the Royal Society A</em>, 115(772), 700–721.</li>
+    <li><strong>Social Particle Swarm (SPS)</strong>: An original model by this project's author group. Nishimoto, K., Suzuki, R., &amp; Arita, T. (2023). Social Particle Swarm model for investigating the complex dynamics of social relationships. <em>Psychologia</em>, 65(2), 185–210. <a href="https://doi.org/10.2117/psysoc.2023-B039" target="_blank">https://doi.org/10.2117/psysoc.2023-B039</a></li>
+  </ul>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="thanks"><span class="sec-icon">🙏</span> Acknowledgments</h2>
+  <p>This tool owes a great deal to <a href="https://www.netlogo.org/" target="_blank">NetLogo</a> (Wilensky, U., 1999, Center for Connected Learning and Computer-Based Modeling, Northwestern University). The author has long used NetLogo in his own learning and teaching, and that experience forms the foundation for the concept and design of this tool. We record our deep gratitude here.</p>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <div class="footer" style="border: none; padding-top: 2vh;">
+    <p>
+      <a href="ABM_Studio.html">Open ABM Studio</a>
+      &nbsp;|&nbsp;
+      <a href="ABM_Studio_Manual.html">Detailed Manual (Advanced)</a>
+      &nbsp;|&nbsp;
+      <a href="Evo_Studio_FirstSteps.html">EVO Studio Guide</a>
+      &nbsp;|&nbsp;
+      <a href="IEC_Studio_FirstSteps.html">IEC Studio Guide</a>
+    </p>
+  </div>
+</div>
+
+<script>
+  let isSlideMode = false;
+  let currentSlide = 0;
+  let slides = [];
+
+  function initSlideMode() {
+    slides = document.querySelectorAll('.slide-section');
+  }
+
+  function toggleSlideMode() {
+    if (slides.length === 0) initSlideMode();
+    isSlideMode = !isSlideMode;
+    const body = document.body;
+    const controls = document.getElementById('slide-controls');
+
+    if (isSlideMode) {
+      body.classList.add('is-slide-mode');
+      controls.style.display = 'flex';
+      // Reset all and show current
+      slides.forEach(s => s.classList.remove('active'));
+      currentSlide = 0;
+      updateSlideView();
+    } else {
+      body.classList.remove('is-slide-mode');
+      controls.style.display = 'none';
+      // Make all visible for standard web view
+      slides.forEach(s => s.classList.remove('active'));
+    }
+  }
+
+  function updateSlideView() {
+    if (!isSlideMode) return;
+    slides.forEach((slide, index) => {
+      if (index === currentSlide) {
+        slide.classList.add('active');
+        // Small delay to trigger animation
+        slide.style.animation = 'none';
+        slide.offsetHeight; /* trigger reflow */
+        slide.style.animation = null;
+      } else {
+        slide.classList.remove('active');
+      }
+    });
+    document.getElementById('slide-counter').innerText = `${currentSlide + 1} / ${slides.length}`;
+  }
+
+  function nextSlide() {
+    if (currentSlide < slides.length - 1) {
+      currentSlide++;
+      updateSlideView();
+    }
+  }
+
+  function prevSlide() {
+    if (currentSlide > 0) {
+      currentSlide--;
+      updateSlideView();
+    }
+  }
+
+  // Keyboard navigation
+  window.addEventListener('keydown', (e) => {
+    if (!isSlideMode) return;
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault();
+      nextSlide();
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault();
+      prevSlide();
+    } else if (e.key === 'Escape') {
+      toggleSlideMode();
+    }
+  });
+
+  // Initialize on DOM load
+  window.addEventListener('DOMContentLoaded', initSlideMode);
+</script>
+
+</body>
+</html>

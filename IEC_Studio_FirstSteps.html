@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IEC Studio First Steps</title>
+
+<style>
+:root {
+  --bg:       #ffffff;
+  --text:     #1a1a1a;
+  --muted:    #555;
+  --light:    #888;
+  --border:   #e0e0e0;
+  --accent:   #1a4b8c;
+  --green:    #2a7a40;
+  --amber:    #b56800;
+  --tip-bg:   #f0f7ff;
+  --warn-bg:  #fff8f0;
+  --step-num: #1a4b8c;
+  --chat-bg:  #f0f7ff;
+  --chat-ai:  #f5f0ff;
+  --tag-bg:   #e8ecf4;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.85;
+  font-size: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1.4rem 6rem;
+  transition: background 0.3s ease;
+}
+
+/* ── Header ── */
+.page-header {
+  text-align: center;
+  padding: 2.4rem 1rem 2rem;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 2.8rem;
+}
+.page-header .eyebrow {
+  font-size: 0.78rem;
+  letter-spacing: .1em;
+  color: var(--light);
+  text-transform: uppercase;
+  margin-bottom: 0.7rem;
+}
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--accent);
+  line-height: 1.3;
+  margin-bottom: 0.6rem;
+}
+.page-header .tagline {
+  font-size: 1rem;
+  color: var(--muted);
+}
+.page-header .badges {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: .04em;
+}
+.badge-blue  { background: #dde8f5; color: #1a4b8c; }
+.badge-green { background: #d8f0e0; color: #1a6a30; }
+.badge-amber { background: #fef3dc; color: #8a5500; }
+
+/* ── Section heading ── */
+h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 1rem 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+h2 .sec-icon { font-size: 1.4rem; }
+
+h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 1.8rem 0 0.7rem;
+}
+
+p { margin-bottom: 1rem; color: var(--muted); }
+
+/* ── Big step ── */
+.steps { margin: 1.2rem 0 2rem; }
+.big-step {
+  display: flex;
+  gap: 1.1rem;
+  margin-bottom: 1.6rem;
+  align-items: flex-start;
+}
+.big-num {
+  flex-shrink: 0;
+  width: 40px; height: 40px;
+  background: var(--step-num);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 0.1rem;
+  box-shadow: 0 2px 8px rgba(26,75,140,.25);
+}
+.big-body { flex: 1; }
+.big-body .step-title {
+  font-size: 1.0rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+.big-body p { margin-bottom: 0.5rem; font-size: 0.93rem; }
+
+/* ── Info boxes ── */
+.tip, .warn, .good {
+  border-left: 3px solid;
+  padding: 0.85rem 1.1rem;
+  margin: 1.2rem 0;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.93rem;
+}
+.tip  { background: var(--tip-bg);  border-color: var(--accent); }
+.warn { background: var(--warn-bg); border-color: #c97a00; }
+.good { background: #f0fff4;        border-color: var(--green); }
+.box-label {
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.tip  .box-label { color: var(--accent); }
+.warn .box-label { color: var(--amber); }
+.good .box-label { color: var(--green); }
+
+/* ── Chat bubbles ── */
+.chat { margin: 1.2rem 0; }
+.chat-row {
+  display: flex;
+  gap: 0.7rem;
+  margin-bottom: 0.9rem;
+  align-items: flex-start;
+}
+.chat-row.ai { flex-direction: row-reverse; }
+.chat-avatar {
+  flex-shrink: 0;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  background: #e8ecf4;
+  margin-top: 2px;
+}
+.chat-row.ai .chat-avatar { background: #ede8f8; }
+.chat-bubble {
+  max-width: 82%;
+  background: var(--chat-bg);
+  border-radius: 0 14px 14px 14px;
+  padding: 0.7rem 1rem;
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.7;
+  border: 1px solid #d4e4f7;
+}
+.chat-row.ai .chat-bubble {
+  background: var(--chat-ai);
+  border-radius: 14px 0 14px 14px;
+  border-color: #ddd4f7;
+  color: #2d1a6e;
+}
+.chat-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  color: var(--light);
+  margin-bottom: 0.2rem;
+}
+
+/* ── Example prompt card ── */
+.prompt-card {
+  border: 1.5px solid var(--accent);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 1.2rem 0;
+}
+.prompt-card-header {
+  background: var(--accent);
+  color: #fff;
+  padding: 0.4rem 1rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+}
+.prompt-card-body {
+  padding: 0.85rem 1.1rem;
+  font-size: 0.88rem;
+  color: #1a1a1a;
+  line-height: 1.8;
+  background: #f8fbff;
+}
+.prompt-card-body .placeholder {
+  display: inline-block;
+  background: #fff3cd;
+  border: 1px dashed #c97a00;
+  border-radius: 3px;
+  padding: 0 5px;
+  font-weight: 700;
+  color: #7a4800;
+}
+
+/* ── Model idea cards ── */
+.idea-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.85rem;
+  margin: 1rem 0 1.5rem;
+}
+.idea-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  background: #fafafa;
+  transition: box-shadow .15s;
+}
+.idea-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+.idea-card .ic-emoji { font-size: 1.5rem; margin-bottom: 0.3rem; }
+.idea-card .ic-title { font-size: 0.88rem; font-weight: 700; margin-bottom: 0.2rem; }
+.idea-card .ic-desc  { font-size: 0.78rem; color: var(--light); line-height: 1.5; }
+
+/* ── Table ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin: 1rem 0 1.5rem;
+  background: #fff;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 0.6rem 0.85rem;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #f5f5f5; font-weight: 700; font-size: 0.82rem; }
+td:first-child { font-weight: 700; color: #b91c1c; font-size: 0.85rem; width: 25%; }
+td ul { margin: 0 0 0 1.2rem; padding: 0; }
+td li { margin-bottom: 0.3rem; color: var(--muted); }
+
+/* ── kbd & UI Labels ── */
+kbd {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8em;
+  background: #fff;
+  border: 1.5px solid #b0b8cc;
+  border-bottom: 3px solid #8090aa;
+  border-radius: 4px;
+  padding: 1px 6px;
+  color: #1e3a6e;
+}
+.ui {
+  display: inline-block;
+  background: #e8ecf4;
+  border: 1px solid #c0c8d8;
+  border-radius: 3px;
+  padding: 0px 6px;
+  font-size: 0.82em;
+  font-weight: 600;
+  color: #1e3a6e;
+  white-space: nowrap;
+}
+
+/* ── Divider ── */
+hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+
+/* ── TOC ── */
+.toc {
+  background: #f8fbff;
+  border: 1px solid #d4e4f7;
+  border-radius: 8px;
+  padding: 1.1rem 1.4rem;
+  margin: 0 0 2.5rem;
+  font-size: 0.9rem;
+}
+.toc-title { font-weight: 800; font-size: 0.85rem; color: var(--accent); margin-bottom: 0.6rem; letter-spacing: .05em; }
+.toc ol { padding-left: 1.3rem; }
+.toc li { margin-bottom: 0.25rem; }
+.toc a { color: var(--accent); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+
+/* ── Footer ── */
+.footer {
+  margin-top: 3rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--light);
+  text-align: center;
+}
+.footer a { color: var(--accent); text-decoration: none; }
+
+/* ── flow arrow ── */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 1rem 0 1.4rem;
+}
+.flow-step {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.flow-arrow { color: #aaa; font-size: 1.1rem; }
+
+/* ── Slide Mode Button & Controls ── */
+#toggle-slide-mode {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(26, 75, 140, 0.3);
+  transition: transform 0.2s, background 0.2s;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+#toggle-slide-mode:hover { background: #143a6d; transform: translateY(-2px); }
+
+#slide-controls {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(26, 75, 140, 0.95);
+  padding: 0.6rem 1.5rem;
+  border-radius: 30px;
+  display: none;
+  gap: 1.5rem;
+  align-items: center;
+  z-index: 1000;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  color: #fff;
+  font-weight: 700;
+  backdrop-filter: blur(5px);
+}
+#slide-controls button {
+  background: none; border: none; color: #fff; font-size: 1.2rem;
+  cursor: pointer; padding: 0.3rem 0.8rem; border-radius: 4px; transition: background 0.2s;
+}
+#slide-controls button:hover { background: rgba(255, 255, 255, 0.2); }
+#slide-counter { font-family: 'IBM Plex Mono', monospace; font-size: 1.1rem; min-width: 70px; text-align: center; }
+#exit-slide { font-size: 0.95rem !important; border-left: 1px solid rgba(255,255,255,0.3) !important; padding-left: 1.2rem !important; margin-left: 0.5rem; }
+
+/* ── Slide Mode Overrides ── */
+body.is-slide-mode {
+  background: #e5e7eb;
+  max-width: 100%; padding: 0; overflow: hidden;
+  display: flex; justify-content: center; align-items: center; height: 100vh;
+}
+body.is-slide-mode #toggle-slide-mode,
+body.is-slide-mode .footer,
+body.is-slide-mode hr { display: none; }
+
+.slide-section { margin-bottom: 2rem; }
+
+body.is-slide-mode .slide-section {
+  display: none;
+  background: var(--bg);
+  width: 90vw; max-width: 1200px; height: 85vh;
+  padding: 3rem 4rem; border-radius: 12px;
+  box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+  overflow-y: auto; font-size: 1.2rem; margin-bottom: 0;
+}
+body.is-slide-mode .slide-section.active {
+  display: block; animation: slideFadeIn 0.4s ease forwards;
+}
+@keyframes slideFadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Scaling up for presentation */
+body.is-slide-mode .page-header { border-bottom: none; margin-top: 8vh; }
+body.is-slide-mode .page-header h1 { font-size: 3.2rem; margin-bottom: 1.5rem; line-height: 1.3; }
+body.is-slide-mode .page-header .tagline { font-size: 1.4rem; }
+body.is-slide-mode h2 { font-size: 2.0rem; margin: 0 0 1.5rem; border-bottom: 3px solid var(--border); padding-bottom: 0.8rem; }
+body.is-slide-mode h2 .sec-icon { font-size: 2.2rem; }
+body.is-slide-mode h3 { font-size: 1.4rem; margin-top: 2rem; }
+body.is-slide-mode .toc { margin-top: 4vh; border: none; background: transparent; padding: 0; font-size: 1.3rem; }
+body.is-slide-mode .toc-title { font-size: 1.6rem; margin-bottom: 1rem; }
+body.is-slide-mode .toc ol { padding-left: 2.5rem; line-height: 2.0; }
+body.is-slide-mode p, body.is-slide-mode li { line-height: 1.7; }
+body.is-slide-mode .big-step { margin-bottom: 1.5rem; }
+body.is-slide-mode .big-num { width: 45px; height: 45px; font-size: 1.3rem; }
+body.is-slide-mode .big-body .step-title { font-size: 1.2rem; }
+body.is-slide-mode .big-body p { font-size: 1.05rem; }
+body.is-slide-mode .tip, body.is-slide-mode .warn, body.is-slide-mode .good { font-size: 1.05rem; padding: 1.2rem 1.5rem; }
+body.is-slide-mode table { font-size: 1.05rem; }
+body.is-slide-mode th, body.is-slide-mode td { padding: 0.8rem 1rem; }
+body.is-slide-mode .chat-bubble { font-size: 1.05rem; max-width: 90%; }
+</style>
+</head>
+<body>
+
+<button id="toggle-slide-mode" title="Display in slide mode" onclick="toggleSlideMode()">
+  <span>📊</span> Slide View
+</button>
+
+<div id="slide-controls">
+  <button id="prev-slide" title="Previous slide (Left arrow key)" onclick="prevSlide()">◀</button>
+  <span id="slide-counter">1 / 1</span>
+  <button id="next-slide" title="Next slide (Right arrow / Space key)" onclick="nextSlide()">▶</button>
+  <button id="exit-slide" title="Return to normal mode (Esc key)" onclick="toggleSlideMode()">✕ Close</button>
+</div>
+
+<div class="slide-section">
+  <div class="page-header">
+    <div class="eyebrow">IEC Studio Guide</div>
+    <h1>Evolve by "Preference"<br>Without Programming</h1>
+    <p class="tagline">No need to write an evaluation formula: shapes evolve just by you picking the ones you like. Ask a generative AI, paste it in, and choose.</p>
+    <div class="badges">
+      <span class="badge badge-blue">No coding needed</span>
+      <span class="badge badge-green">Works with IEC Studio v1.0</span>
+      <span class="badge badge-amber">Free-tier generative AI OK</span>
+    </div>
+  </div>
+</div>
+
+<div class="slide-section">
+  <div class="toc">
+    <div class="toc-title">Contents</div>
+    <ol>
+      <li><a href="#what">What is IEC Studio?</a></li>
+      <li><a href="#flow">Overall flow (3 steps)</a></li>
+      <li><a href="#builtin">First, try a built-in model</a></li>
+      <li><a href="#screen">Reading the lineage, enlarged view, and overview</a></li>
+      <li><a href="#modify">Modify a running model (start here)</a></li>
+      <li><a href="#gemini">Have a generative AI build a new model for you</a></li>
+      <li><a href="#localai">Connect directly to a generative AI API (local / cloud)</a></li>
+      <li><a href="#ideas">What can you build? Idea collection</a></li>
+      <li><a href="#trouble">When things don't work</a></li>
+      <li><a href="#refs">References and sources</a></li>
+      <li><a href="#thanks">Acknowledgments</a></li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide-section">
+  <h2 id="what"><span class="sec-icon">🤔</span> What is IEC Studio?</h2>
+  <p>IEC Studio is <strong>a browser-based tool for "Interactive Evolutionary Computation (IEC)".</strong> No installation needed: just double-click the file to use it.</p>
+  <p>Ordinary evolutionary computation (GA) measures quality with a <strong>formula (evaluation function)</strong>. In IEC, that role is played by <strong>your "preference"</strong>. Click the one you like out of 9 individuals in a 3×3 grid, and it becomes the parent of the next generation of 9 individuals, gradually evolving toward the shape you prefer.</p>
+  <p>All you decide is "the shape of the genes" and "how to draw a picture from the genes," and even that can be <strong>built by a generative AI and simply pasted in</strong>.</p>
+  <div class="tip">
+    <span class="box-label">The idea behind this tool</span>
+    Recent advances in generative AI are reshaping the "<strong>understanding by building</strong>" (constructive) style of modeling in complex systems and artificial life. By giving a prompt with just the skeleton of an idea, not a complete specification, you can auto-generate a wide variety of models, have the AI explain them when you want to understand them, and refine ideas through dialogue. The catch is that letting the AI generate everything tends to produce wildly inconsistent results.<br>
+    ALifeCoreStudio (the three studios, ABM / EVO / IEC) keeps a <strong>common framework for model construction, visualization, and analysis fixed</strong>, and lets generative AI produce only the <strong>essential parts</strong> of a model. This supports <strong>beginners with no programming experience giving free form to their ideas</strong>, <strong>students growing models together with AI</strong>, and <strong>researchers building prototypes quickly</strong>. By making it easy to <strong>generate possible models freely</strong> within a shared framework, we hope to accelerate the constructive approach to scientific understanding and spread the <strong>joy</strong> of imagining and running "what worlds could be."
+  </div>
+  <div class="good">
+    <span class="box-label">All you need</span>
+    A browser with IEC Studio (the HTML file) open + a generative AI service (<a href="https://chatgpt.com" target="_blank">ChatGPT</a>, <a href="https://gemini.google.com" target="_blank">Gemini</a>, <a href="https://claude.ai" target="_blank">Claude</a>, etc.; the free tier is enough)
+  </div>
+  <div class="tip">
+    <span class="box-label">How it differs from Evo / ABM Studio</span>
+    Evo runs on an <strong>evaluation function</strong>, and ABM runs on <strong>rules for individuals</strong>. IEC's defining feature is that <strong>a human chooses, with no evaluation function to write</strong>. This lets you evolve values that are hard to express as a formula, such as beauty or preference.
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="flow"><span class="sec-icon">🗺️</span> Overall flow (3 steps)</h2>
+  <div class="flow">
+    <div class="flow-step">① Ask a generative AI</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">② Copy the code</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">③ Paste into IEC Studio and apply</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">🖱 Choose and evolve!</div>
+  </div>
+  <p>That's it. There's no need to read or write code. First, let's experience the feeling of "choosing makes it evolve" with the models that come built in.</p>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="builtin"><span class="sec-icon">▶️</span> First, try a built-in model</h2>
+  <p>IEC Studio comes with models built in from the start. Let's try running one.</p>
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">Choose a model</div>
+        <p>Choose a model from the dropdown in the code bar at the bottom of the screen. 9 candidates will be displayed.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title"><strong>Click</strong> the individual you like</div>
+        <p>The next generation of 9 individuals is created with the one you chose as parent. Just repeat this to evolve toward the shape you prefer. Use <span class="ui">⟳ Reset</span> to start over from a random initial population.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <span class="box-label">A recommended way to explore</span>
+    Start by choosing "Branching Shapes", then <strong>keep clicking whatever shape you find even slightly appealing</strong>. After about 10 rounds of selecting, you'll find a "creature to your own taste" growing, looking nothing like the original. This is the experience of evolution: "a shape grows just by choosing".
+  </div>
+
+  <div class="good">
+    <span class="box-label">Features worth knowing about</span>
+    <ul style="margin:.3rem 0 0 1.2rem;line-height:1.8">
+      <li><strong>1-parent / 2-parent mode:</strong> Switch between mutating a single selected individual, or selecting two individuals and <strong>crossing (interbreeding)</strong> them.</li>
+      <li><strong>🔍 Enlarge:</strong> A button that appears when you hover over a cell, showing that individual <strong>larger</strong> (animated ones keep moving). Look closely before choosing.</li>
+      <li><strong>Show lineage:</strong> Lists the history of parents chosen so far. <strong>Click a thumbnail to resume breeding from that ancestor</strong> (rewind), letting you try different branches.</li>
+      <li><strong>📦 Download ZIP:</strong> the <span class="ui">📦 Download ZIP</span> button next to the lineage checkbox bundles all data since initialization into a <b>ZIP</b>. It contains <b>all 9 individuals of every generation</b> <code>frames.jsonl</code>, the lineage of chosen parents <code>lineage.csv</code>, the current 9 individuals <code>population.csv</code>, the experiment settings (selection mode, crossover type, parameters, <b>random seed</b>, etc.) in <code>metadata.json</code>, all data in <code>data.json</code>, and <b>the model code itself</b> <code>model.js</code>.<br>
+      Drop the exported ZIP onto the bundled <code>ALifeCoreStudio_Viewer.html</code> to <b>replay each generation's 9 individuals in a grid, rendered with the model's own drawing</b> (the chosen one marked ★; built-in, modified, or new models all work). IEC is lightweight, so states are always recorded, with no on/off toggle needed.</li>
+      <li><strong>About this model:</strong> Shown at the top of the right panel: an explanation of the genes, phenotype, and how selection works.</li>
+      <li><strong>Mutation rate / mutation width:</strong> The larger these are, the more the child differs from the parent. Raise them when things stop changing much.</li>
+      <li><strong>⛶ Fullscreen:</strong> A header button that enlarges just the 9-individual grid to fill the screen. Handy for projector display or viewing together as a class.</li>
+      <li><strong>💾 HTML Export:</strong> Exports the currently running model as a single HTML file with no editing UI. Useful for saving, distributing, submitting, or presenting.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide-section">
+  <h3>List of built-in models</h3>
+  <div class="idea-grid">
+    <div class="idea-card"><div class="ic-emoji">🌿</div><div class="ic-title">Branching Shapes</div><div class="ic-desc">A branching shape grows from 9 genes.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🐦</div><div class="ic-title">Flock (Flocking)</div><div class="ic-desc">Evolve how a flock moves (separation, alignment, cohesion) by preference (animated).</div></div>
+    <div class="idea-card"><div class="ic-emoji">🙂</div><div class="ic-title">Face Evolution</div><div class="ic-desc">Evolve features such as eyes, mouth, and contour via aesthetic selection.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🪟</div><div class="ic-title">Stained Glass</div><div class="ic-desc">Voronoi partition + coloring. Choose your favorite pattern and grow it.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🌀</div><div class="ic-title">Math Art</div><div class="ic-desc">Evolve patterns born from the shading and color of z=f(x,y).</div></div>
+    <div class="idea-card"><div class="ic-emoji">🧬</div><div class="ic-title">Soft-Body Creature</div><div class="ic-desc">Evolve the shape and gait of a 5×5-voxel body by preference (animated).</div></div>
+    <div class="idea-card"><div class="ic-emoji">🎵</div><div class="ic-title">Sound Evolution</div><div class="ic-desc">Listen with "▶ Play sound" and evolve a short 8-note melody by preference.</div></div>
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="screen"><span class="sec-icon">👁️</span> Reading the lineage, enlarged view, and overview</h2>
+  <p>Let's learn three views unique to IEC that make it easier to use.</p>
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title"><span class="ui">Show lineage</span> (history of chosen parents)</div>
+        <p>Check the box below the grid, and the parent chosen at each generation is arranged from left to right. <strong>Click a thumbnail to resume breeding from that ancestor</strong>, letting you try and compare different branches.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title"><span class="ui">🔍 Enlarge</span> (observe up close)</div>
+        <p>Appears at bottom left when you hover over a cell. Shows that individual larger, and for animated models you can observe <strong>how it moves</strong> at different speeds. If you like it, select it with "Next generation from this individual".</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">3</div>
+      <div class="big-body">
+        <div class="step-title"><span class="ui">About this model</span></div>
+        <p>At the top of the right panel is written the <strong>gene (what changes), phenotype (how it becomes a picture), and how selection works</strong>. Reading it first makes it easier to choose.</p>
+      </div>
+    </div>
+  </div>
+  <div class="tip">
+    <span class="box-label">Tips for making the most of these</span>
+    If you're unsure, <strong>raise the mutation rate</strong> to get more varied candidates, then <strong>🔍 Enlarge</strong> to look closely before choosing. If you get stuck, go back to an earlier ancestor via <strong>Lineage</strong> and try a different direction. This alone greatly widens your exploration.
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="modify"><span class="sec-icon">✏️</span> Modify a running model (start here)</h2>
+  <p><strong>This is the easiest entry point.</strong> Just tweaking a built-in model a little can bring it closer to what you're interested in. Pressing the <strong>"✏️ Modify Prompt" button</strong> copies the current code together with modification instructions.</p>
+  <div class="tip">
+    <span class="box-label">📖 Explain Prompt and model name</span>
+    When you want to know "how it works" for the subject currently running, press <span class="ui">📖 Explain Prompt</span>. A request for an explanation, including the current code, is copied, so pasting it into a generative AI gets you a careful explanation with <strong>an overview, an explanation of the algorithm, and pseudocode</strong>. Also, code that is generated or modified gets a <code>const TITLE = 'model name'</code>, which is reflected in the browser tab name, the "About this model" heading, and the filename for <span class="ui">💾 Save .js</span> (e.g. <code>Branching_Shapes.js</code>).
+  </div>
+
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">Press "✏️ Modify Prompt"</div>
+        <p>Found in the code bar. The current code is automatically included in the prompt.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">Paste it into a generative AI and write "what you want to change"</div>
+        <p>In the <strong>[What to change] section at the end</strong> of the pasted prompt, list what you want changed as bullet points, <strong>1-2 items at a time</strong>.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">3</div>
+      <div class="big-body">
+        <div class="step-title">Replace all the code with what comes back</div>
+        <p>Select all in the code field (<kbd>Ctrl</kbd>+<kbd>A</kbd>), paste (<kbd>Ctrl</kbd>+<kbd>V</kbd>), and press "▶ Apply".</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>Example modification requests by model (2 each) 💬</h3>
+  <table>
+    <tr><th>Base model</th><th>Ideas for modification instructions to the AI</th></tr>
+    <tr><td>🌿 Branching Shapes</td><td><ul><li>Increase the max number of branches and depth to make more complex shapes.</li><li>Add color as a gene so each branch has a different color.</li></ul></td></tr>
+    <tr><td>🐦 Flock (Flocking)</td><td><ul><li>Increase the population size for a bigger flock.</li><li>Add one predator so the flock shows fleeing behavior.</li></ul></td></tr>
+    <tr><td>🪟 Stained Glass</td><td><ul><li>Increase the number of regions (Voronoi seed points) for a finer pattern.</li><li>Add a parameter that can bias the coloring toward cool or warm tones.</li></ul></td></tr>
+    <tr><td>🧬 Soft-Body Creature</td><td><ul><li>Expand the voxels to 6×6 for a more complex body.</li><li>Set it to underwater (high drag) so it shows a swimming-like motion.</li></ul></td></tr>
+    <tr><td>🌀 Math Art</td><td><ul><li>Make the pattern more likely to be left-right symmetric or rotationally symmetric.</li><li>Increase the number of colors used for a more colorful result.</li></ul></td></tr>
+    <tr><td>🙂 Face Evolution</td><td><ul><li>Add hairstyle variation as a gene.</li><li>Make facial expression (mouth corner, eyebrow angle) a gene so smiling or troubled faces appear.</li></ul></td></tr>
+    <tr><td>🎵 Sound Evolution</td><td><ul><li>Increase the number of notes from 8 to 16 for a longer melody.</li><li>Add rhythm (note duration) as a gene as well, so it can vary.</li></ul></td></tr>
+  </table>
+
+  <div class="good">
+    <span class="box-label">Tips for modifying</span>
+    Trying to change too much at once tends to fail. It's best to request <strong>1-2 small changes at a time</strong> and check that it works after each one.
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="gemini"><span class="sec-icon">✨</span> Have a generative AI build a new model for you</h2>
+  <p>Once you're used to modifying, you can also build <strong>a new model from scratch</strong>. Pressing the "✨ New Model Prompt" button copies a specification to hand to a generative AI onto the clipboard.</p>
+
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">Press "✨ New Model Prompt"</div>
+        <p>Found in the code bar at the bottom of the screen. You're good once you see "Copied".</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">Paste it into a generative AI and rewrite it</div>
+        <p>Paste it into the generative AI's chat field, rewrite the <strong>[Model to implement]</strong> section to describe what you want to evolve, and send it.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">3</div>
+      <div class="big-body">
+        <div class="step-title">Copy the code and paste it into IEC Studio</div>
+        <p>Copy just the contents of the code block (```javascript ... ```) that the generative AI output, paste it into the code field, and press "▶ Apply".</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>Phrasing your request like this gets the point across 💬</h3>
+  <p>In IEC, the trick is to convey "<strong>what the genes are (what changes), and what picture is drawn from the genes</strong>". Since a human chooses what's good, no evaluation function is needed.</p>
+  <div class="chat">
+    <div class="chat-row">
+      <div class="chat-avatar">🙋</div>
+      <div>
+        <div class="chat-label">Example student input</div>
+        <div class="chat-bubble">I want to evolve flower shapes by "preference".<br>Make petal count, color, and pointiness genes, and draw 9 flowers. When clicked, show 9 similar flowers.</div>
+      </div>
+    </div>
+    <div class="chat-row">
+      <div class="chat-avatar">🙋</div>
+      <div>
+        <div class="chat-label">Example student input</div>
+        <div class="chat-bubble">I want to evolve a geometric "logo".<br>Make the number of shapes, rotation, and coloring into genes, so symmetric patterns tend to appear.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prompt-card">
+    <div class="prompt-card-header">📋 Example request to a generative AI (what to write in the [Model to implement] section)</div>
+    <div class="prompt-card-body">
+      Please build a model that evolves <span class="placeholder">the subject you want to evolve (e.g., a flower, a logo, a pattern, a creature)</span> by "preference".<br><br>
+      The genes (things that change bit by bit) are <span class="placeholder">what (e.g., color, count, angle, size)</span>.<br>
+      The way to draw a picture from the genes is <span class="placeholder">what it looks like (e.g., a radial flower, a geometric pattern)</span>.<br><br>
+      If you want a moving picture, mention that too (animation support).<br>
+      Since a human clicks to choose what's good, no evaluation function is needed.
+    </div>
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="localai"><span class="sec-icon">🤖</span> Connect directly to a generative AI API (local / cloud)</h2>
+  <p>Instead of copying and pasting to a generative AI, you can also <strong>connect directly to an LLM running on your own PC (such as LM Studio)</strong> and complete modification or creation entirely within the Studio. There's no need to paste code back and forth, and the benefit of running locally is that nothing is sent over the network. <strong>Any OpenAI-compatible API</strong> can be used (LM Studio, Ollama, OpenAI, etc.).</p>
+  <div class="tip">
+    <span class="box-label">What you need</span>
+    An OpenAI-compatible server such as LM Studio (free). Load one model and start the local server.
+  </div>
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">Start the server in LM Studio</div>
+        <p>Load a model → Start "Local Server". <strong>Turn "Enable CORS" ON in Server Settings</strong> (required to connect from the browser).</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">Press "🤖 AI Generate"</div>
+        <p>Found in the code bar at the bottom of the screen. A settings panel opens; check the endpoint (default <code>http://localhost:1234</code>) and the model name. You can choose the model name via <span class="ui">🔄 Fetch List</span>. Settings are remembered, so you won't need to do this again next time.</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">3</div>
+      <div class="big-body">
+        <div class="step-title">Choose "Modify / Create New", write your instructions, and ▶ Send</div>
+        <p>Choose "✏️ Modify Existing Code" or "✨ Create New", write what you want, and send it. The generated code is <strong>automatically placed into the code field</strong>. Check the content and run it with <span class="ui">▶ Apply</span>.</p>
+      </div>
+    </div>
+  </div>
+  <div class="tip">
+    <span class="box-label">When the connection doesn't work</span>
+    "Failed to fetch" is usually caused by the server not running, CORS not enabled, or a wrong URL. First open <code>http://localhost:1234/v1/models</code> directly in the browser and check whether JSON is returned. If it is, LM Studio is working correctly. You can also type the model name in manually.
+  </div>
+
+  <h3>Using cloud generative AI services (OpenRouter, DeepInfra, OpenAI, etc.)</h3>
+  <p>In addition to local servers, OpenAI-compatible cloud APIs can also be used <strong>from the same panel</strong>. There's no need to run your own server: just enter each service's base URL as the "Endpoint", the key you issued as the "API Key", and the model name.</p>
+  <table>
+    <tr><th>Service</th><th>Endpoint (Base URL)</th><th>Example model names</th></tr>
+    <tr><td>OpenRouter</td><td><code>https://openrouter.ai/api/v1</code></td><td><code>openai/gpt-4o-mini</code>, <code>deepseek/deepseek-chat</code>, etc.</td></tr>
+    <tr><td>DeepInfra</td><td><code>https://api.deepinfra.com/v1/openai</code></td><td><code>meta-llama/Meta-Llama-3.1-8B-Instruct</code>, etc.</td></tr>
+    <tr><td>OpenAI</td><td><code>https://api.openai.com/v1</code></td><td><code>gpt-4o-mini</code>, etc.</td></tr>
+  </table>
+  <div class="tip">
+    <span class="box-label">Notes on using cloud services</span>
+    These <strong>require an API key</strong>, and most are <strong>pay-as-you-go</strong>. Issue a key from each service's dashboard, and enter it in the "API Key" field rather than writing it into the code. You can also choose the model name via <span class="ui">🔄 Fetch List</span> (OpenRouter offers hundreds of options). Whether you can call the API directly from the browser depends on each service's CORS support (OpenRouter and DeepInfra support it; some services return <code>Failed to fetch</code>, in which case they cannot be used from the browser).
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="ideas"><span class="sec-icon">💡</span> What can you build? Idea collection</h2>
+  <p>Anything that's "hard to write a formula for as correct, but you can tell good from bad just by looking" is usually well suited to IEC.</p>
+  <div class="idea-grid">
+    <div class="idea-card"><div class="ic-emoji">🎨</div><div class="ic-title">Logos / marks</div><div class="ic-desc">Evolve shapes, coloring, and layout to find a logo you like.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🌸</div><div class="ic-title">Flower / plant shapes</div><div class="ic-desc">Grow a plant you like from petal and branch genes.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🙂</div><div class="ic-title">Avatars / portraits</div><div class="ic-desc">Choose facial features to approach an ideal face.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🎛️</div><div class="ic-title">Color palettes</div><div class="ic-desc">Evolve color combinations. Find a palette you like.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🏛️</div><div class="ic-title">Building facades</div><div class="ic-desc">Turn windows, columns, and proportions into genes and evolve the appearance.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🧩</div><div class="ic-title">Patterns / textures</div><div class="ic-desc">Evolve repeating patterns or fabric designs by preference.</div></div>
+    <div class="idea-card"><div class="ic-emoji">👗</div><div class="ic-title">Clothing / product shapes</div><div class="ic-desc">Evolve shape and silhouette parameters.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🔤</div><div class="ic-title">Lettering decoration</div><div class="ic-desc">Evolve font weight and ornamentation into logo text.</div></div>
+    <div class="idea-card"><div class="ic-emoji">🎶</div><div class="ic-title">Moving shapes / animation</div><div class="ic-desc">Evolve the motion itself by preference (ANIMATED).</div></div>
+  </div>
+  <div class="tip">
+    <span class="box-label">Tips for success</span>
+    Organize "<strong>gene = X, appearance = Y</strong>" and ask a generative AI. If candidates look too similar, <strong>raise the mutation rate</strong>; if they're too scattered, lower it. This keeps exploration well balanced.
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="trouble"><span class="sec-icon">🔧</span> When things don't work</h2>
+  <table>
+    <tr><th>Symptom</th><th>What to do</th></tr>
+    <tr><td>An error appears and nothing runs</td><td>A <strong>line number and hint</strong> for the cause is shown. Read it first. If it's not fixed, paste the red error message as-is into a generative AI and ask it to fix it. <span class="ui">❔ Help</span> also lists syntax that cannot be used.</td></tr>
+    <tr><td>The 9 individuals don't appear</td><td>Check whether you pressed <span class="ui">▶ Apply</span>. The order is paste, then apply.</td></tr>
+    <tr><td>All the candidates look the same</td><td>Raising "mutation rate" and "mutation width" increases the differences. Also try crossover in 2-parent mode.</td></tr>
+    <tr><td>It should move but is static</td><td>Animated models need <code>ANIMATED=true</code>. Ask the generative AI to "make it a moving animation".</td></tr>
+    <tr><td>Too fast / too slow</td><td>Adjust with the animation speed slider (0.05×-8×). You can also change the speed individually via <span class="ui">🔍 Enlarge</span>.</td></tr>
+    <tr><td>The generative AI's code doesn't work</td><td>Ask again: "Please fix this according to the specification. Do not use <code>document.*</code>, <code>import</code>, or <code>class</code>."</td></tr>
+    <tr><td>With the free tier, the code cuts off partway / explanatory text gets mixed in</td><td>Paste <strong>only the contents of the code block</strong>. If it's cut off, prompt it with "please continue", or ask again. The prompt already includes instructions to "output exactly one block, in full, without omission".</td></tr>
+  </table>
+  <div class="warn">
+    <span class="box-label">Note when pasting code</span>
+    Copy <strong>only the contents of the code block</strong> (```javascript ... ```), not the generative AI's entire reply. Using the "Copy" button at the top right of the code block automatically copies just the contents.
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="refs"><span class="sec-icon">📚</span> References and sources</h2>
+  <p>These are the representative original sources the built-in subjects draw on. All code is an independent implementation by this project (for the virtual creature, the code is independently implemented, drawing inspiration from existing research as noted below).</p>
+  <ul>
+    <li><strong>Interactive Evolutionary Computation (IEC) in general</strong>: Takagi, H. (2001). Interactive evolutionary computation: Fusion of the capabilities of EC optimization and human evaluation. <em>Proceedings of the IEEE</em>, 89(9), 1275–1296.</li>
+    <li><strong>Branching shapes (Biomorphs)</strong>: Dawkins, R. (1986). <em>The Blind Watchmaker</em>. Longman Scientific &amp; Technical.</li>
+    <li><strong>Interactive evolution of images</strong>: Sims, K. (1991). Artificial evolution for computer graphics. <em>Computer Graphics (SIGGRAPH '91)</em>, 25(4), 319–328.</li>
+    <li><strong>Flock (flocking / Boids)</strong>: Reynolds, C. W. (1987). Flocks, herds and schools: A distributed behavioral model. <em>Computer Graphics (SIGGRAPH '87)</em>, 21(4), 25–34.</li>
+    <li><strong>Virtual creature (soft body, voxels)</strong>: Bhatia, J., Jackson, H., Tian, Y., Xu, J., &amp; Matusik, W. (2021). Evolution Gym: A large-scale benchmark for evolving soft robots. <em>NeurIPS 2021</em>. The idea of "evolving soft robots made of voxels" is drawn from Evolution Gym (<a href="https://github.com/EvolutionGym/evogym" target="_blank">github.com/EvolutionGym/evogym</a>, MIT License); the code itself is independently implemented (no EvoGym source code is used).</li>
+    <li><strong>Stained glass</strong>: a planar partition based on the Voronoi diagram.</li>
+    <li><strong>Face, math art, and sound evolution</strong>: general applications of IEC, with no specific original source.</li>
+  </ul>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="thanks"><span class="sec-icon">🙏</span> Acknowledgments</h2>
+  <p>This tool has been greatly influenced by <a href="https://www.netlogo.org/" target="_blank">NetLogo</a> (Wilensky, U., 1999, Center for Connected Learning and Computer-Based Modeling, Northwestern University). The author has long used NetLogo for his own understanding and in teaching, and that experience forms the foundation for the ideas and design of this tool. My deep thanks are recorded here.</p>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <div class="footer" style="border: none; padding-top: 2vh;">
+    <p>
+      <a href="IEC_Studio.html">Open IEC Studio</a>
+      &nbsp;|&nbsp;
+      <a href="IEC_Studio_Manual.html">Detailed Manual (Advanced)</a>
+      &nbsp;|&nbsp;
+      <a href="ABM_Studio_FirstSteps.html">ABM Studio Guide</a>
+      &nbsp;|&nbsp;
+      <a href="Evo_Studio_FirstSteps.html">EVO Studio Guide</a>
+    </p>
+  </div>
+</div>
+
+<script>
+  let isSlideMode = false;
+  let currentSlide = 0;
+  let slides = [];
+
+  function initSlideMode() {
+    slides = document.querySelectorAll('.slide-section');
+  }
+
+  function toggleSlideMode() {
+    if (slides.length === 0) initSlideMode();
+    isSlideMode = !isSlideMode;
+    const body = document.body;
+    const controls = document.getElementById('slide-controls');
+    
+    if (isSlideMode) {
+      body.classList.add('is-slide-mode');
+      controls.style.display = 'flex';
+      // Reset all and show current
+      slides.forEach(s => s.classList.remove('active'));
+      currentSlide = 0;
+      updateSlideView();
+    } else {
+      body.classList.remove('is-slide-mode');
+      controls.style.display = 'none';
+      // Make all visible for standard web view
+      slides.forEach(s => s.classList.remove('active'));
+    }
+  }
+
+  function updateSlideView() {
+    if (!isSlideMode) return;
+    slides.forEach((slide, index) => {
+      if (index === currentSlide) {
+        slide.classList.add('active');
+        // Small delay to trigger animation
+        slide.style.animation = 'none';
+        slide.offsetHeight; /* trigger reflow */
+        slide.style.animation = null; 
+      } else {
+        slide.classList.remove('active');
+      }
+    });
+    document.getElementById('slide-counter').innerText = `${currentSlide + 1} / ${slides.length}`;
+  }
+
+  function nextSlide() {
+    if (currentSlide < slides.length - 1) {
+      currentSlide++;
+      updateSlideView();
+    }
+  }
+
+  function prevSlide() {
+    if (currentSlide > 0) {
+      currentSlide--;
+      updateSlideView();
+    }
+  }
+
+  // Keyboard navigation
+  window.addEventListener('keydown', (e) => {
+    if (!isSlideMode) return;
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault();
+      nextSlide();
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault();
+      prevSlide();
+    } else if (e.key === 'Escape') {
+      toggleSlideMode();
+    }
+  });
+
+  // Initialize on DOM load
+  window.addEventListener('DOMContentLoaded', initSlideMode);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,3941 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EVO Studio v1.0 — 進化計算スタジオ</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@700;800&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+html{font-size:13pt}            /* 既定で標準(12pt)より1ポイント大きい */
+.fs-ctrl{display:inline-flex;align-items:center;gap:4px;margin-right:4px}
+.fs-ctrl .fs-btn{padding:3px 7px}
+.fs-val{font-family:'IBM Plex Mono',monospace;font-size:.66rem;color:var(--muted);min-width:36px;text-align:center}
+
+:root {
+  --bg:      #f4f6f9;
+  --surface: #ffffff;
+  --panel:   #f0f2f6;
+  --border:  #d4d9e3;
+  --accent:  #0284c7;
+  --amber:   #b45309;
+  --good:    #047857;
+  --bad:     #dc2626;
+  --violet:  #6d28d9;
+  --green:   #15803d;
+  --text:    #1e293b;
+  --muted:   #64748b;
+  --code-bg: #f8fafc;
+  --glow-g:  0 0 0 2px rgba(21,128,61,.25), 0 0 10px rgba(21,128,61,.12);
+  --glow-h:  0 0 8px rgba(2,132,199,.15);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;
+     display:flex;flex-direction:column;overflow:hidden}
+
+/* ── Header ── */
+header{border-bottom:1px solid var(--border);padding:8px 18px;display:flex;
+       align-items:center;gap:12px;background:var(--surface);
+       flex-shrink:0;z-index:20;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+header h1{font-family:'Syne',sans-serif;font-size:1.05rem;letter-spacing:.06em;
+          color:var(--text);white-space:nowrap}
+header h1 em{color:var(--accent);font-style:normal}
+.tick-badge{font-family:'IBM Plex Mono',monospace;font-size:.75rem;padding:3px 9px;
+            border:1px solid var(--border);border-radius:4px;color:var(--accent);
+            background:rgba(2,132,199,.07);white-space:nowrap;min-width:86px;text-align:center}
+.run-badge{font-family:'IBM Plex Mono',monospace;font-size:.67rem;padding:2px 7px;
+           border-radius:3px;background:rgba(21,128,61,.10);border:1px solid rgba(21,128,61,.35);
+           color:var(--green);display:none;white-space:nowrap;animation:pulse 1.4s infinite}
+.run-badge.show{display:inline-block}
+.loop-badge{font-family:'IBM Plex Mono',monospace;font-size:.67rem;padding:2px 7px;
+            border-radius:3px;background:rgba(109,40,217,.09);border:1px solid rgba(109,40,217,.3);
+            color:var(--violet);display:none;white-space:nowrap}
+.loop-badge.show{display:inline-block}
+.stopped-badge{font-family:'IBM Plex Mono',monospace;font-size:.67rem;padding:2px 7px;
+               border-radius:3px;background:rgba(220,38,38,.09);border:1px solid rgba(220,38,38,.35);
+               color:var(--bad);display:none;white-space:nowrap}
+.stopped-badge.show{display:inline-block}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.spacer{flex:1}
+.hbtn{font-family:'IBM Plex Mono',monospace;font-size:.7rem;padding:3px 10px;border-radius:4px;
+      border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;
+      transition:all .13s;white-space:nowrap}
+.hbtn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── Workspace ── */
+.workspace{flex:1;display:flex;overflow:hidden;min-height:0}
+
+/* Left: canvas */
+.left-col{flex:0 0 auto;width:492px;display:flex;flex-direction:column;
+          background:var(--surface);border-right:1px solid var(--border);
+          padding:10px;gap:7px;overflow:hidden}
+.canvas-wrap{border:1.5px solid var(--border);border-radius:6px;overflow:hidden;
+             background:#060a10;transition:border-color .2s,box-shadow .2s;flex-shrink:0;
+             box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.canvas-wrap.running{border-color:rgba(21,128,61,.6);box-shadow:var(--glow-g)}
+#simCanvas{display:block}
+.ctrl-row{display:flex;gap:5px}
+.ctrl-btn{font-family:'IBM Plex Mono',monospace;font-size:.72rem;padding:5px 0;
+          border-radius:4px;border:1px solid var(--border);background:var(--surface);
+          color:var(--text);cursor:pointer;transition:all .13s;flex:1;text-align:center}
+.ctrl-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(2,132,199,.05)}
+.ctrl-btn.play-act{background:rgba(21,128,61,.08);border-color:var(--green);color:var(--green)}
+.ctrl-btn.play-act:hover{background:rgba(21,128,61,.14)}
+.ctrl-btn.pause-act{background:rgba(180,83,9,.08);border-color:var(--amber);color:var(--amber)}
+.ctrl-btn.pause-act:hover{background:rgba(180,83,9,.14)}
+.slider-row{display:flex;align-items:center;gap:7px}
+.slider-row label{font-family:'IBM Plex Mono',monospace;font-size:.67rem;color:var(--muted);
+                  width:104px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 生成されるパラメータ行：表示名とモデル側の変数名にそれぞれ固定幅の列を与え、行を揃えつつ
+   変数名が切り詰められないようにする。収まりきらない分は title= のホバーで確認できる。 */
+.slider-row label.param-label{width:132px;flex-shrink:0;display:block;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:help}
+.slider-row .pvar{width:80px;flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:.58rem;
+  opacity:.55;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:help}
+/* 画面が広いときにトラックが伸び切ってラベルを圧迫しないよう上限を設ける。 */
+.slider-row input[type=range]{flex:1 1 90px;max-width:240px;-webkit-appearance:none;height:3px;border-radius:2px;
+  background:var(--border);outline:none;cursor:pointer}
+.slider-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;
+  height:12px;border-radius:50%;background:var(--accent);cursor:pointer;
+  box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.speed-row input[type=range]{accent-color:var(--green)}
+.speed-row input[type=range]::-webkit-slider-thumb{background:var(--green)!important;
+  box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.slider-val{font-family:'IBM Plex Mono',monospace;font-size:.66rem;color:var(--accent);
+            width:46px;text-align:right;flex-shrink:0}
+.slider-row input.slider-num{flex:0 0 auto;width:58px;font-family:'IBM Plex Mono',monospace;
+            font-size:.66rem;color:var(--accent);background:var(--panel);border:1px solid var(--border);
+            border-radius:4px;padding:2px 4px;text-align:right;-webkit-appearance:auto;height:auto}
+.slider-row input.slider-num:focus{outline:none;border-color:var(--accent)}
+.slider-row .param-unit{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted);flex-shrink:0}
+.speed-val{font-family:'IBM Plex Mono',monospace;font-size:.66rem;color:var(--green);
+           width:72px;text-align:right;flex-shrink:0}
+/* 追っかけ再生のタイムライン：実験を続けたまま記録した状態をたどる。 */
+.tl-row{display:flex;align-items:center;gap:6px;margin-top:5px}
+.tl-btn{font-family:'IBM Plex Mono',monospace;font-size:.66rem;padding:2px 7px;border:1px solid var(--border);
+  border-radius:4px;background:var(--surface);color:var(--text);cursor:pointer;flex-shrink:0}
+.tl-btn:hover{border-color:var(--accent);color:var(--accent)}
+.tl-row input[type=range]{flex:1;min-width:60px;accent-color:var(--amber);height:3px}
+.tl-row .tl-btn:disabled,.tl-row input[type=range]:disabled{opacity:.35;cursor:default}
+.tl-pos{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted);
+  width:78px;text-align:right;flex-shrink:0;white-space:nowrap}
+/* 既定はLIVE。過去を見ている間だけ行が琥珀色になる。 */
+.tl-live{display:inline-flex;align-items:center;gap:4px;flex-shrink:0;cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--good);font-weight:600}
+.tl-live input{accent-color:var(--good);cursor:pointer}
+.tl-row.reviewing .tl-live{color:var(--muted);font-weight:400}
+.tl-row.reviewing .tl-pos{color:var(--amber)}
+.tl-row.reviewing input[type=range]{accent-color:var(--amber)}
+
+/* Field image/video buttons */
+.field-actions{display:flex;gap:5px;align-items:center;flex-shrink:0}
+.field-btn{font-family:'IBM Plex Mono',monospace;font-size:.67rem;padding:4px 0;
+           border-radius:4px;border:1px solid var(--border);background:var(--panel);
+           color:var(--text);cursor:pointer;transition:all .13s;white-space:nowrap;
+           flex:1;text-align:center}
+.field-btn:hover{border-color:var(--accent);color:var(--accent)}
+.field-btn.recording{background:rgba(220,38,38,.1);border-color:var(--bad);color:var(--bad)}
+.rec-badge{font-family:'IBM Plex Mono',monospace;font-size:.66rem;padding:2px 7px;
+           border-radius:3px;background:rgba(220,38,38,.12);border:1px solid rgba(220,38,38,.4);
+           color:var(--bad);display:none;white-space:nowrap;animation:pulse 1s infinite;flex-shrink:0}
+.rec-badge.show{display:inline-block}
+
+/* Right col */
+.right-col{flex:1;display:flex;flex-direction:column;overflow-y:auto;
+           background:var(--bg);padding:10px 12px;gap:8px;min-width:0}
+.sep{width:100%;height:1px;background:var(--border);flex-shrink:0}
+.group-label{font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:var(--muted);
+             letter-spacing:.09em;text-transform:uppercase;flex-shrink:0}
+.param-group{display:flex;flex-direction:column;gap:6px}
+.stats-box{background:var(--surface);border:1px solid var(--border);border-radius:4px;
+           padding:5px 9px;font-family:'IBM Plex Mono',monospace;font-size:.65rem;
+           color:var(--muted);line-height:1.9;word-break:break-all;flex-shrink:0}
+.stats-box .sv{color:var(--accent)}
+
+/* ── Setup selector ── */
+.setup-section{display:none;flex-direction:column;gap:5px;flex-shrink:0}
+.setup-section.show{display:flex}
+.setup-btns{display:flex;gap:5px;flex-wrap:wrap}
+.setup-btn{font-family:'IBM Plex Mono',monospace;font-size:.68rem;padding:4px 10px;
+           border-radius:4px;border:1px solid var(--border);background:var(--surface);
+           color:var(--text);cursor:pointer;transition:all .13s;white-space:nowrap}
+.setup-btn:hover{border-color:var(--accent);color:var(--accent)}
+.setup-btn.active{background:rgba(2,132,199,.09);border-color:var(--accent);color:var(--accent);font-weight:500}
+
+/* ── Stop condition ── */
+.stopcond-section{display:none;flex-direction:column;gap:5px;flex-shrink:0}
+.stopcond-section.show{display:flex}
+.stopcond-row{display:flex;align-items:center;gap:8px}
+.stopcond-label{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--text);flex:1;
+                word-break:break-all;line-height:1.5}
+.stopcond-label.active{color:var(--bad);font-weight:500}
+.stopcond-code{font-family:'IBM Plex Mono',monospace;font-size:.63rem;color:#1e4070;
+               background:var(--code-bg);border:1px solid var(--border);border-radius:4px;
+               padding:4px 8px;line-height:1.6;display:none;word-break:break-all}
+.stopcond-code.show{display:block}
+
+/* toggle switch */
+.toggle-wrap{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.toggle{position:relative;width:34px;height:18px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:9px;
+               cursor:pointer;transition:background .2s}
+.toggle input:checked+.toggle-slider{background:var(--bad)}
+.toggle-slider::before{content:'';position:absolute;width:12px;height:12px;
+  left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;
+  box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(16px)}
+
+/* ── Action buttons ── */
+.action-section{display:none;flex-direction:column;gap:5px;flex-shrink:0}
+.action-section.show{display:flex}
+.action-btns{display:flex;gap:5px;flex-wrap:wrap}
+.action-btn{font-family:'IBM Plex Mono',monospace;font-size:.7rem;padding:5px 12px;
+            border-radius:4px;border:1px solid var(--border);background:var(--surface);
+            color:var(--text);cursor:pointer;transition:all .13s;white-space:nowrap;font-weight:500}
+.action-btn:hover{filter:brightness(.93)}
+.action-btn:active{filter:brightness(.85)}
+
+/* Charts */
+.charts-section{display:none;flex-direction:column;gap:10px;flex-shrink:0}
+.charts-section.show{display:flex}
+.chart-block{display:flex;flex-direction:column;gap:4px}
+.chart-hdr{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-height:18px}
+.chart-title{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted);
+             letter-spacing:.07em;text-transform:uppercase}
+.legend{display:flex;gap:8px;flex-wrap:wrap;flex:1}
+.legend-item{display:flex;align-items:center;gap:3px;font-family:'IBM Plex Mono',monospace;
+             font-size:.58rem;color:var(--muted)}
+.legend-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.chart-canvas-wrap{border:1px solid var(--border);border-radius:5px;overflow:hidden;flex-shrink:0;
+                   box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.chart-canvas-wrap canvas{display:block}
+.chart-action-btn{font-family:'IBM Plex Mono',monospace;font-size:.57rem;padding:2px 6px;
+                  border-radius:3px;border:1px solid var(--border);background:var(--surface);
+                  color:var(--muted);cursor:pointer;transition:all .13s;white-space:nowrap;flex-shrink:0}
+.chart-action-btn:hover{border-color:var(--good);color:var(--good)}
+.chart-action-btn.done{border-color:var(--good);color:var(--good)}
+
+.toggle.loop input:checked+.toggle-slider{background:var(--violet)}
+
+/* ── Code bar ── */
+.code-bar{flex-shrink:0;border-top:1px solid var(--border);background:var(--surface);
+          display:flex;flex-direction:column;box-shadow:0 -1px 4px rgba(0,0,0,.05)}
+.code-bar-header{display:flex;align-items:center;gap:6px;padding:5px 12px;
+                 flex-wrap:wrap;flex-shrink:0}
+.code-toggle{font-family:'IBM Plex Mono',monospace;font-size:.68rem;padding:2px 8px;
+             border-radius:3px;border:1px solid var(--border);background:var(--panel);
+             color:var(--muted);cursor:pointer;transition:all .13s;white-space:nowrap}
+.code-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.code-toggle.open{border-color:rgba(2,132,199,.5);color:var(--accent);background:rgba(2,132,199,.06)}
+.cbtn{font-family:'IBM Plex Mono',monospace;font-size:.68rem;padding:3px 9px;border-radius:4px;
+      border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;
+      transition:all .12s;white-space:nowrap}
+.cbtn:hover{border-color:var(--accent);color:var(--accent)}
+.cbtn.primary{background:rgba(2,132,199,.09);border-color:var(--accent);color:var(--accent)}
+.cbtn.primary:hover{background:rgba(2,132,199,.16)}
+.cbtn.amber{background:rgba(180,83,9,.08);border-color:var(--amber);color:var(--amber)}
+.cbtn.green{background:rgba(21,128,61,.08);border-color:var(--green);color:var(--green)}
+.cbtn.violet{background:rgba(109,40,217,.08);border-color:var(--violet);color:var(--violet)}
+.ok-badge{font-family:'IBM Plex Mono',monospace;font-size:.66rem;color:var(--good);
+          opacity:0;transition:opacity .3s}
+.ok-badge.show{opacity:1}
+.code-body{display:none;flex-direction:column;gap:5px;padding:0 12px 8px;max-height:260px}
+.code-body.open{display:flex}
+.code-wrap{flex:1;border:1px solid var(--border);border-radius:5px;overflow:hidden;
+           background:var(--code-bg);min-height:140px}
+.code-wrap:focus-within{border-color:rgba(2,132,199,.5);box-shadow:0 0 0 2px rgba(2,132,199,.08)}
+textarea{width:100%;height:100%;min-height:140px;background:transparent;border:none;
+         outline:none;color:#1e4070;font-family:'IBM Plex Mono',monospace;font-size:.73rem;
+         line-height:1.6;padding:8px 11px;resize:none;tab-size:2}
+.error-box{font-family:'IBM Plex Mono',monospace;font-size:.67rem;color:var(--bad);
+           background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.25);
+           border-radius:3px;padding:4px 9px;display:none;line-height:1.5}
+.error-box.show{display:block}
+
+/* ════════ v6 additions ════════ */
+
+/* Param row: info icon + "needs setup" marker */
+.slider-row .pinfo{font-family:'IBM Plex Mono',monospace;font-size:.6rem;width:14px;height:14px;
+  flex-shrink:0;border:1px solid var(--border);border-radius:50%;color:var(--muted);
+  display:inline-flex;align-items:center;justify-content:center;cursor:help;line-height:1;
+  background:var(--surface);transition:all .13s;position:relative}
+.slider-row .pinfo:hover{border-color:var(--accent);color:var(--accent)}
+.slider-row .pinfo .tip{display:none;position:absolute;bottom:130%;left:50%;transform:translateX(-50%);
+  width:200px;background:var(--text);color:#fff;font-size:.62rem;line-height:1.5;padding:6px 8px;
+  border-radius:5px;z-index:60;white-space:normal;text-align:left;box-shadow:0 3px 10px rgba(0,0,0,.25);
+  font-family:'Noto Sans JP',sans-serif;pointer-events:none}
+.slider-row .pinfo:hover .tip{display:block}
+.slider-row label.needs-setup{color:var(--violet);font-weight:500}
+.slider-row label.needs-setup::after{content:' ⟳';color:var(--violet);font-size:.7em}
+
+/* Settings (param behavior) */
+.settings-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;
+  font-size:.62rem;color:var(--muted)}
+.settings-row .seg{display:inline-flex;border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.settings-row .seg button{font-family:'IBM Plex Mono',monospace;font-size:.62rem;padding:3px 8px;border:none;
+  background:var(--surface);color:var(--muted);cursor:pointer;transition:all .12s;border-right:1px solid var(--border)}
+.settings-row .seg button:last-child{border-right:none}
+.settings-row .seg button.on{background:rgba(2,132,199,.1);color:var(--accent);font-weight:500}
+.view-seg{display:inline-flex;border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.view-seg button{font-family:'IBM Plex Mono',monospace;font-size:.66rem;padding:4px 12px;border:none;
+  background:var(--surface);color:var(--muted);cursor:pointer;transition:all .12s;border-right:1px solid var(--border)}
+.view-seg button:last-child{border-right:none}
+.view-seg button.on{background:rgba(2,132,199,.1);color:var(--accent);font-weight:500}
+.view-row{display:flex;align-items:center;gap:8px;margin-top:2px}
+.view-row > label{font-family:'IBM Plex Mono',monospace;font-size:.66rem;color:var(--muted);white-space:nowrap}
+.reset-hint{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--violet);
+  background:rgba(109,40,217,.07);border:1px solid rgba(109,40,217,.3);border-radius:4px;
+  padding:4px 8px;display:none;align-items:center;gap:6px;flex-shrink:0}
+.reset-hint.show{display:flex}
+.reset-hint button{font-family:'IBM Plex Mono',monospace;font-size:.62rem;padding:2px 8px;border-radius:3px;
+  border:1px solid var(--violet);background:var(--surface);color:var(--violet);cursor:pointer}
+.reset-hint button:hover{background:rgba(109,40,217,.1)}
+
+/* Experiment snapshots / compare */
+.snap-section{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.snap-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.snap-btn{font-family:'IBM Plex Mono',monospace;font-size:.64rem;padding:4px 9px;border-radius:4px;
+  border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;transition:all .13s;white-space:nowrap}
+.snap-btn:hover{border-color:var(--good);color:var(--good)}
+.snap-btn.danger:hover{border-color:var(--bad);color:var(--bad)}
+.snap-list{display:flex;flex-direction:column;gap:4px}
+.snap-item{display:flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--border);
+  border-radius:4px;padding:4px 8px;font-family:'IBM Plex Mono',monospace;font-size:.62rem}
+.snap-item .dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.snap-item .nm{color:var(--text);font-weight:500;flex-shrink:0}
+.snap-item .pm{color:var(--muted);flex:1;word-break:break-all;line-height:1.4}
+.snap-item .x{cursor:pointer;color:var(--muted);flex-shrink:0;padding:0 3px;border-radius:3px}
+.snap-item .x:hover{color:var(--bad);background:rgba(220,38,38,.08)}
+.snap-item.off{opacity:.45}
+.snap-item .eye{cursor:pointer;flex-shrink:0;font-size:.7rem}
+.snap-empty{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted);
+  border:1px dashed var(--border);border-radius:4px;padding:6px 9px;line-height:1.5}
+
+/* small select (recording format etc) */
+.mini-sel{font-family:'IBM Plex Mono',monospace;font-size:.64rem;padding:3px 5px;border-radius:4px;
+  border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;flex-shrink:0}
+
+/* fps readout */
+.fps-badge{font-family:'IBM Plex Mono',monospace;font-size:.66rem;padding:3px 9px;
+  border:1px solid var(--border);border-radius:4px;color:var(--muted);
+  background:var(--panel);white-space:nowrap;min-width:64px;text-align:center}
+
+/* Code editor: line-number gutter */
+.code-wrap{display:flex}
+.code-gutter{flex-shrink:0;width:38px;padding:8px 6px 8px 0;text-align:right;background:rgba(0,0,0,.03);
+  color:#9aa5b8;font-family:'IBM Plex Mono',monospace;font-size:.73rem;line-height:1.6;
+  user-select:none;overflow:hidden;border-right:1px solid var(--border);white-space:pre}
+.error-box{cursor:default}
+.error-box .errline{display:block;margin-top:4px;color:#7a1d1d;background:rgba(220,38,38,.08);
+  border-radius:3px;padding:2px 6px;font-size:.63rem;white-space:pre-wrap;word-break:break-all}
+.error-box .errhint{display:block;margin-top:3px;color:var(--amber);font-size:.63rem}
+
+/* Help overlay */
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:200;display:none;
+  align-items:center;justify-content:center;padding:24px}
+.overlay.show{display:flex}
+.overlay-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  max-width:720px;width:100%;max-height:84vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.overlay-card header{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border);
+  padding:12px 18px;display:flex;align-items:center;gap:10px;z-index:2}
+.overlay-card header h2{font-family:'Syne',sans-serif;font-size:1rem;color:var(--text);letter-spacing:.03em}
+.overlay-card .ovbody{padding:6px 22px 22px}
+.overlay-card h3{font-family:'IBM Plex Mono',monospace;font-size:.74rem;color:var(--accent);
+  letter-spacing:.04em;margin:16px 0 6px;border-left:3px solid var(--accent);padding-left:8px}
+.overlay-card p,.overlay-card li{font-family:'Noto Sans JP',sans-serif;font-size:.78rem;color:var(--text);
+  line-height:1.7}
+.overlay-card ul{margin:4px 0 4px 18px}
+.overlay-card code{font-family:'IBM Plex Mono',monospace;font-size:.72rem;background:var(--code-bg);
+  border:1px solid var(--border);border-radius:3px;padding:1px 5px;color:#1e4070}
+.overlay-card .close-x{margin-left:auto;cursor:pointer;font-family:'IBM Plex Mono',monospace;
+  font-size:.8rem;color:var(--muted);border:1px solid var(--border);border-radius:5px;padding:3px 10px;background:var(--panel)}
+.overlay-card .close-x:hover{border-color:var(--bad);color:var(--bad)}
+.focus-mini-btn{font-family:'IBM Plex Mono',monospace;font-size:.62rem;padding:3px 8px;border-radius:5px;
+  border:1px solid var(--border);background:var(--panel);color:var(--accent);cursor:pointer;white-space:nowrap}
+.focus-mini-btn:hover{border-color:var(--accent);background:rgba(2,132,199,.06)}
+.zoom-card{max-width:580px;width:auto}
+.zoom-body{padding:16px 20px 20px;display:flex;flex-direction:column;align-items:center;gap:14px}
+#evoZoomCanvas{width:min(74vw,480px);height:min(74vw,480px);background:#0b1020;border:1px solid var(--border);border-radius:8px;display:block}
+.zoom-ctrl{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center}
+.zoom-ctrl .ctrl-btn{padding:5px 12px;width:auto}
+.zoom-anim{display:flex;align-items:center;gap:12px}
+.zoom-spd{display:inline-flex;align-items:center;gap:7px;font-family:'IBM Plex Mono',monospace;font-size:.66rem;color:var(--muted)}
+.zoom-spd input[type=range]{width:120px;accent-color:var(--green)}
+.zoom-spd #evoZoomSpeedVal{color:var(--green);width:46px}
+.ctrl-btn.recording{border-color:var(--bad)!important;color:var(--bad)!important;background:rgba(220,38,38,.08)!important}
+.kbd{font-family:'IBM Plex Mono',monospace;font-size:.68rem;background:var(--panel);border:1px solid var(--border);
+  border-radius:3px;padding:1px 5px}
+
+/* Toast */
+.toast{position:fixed;bottom:12px;right:14px;background:var(--surface);
+       border:1px solid var(--good);border-radius:5px;padding:6px 12px;
+       font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--good);
+       opacity:0;transform:translateY(4px);transition:opacity .18s,transform .18s;
+       pointer-events:none;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.toast.bad{border-color:var(--bad);color:var(--bad)}
+.toast.show{opacity:1;transform:translateY(0)}
+/* ── 遺伝子パネル ── */
+.gene-section{display:none;flex-direction:column;gap:7px}
+.gene-section.show{display:flex}
+.gene-box{display:flex;flex-direction:column;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:.64rem}
+.desc-box{font-size:.66rem;line-height:1.5;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:8px 10px;margin-bottom:4px}
+.desc-box .desc-sum{color:var(--accent);font-weight:500;margin-bottom:5px}
+.desc-box .desc-row{margin:3px 0;display:flex;gap:6px}
+.desc-box .desc-k{flex:0 0 3.4em;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:.6rem;padding-top:1px}
+.desc-box .desc-v{flex:1}
+.desc-box.empty{display:none}
+.gene-def{color:var(--muted);line-height:1.55;background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:7px 9px}
+.gene-def b{color:var(--text)}
+.gene-def .pill{display:inline-block;padding:0 6px;margin-right:4px;border-radius:10px;border:1px solid var(--border);color:var(--text);background:var(--surface)}
+.gene-best{display:flex;flex-direction:column;gap:6px}
+.gene-seg{display:flex;align-items:center;gap:7px;flex-wrap:wrap;line-height:1.2}
+.gene-seg-label{min-width:72px;color:var(--muted);flex-shrink:0}
+.gene-bits{display:flex;gap:2px;flex-wrap:wrap}
+.bitcell{width:10px;height:14px;border-radius:2px;border:1px solid var(--border);background:transparent;transition:background .12s}
+.bitcell.on{background:var(--violet);border-color:var(--violet)}
+.gene-reals{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.realchip{position:relative;padding:1px 6px;border:1px solid var(--border);border-radius:4px;background:var(--panel);color:var(--text);overflow:hidden}
+.realchip .bar{position:absolute;left:0;bottom:0;height:3px;background:var(--accent);opacity:.55}
+.gene-val{margin-left:auto;color:var(--accent);font-weight:500;white-space:nowrap}
+.gene-empty{color:var(--muted)}
+
+/* ── Chart axis range controls ── */
+.chart-axis-row{display:none;align-items:center;gap:5px;flex-wrap:wrap;
+  font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted);
+  background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:4px 7px;margin-top:-2px}
+.chart-axis-row.show{display:flex}
+.axis-lbl{color:var(--muted);white-space:nowrap}
+.axis-num{width:64px;font-family:'IBM Plex Mono',monospace;font-size:.62rem;padding:2px 4px;
+  border-radius:3px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.axis-num:disabled{opacity:.4;background:var(--bg)}
+.chart-action-btn.axis-on{border-color:var(--violet);color:var(--violet)}
+
+/* ══════════════════════════════════════════════════════════════
+   スマホ対応
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width:900px){
+  html{font-size:12pt}
+  body{overflow-y:auto;overflow-x:hidden;height:auto;min-height:100%}
+  header{flex-wrap:wrap;row-gap:6px;padding:8px 10px}
+  header h1{font-size:.92rem}
+  .tick-badge,.fps-badge,.run-badge,.loop-badge,.stopped-badge{font-size:.64rem}
+  .workspace{flex-direction:column;overflow:visible;height:auto;min-height:0}
+  .left-col{width:100%!important;flex:0 0 auto;border-right:none;border-bottom:1px solid var(--border);
+    overflow:visible;padding:9px;align-items:stretch}
+  .canvas-wrap{width:100%;max-width:480px;margin:0 auto;flex-shrink:0}
+  #simCanvas{width:100%!important;height:auto!important;display:block}
+  .field-actions{flex-wrap:wrap}
+  .right-col{width:100%;overflow:visible;padding:9px 10px}
+  .setup-btns,.action-btns{flex-wrap:wrap}
+  .code-bar-header{padding:6px 8px}
+  .code-body{max-height:none}
+  /* スマホでは高さが確定せず約140px（≒7行）に潰れ、行番号だけ伸びて下が空白になる。
+     確定した高さを与え、行番号・テキストとも内部スクロール（scroll同期済み）させる。 */
+  .code-wrap{flex:0 0 auto;height:52vh;min-height:0}
+  #codeArea{min-height:0}
+  .overlay{padding:10px}
+  .overlay-card{max-height:92vh}
+  .chart-hdr{row-gap:4px}
+}
+@media (max-width:480px){
+  html{font-size:11pt}
+  header h1{font-size:.82rem}
+  header h1 span{display:none}
+  .fs-ctrl,.fps-badge{display:none}
+  .slider-row label{width:74px}
+  .slider-row label.param-label{width:92px}
+  .slider-row .pvar{display:none}
+  .slider-row input[type=range]{max-width:none}
+  .ctrl-btn{font-size:.66rem}
+  .cbtn,.code-toggle{padding:3px 7px}
+}
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1><em>Evo</em> Studio <span style="font-size:.65em;font-weight:400;opacity:.6">v1.0</span></h1>
+  <div class="tick-badge" id="tickBadge">世代: 0</div>
+  <div class="fps-badge"  id="fpsBadge">— fps</div>
+  <div class="run-badge"     id="runBadge">● RUNNING</div>
+  <div class="loop-badge"    id="loopBadge">↺ LOOP</div>
+  <div class="stopped-badge" id="stoppedBadge">■ STOPPED</div>
+  <div class="spacer"></div>
+    <div class="fs-ctrl" title="文字の大きさ（A− / A＋）">
+    <button class="hbtn fs-btn" onclick="adjustFont(-1)">A−</button>
+    <span class="fs-val" id="fsVal">15pt</span>
+    <button class="hbtn fs-btn" onclick="adjustFont(1)">A＋</button>
+  </div>
+    <button class="hbtn" id="soundBtn" onclick="toggleSound()" title="音：オン（クリックで消音）">🔊</button>
+  <button class="hbtn" onclick="openHelp()">❔ ヘルプ</button>
+</header>
+
+<div class="workspace">
+
+  <!-- Left: canvas + playback -->
+  <div class="left-col">
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="simCanvas" width="470" height="470"></canvas>
+    </div>
+    <div class="field-actions">
+      <button class="field-btn" onclick="copyFieldImage()" title="現在のフィールドをコピー">📋 コピー</button>
+      <button class="field-btn" onclick="saveFieldImage()" title="PNGで保存">⬇ 保存</button>
+      <button class="field-btn" id="recordBtn" onclick="toggleRecording()" title="動画録画">⏺ 録画</button>
+      <select class="mini-sel" id="recFmtSel" title="録画の出力形式">
+        <option value="auto">形式:自動</option>
+        <option value="mp4">MP4</option>
+        <option value="webm">WebM</option>
+      </select>
+      <select class="mini-sel" id="fieldSizeSel" onchange="setFieldSize(this.value)" title="フィールドの表示サイズ（実行中の状態は保持されます）">
+        <option value="470">サイズ:標準</option>
+        <option value="600">サイズ:大</option>
+        <option value="760">サイズ:特大</option>
+      </select>
+      <span class="rec-badge" id="recBadge">● REC</span>
+    </div>
+    <div class="ctrl-row">
+      <button class="ctrl-btn play-act" id="playBtn" onclick="toggleSim()">▶ 進化開始</button>
+      <button class="ctrl-btn" onclick="stepOnce()">⏭ 1世代</button>
+      <button class="ctrl-btn" onclick="resetSim()">⟳ 初期化</button>
+    </div>
+    <!-- Time-shift: scrub back through recorded states while the run continues in the background -->
+    <div class="tl-row" id="timelineRow" style="display:none">
+      <button class="tl-btn" id="tlPlayBtn" onclick="toggleReviewPlay()" title="記録した状態を再生する">▶</button>
+      <input type="range" id="tlScrub" min="0" max="0" value="0" oninput="onScrubInput(this.value)" title="記録した状態をたどる">
+      <span class="tl-pos" id="tlPos">—</span>
+      <label class="tl-live" id="tlLiveLbl" title="最新のステップを表示し続けます。チェックを外す（またはバーを動かす）と、裏で実験を続けたまま過去の状態を見返せます。">
+        <input type="checkbox" id="tlLiveChk" checked onchange="onLiveToggle()"> LIVE
+      </label>
+    </div>
+    <div class="view-row">
+      <label>表示</label>
+      <span class="view-seg" id="viewSeg">
+        <button id="vmBest" class="on" onclick="setViewMode('best')" title="最良個体だけを大きく表示">最良のみ</button>
+        <button id="vmAll" onclick="setViewMode('all')" title="集団の上位個体をタイル表示（適応度順）">全個体</button>
+      </span>
+      <span id="allCountWrap" style="display:none;align-items:center;gap:6px">
+        <label style="font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--muted);white-space:nowrap">表示数</label>
+        <input type="range" id="allCountSlider" min="4" max="36" step="1" value="9" oninput="updateAllCount()" style="width:84px;accent-color:var(--accent)">
+        <span id="allCountVal" style="font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--accent);white-space:nowrap">9 個</span>
+      </span>
+      <label style="display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--muted);white-space:nowrap;cursor:pointer" title="歩行モデルで重心の位置と高さを表示します">
+        <input type="checkbox" id="comToggle" onchange="toggleCoM()" style="accent-color:var(--accent)"> 重心線
+      </label>
+      <button class="focus-mini-btn" onclick="openEvoZoom()" title="現在までの最良個体を拡大表示して観察・画像/動画保存">🔍 最良を拡大</button>
+    </div>
+    <div class="slider-row speed-row">
+      <label>実行速度</label>
+      <input type="range" id="speedSlider" min="0" max="100" step="1" value="64"
+             oninput="updateSpeedLabel()">
+      <span class="speed-val" id="speedVal">6.0 世代/秒</span>
+    </div>
+    <div class="slider-row">
+      <label>最大世代</label>
+      <input type="range" id="maxTickSlider" min="10" max="5000" step="10" value="300"
+             oninput="updateMaxTickLabel()">
+      <span class="slider-val" id="maxTickVal" style="color:var(--muted)">300</span>
+      <select id="maxTickModeSel" class="mini-sel" onchange="onLoopToggle()" title="最大世代に到達したときの挙動" style="margin-left:4px;flex-shrink:0">
+        <option value="stop" selected>⏹ 停止のみ（最初に戻らない）</option>
+        <option value="loop">🔁 ループ（初期化して再開）</option>
+      </select>
+    </div>
+    <div class="slider-row" title="描画を間引いて計算を高速化します（個体数や評価が重いとき有効）">
+      <label>描画間引き</label>
+      <input type="range" id="drawEverySlider" min="1" max="20" step="1" value="1"
+             oninput="updateDrawEveryLabel()">
+      <span class="slider-val" id="drawEveryVal" style="color:var(--muted)">毎回</span>
+    </div>
+  </div>
+
+  <!-- Right: setup presets + action buttons + params + stats + charts -->
+  <div class="right-col">
+
+    <!-- Setup presets (SETUP_DEFS) -->
+    <div class="setup-section" id="setupSection">
+      <div class="group-label">初期状態プリセット</div>
+      <div class="setup-btns" id="setupBtns"></div>
+    </div>
+
+    <!-- Action buttons (BUTTON_DEFS) -->
+    <div class="action-section" id="actionSection">
+      <div class="group-label">コマンド</div>
+      <div class="action-btns" id="actionBtns"></div>
+    </div>
+
+    <!-- Stop condition (STOP_COND) -->
+    <div class="stopcond-section" id="stopcondSection">
+      <div class="group-label">停止条件</div>
+      <div class="stopcond-row">
+        <label class="toggle" title="停止条件のオン／オフ">
+          <input type="checkbox" id="stopcondToggle" checked onchange="onStopCondToggle()">
+          <span class="toggle-slider"></span>
+        </label>
+        <span class="stopcond-label" id="stopcondLabel">—</span>
+      </div>
+      <div class="stopcond-code" id="stopcondCode"></div>
+    </div>
+
+    <div class="sep" id="sepTop" style="display:none"></div>
+
+    <!-- Params -->
+    <div class="group-label">パラメータ</div>
+    <div class="settings-row">
+      <span>スライダー変更時:</span>
+      <span class="seg" id="paramModeSeg">
+        <button id="pmode_live"  class="on" onclick="setParamMode('live')"  title="実行中の進化に即時反映（再初期化しない）">即時反映</button>
+        <button id="pmode_reset" onclick="setParamMode('reset')" title="変更したら自動で初期化">自動初期化</button>
+      </span>
+    </div>
+    <div class="param-group" id="paramGroup"></div>
+    <div class="reset-hint" id="resetHint">
+      <span>⟳ 個体数など初期化に関わる値が変わりました。反映するには初期化が必要です。</span>
+      <button onclick="resetSim()">今すぐ初期化</button>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Stats -->
+    <div class="group-label">状態</div>
+    <div class="stats-box" id="statsBox"><span class="sv">—</span></div>
+
+    <div class="sep"></div>
+
+    <!-- Genome (definition + best individual) -->
+    <div class="gene-section show" id="geneSection">
+      <div class="group-label">このモデルの説明</div>
+      <div class="desc-box" id="descBox"></div>
+
+      <div class="group-label">遺伝子（定義と最良個体）</div>
+      <div class="gene-box" id="geneBox"></div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Experiment snapshots / compare -->
+    <div class="snap-section" id="snapSection">
+      <div class="snap-head">
+        <span class="group-label" style="flex:1">実験の保存・比較</span>
+        <button class="snap-btn" id="snapSaveBtn" onclick="saveSnapshot()" title="現在の実行結果（グラフ）とパラメータを保存して比較に重ねます">📸 現在を保存</button>
+        <button class="snap-btn danger" onclick="clearSnapshots()" title="保存した実験をすべて削除">🗑 クリア</button>
+        <button class="snap-btn" onclick="downloadAllCSV()" title="全グラフのデータと保存実験をCSVファイルで保存">⬇ CSV保存</button>
+        <button class="snap-btn" onclick="downloadDataZip()" title="初期化以降の全データ（現在の実行＋保存実験）を CSV と JSON にまとめて ZIP でダウンロード">📦 一式DL</button>
+      </div>
+      <div class="rec-frames-row" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:.66rem;color:var(--muted)">
+        <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer" title="各ステップの状態を記録します。追っかけ再生のタイムラインと、同梱ビュワーでの再生は、いずれもこの記録を使います。PCでは、実行中に気づいた現象へいつでも戻れるよう既定でオン。メモリの余裕が少ないスマートフォン・タブレットでは既定でオフです。いつでも切り替えられます（記録は右の上限で自動的に止まります）。">
+          <input type="checkbox" id="recFramesChk" checked onchange="updateTimelineUI()" style="accent-color:var(--accent)"> 状態を記録（追っかけ再生・再生用）
+        </label>
+        <label style="display:inline-flex;align-items:center;gap:4px" title="状態を記録する間隔">間隔
+          <select class="mini-sel" id="recFramesInterval">
+            <option value="1">毎世代</option>
+            <option value="2">2世代ごと</option>
+            <option value="5">5世代ごと</option>
+            <option value="10">10世代ごと</option>
+            <option value="20">20世代ごと</option>
+          </select>
+        </label>
+        <label style="display:inline-flex;align-items:center;gap:4px" title="記録した状態が使ってよいメモリの上限。これを超えると記録を止めます。「無制限」ではブラウザのメモリが尽きるまで記録し続けます。">上限
+          <select class="mini-sel" id="recFramesCap">
+            <option value="100">100 MB</option>
+            <option value="500" selected>500 MB</option>
+            <option value="1024">1 GB</option>
+            <option value="2048">2 GB</option>
+            <option value="0">無制限</option>
+          </select>
+        </label>
+        <span id="recFramesInfo"></span>
+      </div>
+      <div class="snap-list" id="snapList"></div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Charts -->
+    <div class="charts-section" id="chartsSection"></div>
+
+  </div>
+</div>
+
+<!-- Code bar -->
+<div class="code-bar">
+  <div class="code-bar-header">
+    <button class="code-toggle" id="codeToggle" onclick="toggleCode()">▸ コード</button>
+    <button class="cbtn primary" onclick="applyCode()">▶ 適用</button>
+    <button class="cbtn green"   onclick="pasteAndApply()" title="生成AIからコピーしたコードでコード欄を置き換えて適用">📥 貼り付けて適用</button>
+    <button class="cbtn"         onclick="copyCurrentCode()" title="現在のコード欄の内容をクリップボードにコピー">📋 コードをコピー</button>
+    <button class="cbtn amber"   onclick="copySpec()">📋 仕様書コピー</button>
+    <button class="cbtn"         onclick="copyNewModelPrompt()">✨ 新規作成プロンプト</button>
+    <button class="cbtn"         onclick="copyModPrompt()">✏️ 改変プロンプト</button>
+    <button class="cbtn"         onclick="copyExplainPrompt()" title="現在のコードがどんなモデルかを説明させるプロンプトをコピー">📖 説明プロンプト</button>
+    <button class="cbtn"         onclick="copyPythonPrompt()" title="現在のコードを Python スクリプト＋requirements.txt に変換させるプロンプトをコピー">🐍 Python化プロンプト</button>
+    <button class="cbtn violet"  onclick="openAI()" title="OpenAI互換API（LM Studio等）で生成・改変">🤖 AI生成</button>
+    <button class="cbtn green"   onclick="saveModelFile()" title="現在のコードを .js ファイルとして保存">💾 .js保存</button>
+    <button class="cbtn"         onclick="document.getElementById('modelFileInput').click()" title="保存した .js / .txt を読み込む">📂 開く</button>
+    <button class="cbtn amber"   onclick="exportStandaloneHTML()" title="今動かしているモデルだけを実行できる、独立したHTMLファイルを書き出します（コード編集・AI生成UIなし）">💾 HTML出力</button>
+    <input type="file" id="modelFileInput" accept=".js,.txt,.text" style="display:none" onchange="loadModelFile(event)">
+    <select id="modelSelect" onchange="loadFromSelect(this.value)" style="font-family:'IBM Plex Mono',monospace;font-size:.68rem;padding:3px 6px;border-radius:4px;border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;max-width:240px">
+      <option value="">── モデルを選択 ──</option>
+      <optgroup label="進化計算（遺伝的アルゴリズム）">
+        <option value="funcopt">① ビット列GA ─ 関数最適化</option>
+        <option value="springbot">② 質点バネ生物 ─ 2D仮想生物の進化</option>
+        <option value="softbody">③ ソフトボディ生物 ─ 形と動きの進化</option>
+        <option value="knapsack">④ ナップザック問題</option>
+        <option value="tsp">⑤ 巡回セールスマン問題（TSP）</option>
+      </optgroup>
+    </select>
+    <span class="ok-badge" id="okBadge">✓ 適用しました</span>
+  </div>
+  <div class="code-body" id="codeBody">
+    <div class="code-wrap">
+      <div class="code-gutter" id="codeGutter">1</div>
+      <textarea id="codeArea" spellcheck="false"></textarea>
+    </div>
+    <div class="error-box" id="errorBox"></div>
+  </div>
+</div>
+
+<!-- Help overlay -->
+<div class="overlay" id="evoZoomOverlay" onclick="if(event.target===this)closeEvoZoom()">
+  <div class="overlay-card zoom-card">
+    <header>
+      <h2 id="evoZoomTitle">最良個体の拡大</h2>
+      <span class="close-x" onclick="closeEvoZoom()">✕ 閉じる</span>
+    </header>
+    <div class="zoom-body">
+      <canvas id="evoZoomCanvas" width="480" height="480"></canvas>
+      <div class="zoom-ctrl">
+        <div class="zoom-anim" id="evoZoomCtrlAnim">
+          <button class="ctrl-btn" id="evoZoomPlayBtn" onclick="toggleEvoZoomPlay()">⏸ 停止</button>
+          <label class="zoom-spd">速度
+            <input type="range" id="evoZoomSpeed" min="0.1" max="4" step="0.1" value="1.0" oninput="updateEvoZoomSpeed()">
+            <span id="evoZoomSpeedVal">1.0×</span>
+          </label>
+        </div>
+        <button class="ctrl-btn" onclick="evoZoomSavePNG()">🖼 画像保存(PNG)</button>
+        <button class="ctrl-btn" id="evoZoomRecBtn" onclick="zoomToggleRecord()">⏺ 録画</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="helpOverlay" onclick="if(event.target===this)closeHelp()">
+  <div class="overlay-card">
+    <header>
+      <h2>EVO Studio v1.0 — つかいかた</h2>
+      <span class="close-x" onclick="closeHelp()">✕ 閉じる</span>
+    </header>
+    <div class="ovbody">
+      <p>EVO Studio は <b>遺伝的アルゴリズム（GA）</b> を体験するツールです。個体群を「評価 → 選択 → 交叉 → 突然変異 → 次世代」と世代ごとに更新し、適応度（評価値）が高い個体が選ばれていく様子をリアルタイムに観察できます。GA の仕組みはエンジン側が担当し、あなたは <code>fitness</code>（評価関数）や <code>draw</code>（描画）などを書くだけです。</p>
+
+      <p><b> </b>スマホ・タブレット対応（画面幅が狭いとレイアウトが自動で縦積みに），<b>🐍 Python化プロンプト</b>（現在のモデルを matplotlib 版 Python スクリプト＋requirements.txt に変換するプロンプトをコピー），グラフの<b>縦軸・横軸の範囲設定</b>（各グラフの <span class="ui">⚙ 軸</span> から自動調整／手動設定を切り替え），<b>最大世代の既定を「⏹ 停止のみ」に変更</b>（従来通り繰り返したい場合は隣のセレクタを 🔁 ループ に切り替え）を追加しました。</p>
+
+      <h3>2つの内蔵モデル</h3>
+      <ul>
+        <li><b>① ビット列GA ─ 関数最適化</b>：32ビットの遺伝子を実数 x, y にデコードし、評価関数（既定は Rastrigin の最小化）を最適化します。探索空間に個体が点で表示され、最適点（原点）に集まっていきます。</li>
+        <li><b>② 質点バネ生物 ─ 2D仮想生物の進化</b>：4つの質点を筋肉バネでつないだ仮想生物を物理モデルで歩かせ、<b>右へ進んだ距離</b>を評価して進化させます。最良個体がその場で歩く様子を表示します。</li>
+      </ul>
+
+      <h3>基本操作</h3>
+      <ul>
+        <li><b>▶ 進化開始 / ⏸ 停止</b>：進化の実行・停止。<b>⏭ 1世代</b> は1世代だけ進めます。</li>
+        <li><b>⟳ 初期化</b>：現在のパラメータでランダムな初期個体群を作り直します。</li>
+        <li><b>実行速度</b>：1秒あたりに進める世代数（約0.1〜60 世代/秒、対数）。<b>1未満にすると1世代に時間をかけて生物の歩行をじっくり観察</b>でき、関数最適化を速く回したいときは大きくします。</li>
+        <li><b>重心線</b>（表示の右）：歩行モデル（質点バネ生物／ソフトボディ生物）で<b>重心の位置（縦の破線）と高さ（横線）</b>を表示します。歩行のリズムや体の上下動が一目で分かります。</li>
+        <li><b>🔍 最良を拡大</b>：<b>現在までの最良個体</b>を大きく表示します。歩行モデルはその場で動き（速度・一時停止可）、<b>🖼 画像(PNG)</b>や<b>⏺ 録画（WebM/MP4）</b>で保存できます。より良い個体が見つかると自動で切り替わります。</li>
+        <li><b>最大世代</b>：既定の <b>⏹ 停止のみ</b> では、指定世代に達すると<b>停止</b>します（最初に戻りません）。隣のセレクタを <b>🔁 ループ</b> に切り替えると、その世代で自動的に初期化して繰り返します。<b>描画間引き</b>は重いとき計算を優先して描画を間引きます。</li>
+      </ul>
+
+      <h3>遺伝子パネル（定義と最良個体）</h3>
+      <ul>
+        <li>右側の「<b>遺伝子（定義と最良個体）</b>」に、いま使われている遺伝子の<b>定義</b>（型・長さ・範囲と説明）と、現世代で最も適応度が高い個体の<b>遺伝子そのもの</b>が表示されます。</li>
+        <li>ビット列は<b>マス目</b>（塗り=1）で、実数は<b>数値チップ</b>（バーは範囲内の大きさ）で表示され、世代が進むと更新されます。</li>
+        <li>自作モデルでは <code>geneInfo</code>（説明文）と <code>geneView(genome, params)</code>（分割表示）を定義すると、より分かりやすく表示できます（省略時は遺伝子をそのまま表示）。</li>
+      </ul>
+
+      <h3>★ 適応度（評価の方法）を自分で決める</h3>
+      <ul>
+        <li>コード欄の <code>fitness(genome, params)</code> が<b>評価関数</b>です。<b>大きいほど良い</b>値を返します（最大化）。最小化したい関数は符号を反転して <code>return -f</code> とします。</li>
+        <li>例：関数最適化で <code>rastrigin</code> を <code>rosenbrock</code> に変える、質点バネ生物で <code>return r.distance</code> を <code>return r.maxHeight</code> に変えて「高く跳ぶ生物」を進化させる、など。</li>
+        <li>遺伝子の形式は <code>GENE = { type:'bit'|'real', length, min, max }</code> で決めます。<code>decode()</code> を使うと遺伝子を意味のある値（座標・設計）に変換できます。</li>
+      </ul>
+
+      <h3>パラメータ（GA の調整）</h3>
+      <ul>
+        <li><b>個体数 popSize</b>・<b>突然変異率 mutationRate</b>・<b>交叉率 crossoverRate</b>・<b>エリート保存 elitism</b>・<b>選択圧 tournamentK</b> はエンジンが認識する GA パラメータです。</li>
+        <li><b>即時反映</b>（既定）：突然変異率などは次の世代からすぐ反映されます。<b>個体数</b>のように初期化が必要な値を変えると「初期化が必要」のヒントが出ます。</li>
+      </ul>
+
+      <h3>実験の保存・比較</h3>
+      <ul>
+        <li><b>📸 現在を保存</b>：いまの適応度グラフとパラメータを保存し、グラフに<b>うすい線で重ねて</b>比較できます。「突然変異率を変えると収束はどう変わる？」を A / B で見せる用途に。</li>
+        <li>各グラフの <b>⬇ CSV</b>（クリップボード）・<b>💾</b>（ファイル）、まとめて <b>⬇ CSV保存</b>、<b>⏺ 録画</b> も使えます。</li>
+      </ul>
+
+      <div id="helpCodeSection">
+      <h3>コードを書くときの注意（エラー対策）</h3>
+      <p>コードは <code>new Function()</code> で評価されます。<code>class</code> / <code>document.*</code> / <code>window.*</code> / <code>addEventListener</code> / <code>fetch</code> / <code>setTimeout</code> / <code>import</code> 等は<b>使えません</b>。使うと適用時に行番号とヒントを表示します。改変を AI に頼むときは <b>✏️ 改変プロンプト</b> / <b>✨ 新規作成プロンプト</b> をコピーして使ってください。</p>
+      <p>💾 <b>HTML出力</b>：今動かしているモデルだけをそのまま実行できる独立した HTML ファイル（コード編集・AI生成 UI なし）を書き出せます。配布や授業での配布物に便利です。</p>
+      </div>
+      <p>🔊 <b>音</b>：ヘッダの 🔊 ボタンで音のオン/オフを切り替えられます。モデルが <code>Sound.beep(...)</code> や <code>Sound.note(...)</code> を呼ぶと音が鳴ります（最初のクリック後に有効になります）。</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ──────────────────────────────────────────────────────────────
+// 仕様書
+// ──────────────────────────────────────────────────────────────
+const SPEC_TEXT = `【EVO Studio — 進化計算（遺伝的アルゴリズム）記述仕様 v1】
+
+このツールは「個体群を評価 → 選択 → 交叉 → 突然変異 → 次世代」を繰り返す
+遺伝的アルゴリズム（GA）の共通エンジンです。GA の仕組み（選択・交叉・突然変異・
+エリート保存）はエンジン側が担当し、あなたは次の要素だけを JavaScript で記述します。
+
+■ 必ず定義するもの
+  ・GENE … 遺伝子の形式。 { type:'bit'|'real', length:整数, min?:数, max?:数 }
+       type:'bit'  → 各遺伝子は 0 か 1
+       type:'real' → 各遺伝子は実数（min〜max、省略時 0〜1）
+  ・fitness(genome, params) → 数値（★大きいほど良い＝最大化）
+       ★ これが「評価関数（適応度）」です。ここを書き換えると評価方法を自由に変えられます。
+       最小化したい関数は符号を反転（return -f）して返してください。
+  ・draw(ctx, state, W, H, params) … Canvas 2D に現在の様子を描画
+
+■ 任意で定義できるもの
+  ・randomGenome(params) → 配列  … 初期個体の作り方を自分で決める（省略時は GENE から自動生成）
+  ・decode(genome, params) → 任意 … 遺伝子を意味のある形（座標や設計）へ変換（draw/fitness で利用）
+  ・geneInfo … 遺伝子の意味を説明する文字列（または params→文字列の関数）。画面の「遺伝子」パネルに表示。
+  ・DESCRIPTION … このモデルの説明。{ summary:'概要', gene:'遺伝子が何か', phenotype:'表現型にどう反映されるか', fitness:'適応度（評価）は何か' }（または説明文の文字列）。画面の「このモデルの説明」に表示されます。初心者向けに必ず付けてください。
+  ・geneView(genome, params) → 配列 … 最良個体の遺伝子を見やすく分割表示する。各要素は
+       { label:'名前', bits:[0/1,...] } か { label:'名前', reals:[数,...] }（任意で value:値 を付加）。
+       省略時は遺伝子をそのまま（ビットはマス目、実数はチップで）表示します。
+  ・PARAM_DEFS … スライダー。GA 用に次の id はエンジンが認識します（あれば自動で使われます）：
+       popSize（個体数）, mutationRate（突然変異率）, crossoverRate（交叉率）,
+       elitism（エリート保存数）, tournamentK（トーナメント選択の参加数）
+       それ以外は自由なモデル用パラメータ。各項目に help:'説明' を付けると ⓘ に表示されます。
+  ・PLOT_DEFS … 世代ごとのグラフ。省略時は「最良・平均の適応度」を自動表示。
+       series の fn は state を受け取り数値を返す： fn: s => s.bestFitness
+  ・STOP_COND … { label:'説明', fn:(state,params)=>真偽 }  条件が true で自動停止
+  ・MAX_GEN … 整数。最大世代（この世代に達すると停止。ループ ON のときは自動初期化を繰り返す）
+  ・viewReset(best, params) → view / viewStep(view, params) … 最良個体を毎フレーム動かして
+       見せたいとき（例：生物が歩く様子）。物理モデル等の表示用に使います。
+       viewStepsPerFrame（整数）で 1 フレームあたりの更新回数を指定できます。
+
+■ draw / PLOT_DEFS / STOP_COND で使える state のフィールド
+  state.gen           現在の世代数
+  state.pop           個体の配列（各要素が genome）
+  state.fit           各個体の適応度の配列（pop と同じ並び）
+  state.best          現世代の最良個体（genome）
+  state.bestFitness   現世代の最良適応度
+  state.avg / state.min / state.max   現世代の適応度の平均・最小・最大
+  state.bestEver / state.bestEverFitness  これまでの通算最良
+  state.view          viewReset で作った表示用オブジェクト（あれば）
+
+■ エンジンが行う GA（最大化）
+  選択：トーナメント選択（tournamentK 個から最良を親に）
+  交叉：bit は一点交叉 / real は一様交叉（crossoverRate の確率で実施）
+  突然変異：bit はビット反転 / real は正規乱数を加算（mutationRate の確率、各遺伝子ごと）
+  エリート保存：上位 elitism 個体を無条件に次世代へ
+
+■ 禁止事項（評価時にエラーになります）
+  class キーワード / document.* / window.* / addEventListener / fetch /
+  XMLHttpRequest / setTimeout / setInterval / import / export
+  → 純粋な JavaScript と Canvas 2D（ctx）のみで記述してください。
+
+■ 最小の雛形
+  const GENE = { type:'bit', length:20 };
+  const PARAM_DEFS = [ { id:'popSize', label:'個体数', min:10, max:100, step:5, default:40 } ];
+  function fitness(g, p){ return g.reduce((a,b)=>a+b, 0); }      // 1 の数を最大化（OneMax）
+  function draw(ctx, s, W, H, p){ ctx.clearRect(0,0,W,H); ctx.fillText('gen '+s.gen+' best '+s.bestFitness, 10, 20); }
+`;
+
+// ═══════════════════════════════════════════════════════════════
+// 内蔵モデル①：ビット列の遺伝的アルゴリズムによる関数最適化
+// ═══════════════════════════════════════════════════════════════
+const CODE_FUNCOPT = `const TITLE = '関数最適化（ビット列GA）';
+// ── ビット列GAによる関数最適化 ───────────────────────────────────
+// 32ビットの遺伝子を2つの実数 x, y にデコードして評価関数を最大化します。
+// ★ fitness() を書き換えると「評価の方法（適応度）」を自由に変えられます。
+
+const BITS = 16;                 // 1変数あたりのビット数
+const VARS = 2;                  // 変数の数（x, y）
+const LO = -5.12, HI = 5.12;     // 各変数の範囲
+
+// 遺伝子の形式：長さ 32 のビット列（0/1）
+const GENE = { type: 'bit', length: BITS * VARS };
+
+const PARAM_DEFS = [
+  { id:'popSize',       label:'個体数',       min:10, max:200, step:5,    default:60,
+    help:'1世代あたりの個体数。多いほど探索は安定しますが計算は重くなります（変更時は再初期化）。' },
+  { id:'mutationRate',  label:'突然変異率',   min:0,  max:0.2, step:0.005, default:0.02,
+    help:'各ビットが反転する確率。大きすぎると探索がランダムに、小さすぎると局所解に陥りやすくなります。' },
+  { id:'crossoverRate', label:'交叉率',       min:0,  max:1,   step:0.05, default:0.9,
+    help:'2個体を一点交叉する確率。' },
+  { id:'elitism',       label:'エリート保存', min:0,  max:10,  step:1,    default:2,
+    help:'無条件に次世代へ残す上位個体の数。' },
+  { id:'tournamentK',   label:'選択圧(トーナメント)', min:2, max:10, step:1, default:3,
+    help:'親を選ぶトーナメントの参加数。大きいほど強い個体が選ばれやすくなります。' },
+];
+
+// ビット列 → 実数ベクトル [x, y]
+function decode(genome, params){
+  const vals = [];
+  for (let v = 0; v < VARS; v++){
+    let n = 0;
+    for (let b = 0; b < BITS; b++) n = n * 2 + genome[v*BITS + b];
+    const frac = n / (Math.pow(2, BITS) - 1);   // 0..1
+    vals.push(LO + frac * (HI - LO));
+  }
+  return vals;
+}
+
+// ★★★ 評価関数（適応度）：ここを書き換えてください ★★★
+//   「大きいほど良い」値を返します。最小化したい関数は符号を反転（return -f）。
+//   既定は Rastrigin 関数の最小化（最適解 x=y=0 で f=0 → 適応度 0）。
+function fitness(genome, params){
+  const v = decode(genome, params);
+  const f = rastrigin(v);          // ← 評価したい関数（sphere / rosenbrock も用意）
+  return -f;                       // 最小化したいので符号反転
+}
+
+function rastrigin(v){ const A=10; return A*v.length + v.reduce((s,z)=>s + z*z - A*Math.cos(2*Math.PI*z), 0); }
+function sphere(v){ return v.reduce((s,z)=>s + z*z, 0); }
+function rosenbrock(v){ let s=0; for(let i=0;i<v.length-1;i++){ s += 100*Math.pow(v[i+1]-v[i]*v[i],2) + Math.pow(1-v[i],2); } return s; }
+
+// 実数 [x,y] → ビット列（decode の逆。適応度地形ヒートマップの計算に使う）
+function encode(vals){
+  const g = new Array(BITS*VARS);
+  for (let v=0; v<VARS; v++){
+    let frac=(vals[v]-LO)/(HI-LO); if(frac<0)frac=0; if(frac>1)frac=1;
+    let n=Math.round(frac*(Math.pow(2,BITS)-1));
+    for (let b=BITS-1;b>=0;b--){ g[v*BITS+b]=n&1; n=n>>1; }
+  }
+  return g;
+}
+
+// 画面に出す関数ラベル（fitness を変えたらここも書き換えると分かりやすい）
+const FUNC_LABEL = 'Rastrigin: f=20+Σ(xᵢ²−10·cos2πxᵢ) を最小化';
+
+// このモデルの説明（遺伝子・表現型・適応度）
+const DESCRIPTION = {
+  summary: 'ビット列の遺伝的アルゴリズムで、2変数の数値関数を最適化（既定は最小化）します。',
+  gene: '長さ32のビット列（16bit×2）。前半16bitが x、後半16bitが y（左が上位ビット）。各々 [-5.12, 5.12] にデコードされます。',
+  phenotype: '探索平面上の点 (x, y)。背景は適応度地形ヒートマップ（明るいほど適応度が高い＝関数値が小さい）、白点が個体群、赤い輪が最良個体です。',
+  fitness: 'Rastrigin 関数 f(x,y)=20+Σ(xᵢ²−10·cos2πxᵢ) の最小化（適応度＝−f）。大域最適は x=y=0 で f=0。fitness() を書き換えると評価を変えられます。'
+};
+
+// 遺伝子の説明（画面の「遺伝子」パネルに表示）
+const geneInfo = BITS + 'ビット × ' + VARS + '変数 = ' + (BITS*VARS) + 'ビット。' +
+  '前半' + BITS + 'bitが x、後半' + BITS + 'bitが y を表し、各々 [' + LO + ', ' + HI + '] にデコードされます（左が上位ビット）。';
+
+// 最良個体を「変数ごとのビット列＋デコード値」として見せる
+function geneView(genome, params){
+  const v = decode(genome, params);
+  const segs = [];
+  const names = ['x','y','z','w'];
+  for (let i=0;i<VARS;i++)
+    segs.push({ label:(names[i]||('v'+i))+' ('+BITS+'bit)', bits: genome.slice(i*BITS, (i+1)*BITS), value: v[i].toFixed(3) });
+  return segs;
+}
+
+const PLOT_DEFS = [
+  { title:'適応度（世代ごと・大きいほど良い）',
+    series:[
+      { id:'best', label:'最良', color:'#16a34a', fn: s => s.bestFitness },
+      { id:'avg',  label:'平均', color:'#0ea5e9', fn: s => s.avg },
+    ] },
+];
+
+// 停止条件（任意）：最良が最適にほぼ到達したら停止
+const STOP_COND = { label:'最良 f が 0.001 未満で停止', fn: (s, p) => (-s.bestFitness) < 1e-3 };
+
+const MAX_GEN = 300;
+
+// 描画：探索空間（x,y 平面）に個体を点表示、最良を強調
+function draw(ctx, state, W, H, params){
+  ctx.fillStyle = '#0b1020'; ctx.fillRect(0, 0, W, H);
+  const pad = 36;
+  const sx = x => pad + (x - LO)/(HI - LO) * (W - 2*pad);
+  const sy = y => H - pad - (y - LO)/(HI - LO) * (H - 2*pad);
+  // 適応度地形ヒートマップ（初回のみ計算してキャッシュ。明るいほど適応度が高い）
+  if (!state._heat){
+    const G=64, raw=new Float32Array(G*G), colors=new Array(G*G);
+    let vmin=Infinity, vmax=-Infinity;
+    for (let j=0;j<G;j++) for (let i=0;i<G;i++){
+      const x=LO+(i+0.5)/G*(HI-LO), y=HI-(j+0.5)/G*(HI-LO);
+      let val; try { val=fitness(encode([x,y]), params); } catch(_) { val=0; }
+      raw[j*G+i]=val; if(val<vmin)vmin=val; if(val>vmax)vmax=val;
+    }
+    const span=(vmax-vmin)||1;
+    for (let k=0;k<G*G;k++){ const t=(raw[k]-vmin)/span; colors[k]='hsl('+Math.round(250-205*t)+',80%,'+Math.round(15+52*t)+'%)'; }
+    state._heat={G,colors};
+  }
+  { const G=state._heat.G, cs=state._heat.colors, cw=(W-2*pad)/G, ch=(H-2*pad)/G;
+    for (let j=0;j<G;j++) for (let i=0;i<G;i++){ ctx.fillStyle=cs[j*G+i]; ctx.fillRect(pad+i*cw, pad+j*ch, cw+1.2, ch+1.2); } }
+  ctx.strokeStyle = 'rgba(255,255,255,.10)'; ctx.lineWidth = 1;
+  for (let i=0;i<=8;i++){
+    const gx = pad + i/8*(W-2*pad); ctx.beginPath(); ctx.moveTo(gx,pad); ctx.lineTo(gx,H-pad); ctx.stroke();
+    const gy = pad + i/8*(H-2*pad); ctx.beginPath(); ctx.moveTo(pad,gy); ctx.lineTo(W-pad,gy); ctx.stroke();
+  }
+  // 最適点（多くの関数で原点）
+  ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(sx(0), sy(0), 7, 0, 7); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(sx(0)-10,sy(0)); ctx.lineTo(sx(0)+10,sy(0)); ctx.moveTo(sx(0),sy(0)-10); ctx.lineTo(sx(0),sy(0)+10); ctx.stroke();
+  // 個体群
+  if (state.pop){
+    for (let i=0;i<state.pop.length;i++){
+      const v = decode(state.pop[i], params);
+      ctx.fillStyle = 'rgba(255,255,255,.7)';
+      ctx.beginPath(); ctx.arc(sx(v[0]), sy(v[1]), 2.4, 0, 7); ctx.fill();
+    }
+  }
+  // 最良個体
+  if (state.best){
+    const v = decode(state.best, params);
+    ctx.fillStyle = '#f43f5e'; ctx.beginPath(); ctx.arc(sx(v[0]), sy(v[1]), 5, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(sx(v[0]), sy(v[1]), 10, 0, 7); ctx.stroke();
+  }
+  // 情報パネル（世代・最適化する関数・最良値）
+  const lines=['世代 '+(state.gen||0), FUNC_LABEL];
+  if (state.best){ const v=decode(state.best,params); lines.push('最良 f='+(-state.bestFitness).toFixed(4)+'  (x,y)=('+v[0].toFixed(2)+', '+v[1].toFixed(2)+')'); }
+  ctx.font='10px IBM Plex Mono, monospace'; ctx.textAlign='left';
+  let bw=0; for(const L of lines) bw=Math.max(bw, ctx.measureText(L).width);
+  ctx.fillStyle='rgba(10,16,32,.72)'; ctx.fillRect(6,6,bw+12,lines.length*15+7);
+  const cols=['#e5e7eb','#fde68a','#fca5a5'];
+  for(let i=0;i<lines.length;i++){ ctx.fillStyle=cols[i]||'#e5e7eb'; ctx.fillText(lines[i], 12, 21+i*15); }
+}
+
+// このモデルは「ビット列の遺伝子 → 実数2変数」へのデコードによる関数最適化です。
+// fitness() の return を書き換えると、最小化したい関数や評価条件を自由に変更できます。
+// decode() で 16bit×2 を [-5.12, 5.12] の x, y に変換しています。
+// 突然変異率・交叉率・選択圧を変えると収束の速さや局所解の回避が変わります。`;
+
+// ═══════════════════════════════════════════════════════════════
+// 内蔵モデル②：2D 仮想生物（質点＋筋肉バネ）の進化
+// ═══════════════════════════════════════════════════════════════
+const CODE_SPRINGBOT = `const TITLE = '質点バネ生物';
+// ── 質点バネ生物：2D 仮想生物（質点＋筋肉バネ）の進化 ─────────────────
+// 4つの質点をバネ（筋肉）でつなぎ、筋肉を周期的に伸縮させて地面を這わせます。
+// 遺伝子は「質点の配置」と「各筋肉の振幅・位相」。右へ遠くまで進むほど高評価。
+// ★ fitness() の return を書き換えると評価方法（距離・高さなど）を変えられます。
+
+const N_NODES = 4;
+const N_MUSC  = 6;                                    // 4点の全ペア
+const GENE = { type:'real', length: N_NODES*2 + N_MUSC*2, min:0, max:1 };
+const PAIRS = [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
+
+const PARAM_DEFS = [
+  { id:'popSize',      label:'個体数',         min:8,  max:80,  step:2,    default:24,
+    help:'1世代の生物の数（変更時は再初期化）。多いほど多様ですが評価が重くなります。' },
+  { id:'mutationRate', label:'突然変異率',     min:0,  max:0.3, step:0.01, default:0.08,
+    help:'各遺伝子に正規乱数を加える確率。' },
+  { id:'crossoverRate',label:'交叉率',         min:0,  max:1,   step:0.05, default:0.8,
+    help:'2個体を一様交叉する確率。' },
+  { id:'elitism',      label:'エリート保存',   min:0,  max:8,   step:1,    default:1, help:'次世代に残す上位個体数。' },
+  { id:'tournamentK',  label:'選択圧',         min:2,  max:8,   step:1,    default:3, help:'親選択のトーナメント参加数。' },
+  { id:'simSteps',     label:'評価ステップ数', min:80, max:600, step:20,   default:240,
+    help:'1個体を何ステップ歩かせて評価するか。長いほど正確ですが重くなります。' },
+  { id:'muscleFreq',   label:'筋肉の周波数',   min:0.2, max:3,  step:0.1,  default:1.0,
+    help:'筋肉が伸縮する速さ。歩行リズムに影響します（画面の動きにも即反映）。' },
+  { id:'gravity',      label:'重力',           min:5,  max:40,  step:1,    default:18, help:'下向きの重力の強さ。' },
+];
+
+// 遺伝子 → 生物の設計（質点の基準位置と筋肉パラメータ）
+function decode(genome, params){
+  const nodes = [];
+  for (let i=0;i<N_NODES;i++) nodes.push({ x:(genome[i*2]*2-1), y:(genome[i*2+1]*2-1) });  // -1..1
+  const muscles = [];
+  const base = N_NODES*2;
+  for (let m=0;m<N_MUSC;m++)
+    muscles.push({ a:PAIRS[m][0], b:PAIRS[m][1], amp: genome[base+m*2]*0.6, phase: genome[base+m*2+1]*Math.PI*2 });
+  return { nodes, muscles };
+}
+
+// 遺伝子の説明（画面の「遺伝子」パネルに表示）
+const geneInfo = (N_NODES*2 + N_MUSC*2) + '個の実数（0〜1）。' +
+  '前半' + (N_NODES*2) + '個が' + N_NODES + '個の質点の位置(x,y)、' +
+  '後半' + (N_MUSC*2) + '個が' + N_MUSC + '本の筋肉の「振幅・位相」を表します。';
+
+// 最良個体を「質点の位置」「筋肉のパラメータ」に分けて見せる
+function geneView(genome, params){
+  const segs = [];
+  for (let i=0;i<N_NODES;i++) segs.push({ label:'質点'+i+' (x,y)', reals:[genome[i*2], genome[i*2+1]] });
+  const base = N_NODES*2;
+  for (let m=0;m<N_MUSC;m++) segs.push({ label:'筋肉'+m+' (振幅,位相)', reals:[genome[base+m*2], genome[base+m*2+1]] });
+  return segs;
+}
+
+// 生物の物理ワールドを初期化
+function buildCreature(genome, params){
+  const d = decode(genome, params);
+  const SCALE = 42;
+  const pts = d.nodes.map(n => ({ x:n.x*SCALE, y:n.y*SCALE, px:n.x*SCALE, py:n.y*SCALE }));
+  let minY = Infinity; pts.forEach(p => { if (p.y < minY) minY = p.y; });
+  const lift = 12 - minY; pts.forEach(p => { p.y += lift; p.py += lift; });   // 地面より上へ
+  const muscles = d.muscles.map(m => {
+    const dx = pts[m.a].x - pts[m.b].x, dy = pts[m.a].y - pts[m.b].y;
+    return { a:m.a, b:m.b, amp:m.amp, phase:m.phase, rest: Math.max(8, Math.hypot(dx, dy)) };
+  });
+  let comX0 = 0; pts.forEach(p => comX0 += p.x); comX0 /= pts.length;
+  return { pts, muscles, t:0, comX0, comX:comX0, maxH:0, scale:SCALE };
+}
+
+// 物理を1ステップ進める（Verlet ＋ 地面摩擦）
+function stepWorld(w, params){
+  const dt = 1/60, g = (params.gravity ?? 18), freq = (params.muscleFreq ?? 1.0);
+  const damp = 0.99, friction = 0.6, stiff = 0.5;
+  w.t += dt;
+  for (let it=0; it<2; it++){
+    for (const m of w.muscles){
+      const A = w.pts[m.a], B = w.pts[m.b];
+      const target = m.rest * (1 + m.amp * Math.sin(2*Math.PI*freq*w.t + m.phase));
+      let dx = B.x - A.x, dy = B.y - A.y;
+      const dist = Math.hypot(dx, dy) || 1e-6;
+      const diff = (dist - target) / dist * 0.5 * stiff;
+      const ox = dx*diff, oy = dy*diff;
+      A.x += ox; A.y += oy; B.x -= ox; B.y -= oy;
+    }
+  }
+  for (const p of w.pts){
+    const vx = (p.x - p.px) * damp, vy = (p.y - p.py) * damp;
+    p.px = p.x; p.py = p.y;
+    p.x += vx;
+    p.y += vy - g * dt * dt * 60;     // 重力
+    if (p.y < 0){                     // 地面で衝突＋摩擦（押し付けると前進）
+      p.y = 0;
+      const nvx = p.x - p.px;
+      p.px = p.x - nvx * friction;
+      p.py = 0;
+    }
+  }
+  let cx=0, cy=0; for (const p of w.pts){ cx += p.x; cy += p.y; } cx/=w.pts.length; cy/=w.pts.length;
+  w.comX = cx; if (cy > w.maxH) w.maxH = cy;
+  return w;
+}
+
+// 1個体をシミュレートして指標を返す（headless）
+function simulate(genome, params){
+  const steps = Math.round(params.simSteps ?? 240);
+  const w = buildCreature(genome, params);
+  for (let i=0;i<steps;i++) stepWorld(w, params);
+  return { distance:(w.comX - w.comX0)/w.scale, maxHeight: w.maxH/w.scale };
+}
+
+// ★★★ 評価関数（適応度）：ここを書き換えてください ★★★
+//   既定は「右へ進んだ距離」。例：高く跳ぶ生物にしたいなら return r.maxHeight;
+function fitness(genome, params){
+  const r = simulate(genome, params);
+  return r.distance;
+}
+
+// 表示：最良個体のアニメーション（毎フレーム物理を進める）
+function viewReset(best, params){ return best ? buildCreature(best, params) : null; }
+function viewStep(view, params){ if (view) stepWorld(view, params); }
+const viewStepsPerFrame = 2;
+
+const PLOT_DEFS = [
+  { title:'到達距離（適応度・世代ごと）',
+    series:[
+      { id:'best', label:'最良', color:'#16a34a', fn: s => s.bestFitness },
+      { id:'avg',  label:'平均', color:'#0ea5e9', fn: s => s.avg },
+    ] },
+];
+
+const MAX_GEN = 200;
+
+// 描画：地面と、現在の最良個体（state.view）が歩く様子
+function draw(ctx, state, W, H, params){
+  ctx.fillStyle = '#0b1020'; ctx.fillRect(0, 0, W, H);
+  const w = state.view;
+  const groundY = H - 70;
+  const camX = w ? w.comX : 0;
+  const ox = W*0.32 - camX;
+  ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0, groundY); ctx.lineTo(W, groundY); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.font = '9px IBM Plex Mono, monospace'; ctx.textAlign = 'center';
+  for (let m=-3;m<60;m++){ const X = ox + m*42; if (X<0||X>W) continue;
+    ctx.fillRect(X, groundY, 1, 6); if (m%2===0) ctx.fillText(m+'', X, groundY+18); }
+  if (w){
+    for (const m of w.muscles){
+      const A = w.pts[m.a], B = w.pts[m.b];
+      const target = m.rest * (1 + m.amp * Math.sin(2*Math.PI*(params.muscleFreq ?? 1)*w.t + m.phase));
+      const dist = Math.hypot(B.x-A.x, B.y-A.y);
+      ctx.strokeStyle = dist > target ? 'rgba(248,113,113,.9)' : 'rgba(96,165,250,.9)';
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(ox+A.x, groundY-A.y); ctx.lineTo(ox+B.x, groundY-B.y); ctx.stroke();
+    }
+    for (const p of w.pts){ ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(ox+p.x, groundY-p.y, 5, 0, 7); ctx.fill(); }
+    if (state.showCoM){
+      let cy=0; for (const p of w.pts) cy+=p.y; cy/=w.pts.length;
+      const sx=ox+w.comX, sy=groundY-cy;
+      ctx.setLineDash([5,4]); ctx.strokeStyle='rgba(52,211,153,.9)'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(sx,6); ctx.lineTo(sx,groundY); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle='rgba(52,211,153,.45)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(0,sy); ctx.lineTo(W,sy); ctx.stroke();
+      ctx.fillStyle='#34d399'; ctx.beginPath(); ctx.arc(sx,sy,4.5,0,7); ctx.fill();
+      ctx.fillStyle='rgba(52,211,153,.95)'; ctx.font='9px IBM Plex Mono, monospace'; ctx.textAlign='left'; ctx.fillText('重心', sx+5, 14);
+    }
+  }
+  ctx.fillStyle = '#e5e7eb'; ctx.font = '12px IBM Plex Mono, monospace'; ctx.textAlign = 'left';
+  ctx.fillText('世代 ' + (state.gen||0), 10, 18);
+  ctx.fillText('最良距離 ' + (isFinite(state.bestFitness) ? state.bestFitness.toFixed(2) : '—'), 10, 34);
+  ctx.fillText('通算最良 ' + (isFinite(state.bestEverFitness) ? state.bestEverFitness.toFixed(2) : '—'), 10, 50);
+}
+
+const DESCRIPTION = {
+  summary: '4質点＋6筋肉バネの2D仮想生物を物理で歩かせ、遠くまで歩く形・動きを進化させます。',
+  gene: '20個の実数(0〜1)。前半8個＝4質点の位置(x,y)、後半12個＝6本の筋肉の振幅・位相。',
+  phenotype: '質点を筋肉バネでつないだ生物。筋肉が周期的に伸縮し、地面の摩擦で前進します（画面で歩行）。',
+  fitness: '既定は右への到達距離（重心の移動量）。fitness() を変えれば跳躍高さなど別の評価にできます。'
+};
+
+// このモデルは「2D 仮想生物（質点＋バネ）」を進化させます。
+// 生物は4質点＋6筋肉のバネ系。筋肉を周期的に伸縮させ、地面の摩擦で前進します。
+// 遺伝子は質点の配置（8個）と各筋肉の振幅・位相（12個）の計20個の実数です。
+// fitness() の return（既定は到達距離 distance）を書き換えると評価方法を変えられます。
+// simSteps を増やすと評価が正確に、muscleFreq や gravity を変えると動きが変わります。`;
+
+// ═══════════════════════════════════════════════════════════════
+// 追加モデル③：ソフトボディ仮想生物（形と動きの進化）
+// ═══════════════════════════════════════════════════════════════
+const CODE_SOFTBODY = `const TITLE = 'ソフトボディ生物';
+// ── ソフトボディ・ボクセル生物の進化 ─────────────────────
+// 5×5 のボクセルで体を作り、アクチュエータの伸縮で地面を歩かせます。
+//   形態(25): 各マスの種類 0=空 1=剛体 2=軟体 3=水平アクチュエータ 4=垂直アクチュエータ
+//   制御(25): 各マスの伸縮の位相 φ（アクチュエータでのみ意味を持つ）＋ 振幅・周波数
+// ★ fitness() の return（既定は右への到達距離）を書き換えると評価方法を変えられます。
+
+const GW = 5, GH = 5, N = GW*GH;        // ボクセル格子 5×5
+const I_AMP = 2*N, I_FREQ = 2*N + 1;    // 50, 51
+const VS = 16;                          // ボクセル1辺（物理サイズ）
+
+// 遺伝子：52個の実数（すべて 0〜1 に正規化、decode で意味へ変換）
+const GENE = { type:'real', length: 2*N + 2, min:0, max:1 };
+
+const PARAM_DEFS = [
+  { id:'popSize',      label:'個体数',         min:8,  max:60,  step:2,    default:24,
+    help:'1世代の生物の数（変更時は再初期化）。多いほど多様ですが評価が重くなります。' },
+  { id:'mutationRate', label:'突然変異率',     min:0,  max:0.3, step:0.01, default:0.08,
+    help:'各遺伝子に正規乱数を加える確率。形態や位相が変化します。' },
+  { id:'crossoverRate',label:'交叉率',         min:0,  max:1,   step:0.05, default:0.8, help:'2個体を一様交叉する確率。' },
+  { id:'elitism',      label:'エリート保存',   min:0,  max:8,   step:1,    default:1, help:'次世代に残す上位個体数。' },
+  { id:'tournamentK',  label:'選択圧',         min:2,  max:8,   step:1,    default:3, help:'親選択のトーナメント参加数。' },
+  { id:'simSteps',     label:'評価ステップ数', min:80, max:500, step:20,   default:200,
+    help:'1個体を何ステップ歩かせて評価するか。長いほど正確ですが重くなります。' },
+  { id:'gravity',      label:'重力',           min:5,  max:40,  step:1,    default:18, help:'下向きの重力の強さ。' },
+];
+
+// 正規化遺伝子 → 体の設計（種類・位相・振幅・周波数）
+function decode(genome, params){
+  const type=[], phase=[];
+  for (let r=0;r<GH;r++){ const tr=[], pr=[];
+    for (let c=0;c<GW;c++){ const i=r*GW+c;
+      let t=Math.floor(genome[i]*5); if (t<0) t=0; if (t>4) t=4; tr.push(t);
+      pr.push(genome[N+i]*Math.PI*2); }
+    type.push(tr); phase.push(pr); }
+  return { type:type, phase:phase, amp:0.05+genome[I_AMP]*0.45, freq:0.4+genome[I_FREQ]*1.6 };
+}
+
+// 初期個体：アクチュエータが入りやすいように形態を少し偏らせる（遺伝子は 0〜1 のまま）
+function randomGenome(params){
+  const g=new Array(2*N+2), pool=[0,1,2,3,3,4,4];
+  for (let i=0;i<N;i++){ const t=pool[Math.floor(Math.random()*pool.length)]; g[i]=(t+Math.random())/5; }
+  for (let i=N;i<2*N;i++) g[i]=Math.random();
+  g[I_AMP]=Math.random(); g[I_FREQ]=Math.random();
+  return g;
+}
+
+function largestComponent(type){
+  const seen=[]; for (let r=0;r<GH;r++) seen.push(new Array(GW).fill(false));
+  let best=null, bestN=0;
+  for (let r=0;r<GH;r++) for (let c=0;c<GW;c++){
+    if (type[r][c]===0||seen[r][c]) continue;
+    const stk=[[r,c]]; seen[r][c]=true; const cs=[];
+    while (stk.length){ const cur=stk.pop(); cs.push(cur);
+      const nb=[[cur[0]-1,cur[1]],[cur[0]+1,cur[1]],[cur[0],cur[1]-1],[cur[0],cur[1]+1]];
+      for (let k=0;k<4;k++){ const nr=nb[k][0], nc=nb[k][1];
+        if (nr>=0&&nr<GH&&nc>=0&&nc<GW&&!seen[nr][nc]&&type[nr][nc]!==0){ seen[nr][nc]=true; stk.push([nr,nc]); } } }
+    if (cs.length>bestN){ bestN=cs.length; best=cs; } }
+  const comp=[]; for (let r=0;r<GH;r++) comp.push(new Array(GW).fill(false));
+  if (best) for (let i=0;i<best.length;i++) comp[best[i][0]][best[i][1]]=true;
+  return comp;
+}
+function typeStiff(t){ return t===1?0.95 : t===2?0.18 : (t===3||t===4)?0.55 : 0; }
+
+// 体（質点バネ）を構築。y は上向き、地面は y=0
+function buildCreature(genome, params){
+  const d=decode(genome, params), type=d.type, comp=largestComponent(type);
+  const cornerIndex={}, pts=[];
+  function cid(cr,cc){ return cr*(GW+1)+cc; }
+  function corner(cr,cc){ const id=cid(cr,cc);
+    if (cornerIndex[id]===undefined){ cornerIndex[id]=pts.length;
+      pts.push({ x:cc*VS, y:(GH-cr)*VS, px:cc*VS, py:(GH-cr)*VS }); }
+    return cornerIndex[id]; }
+  const voxels=[];
+  for (let r=0;r<GH;r++) for (let c=0;c<GW;c++){ if (!comp[r][c]) continue;
+    voxels.push({ r:r, c:c, type:type[r][c], tl:corner(r,c), tr:corner(r,c+1), bl:corner(r+1,c), br:corner(r+1,c+1) }); }
+  if (!voxels.length) return { empty:true, comX:0, comX0:0 };
+
+  function inC(r,c){ return r>=0&&r<GH&&c>=0&&c<GW&&comp[r][c]; }
+  function ph(r,c){ return d.phase[r][c]; }
+  function avg(a){ let s=0; for (let i=0;i<a.length;i++) s+=a[i]; return s/a.length; }
+  const springs=[];
+  function spr(a,b,phase,stiff){ const A=pts[a],B=pts[b];
+    springs.push({ a:a,b:b, rest:Math.hypot(A.x-B.x,A.y-B.y), phase:phase, stiff:stiff }); }
+  // 水平エッジ（type3＝水平アクチュエータで伸縮）
+  for (let cr=0;cr<=GH;cr++) for (let cc=0;cc<GW;cc++){
+    const below=inC(cr,cc)?type[cr][cc]:0, above=inC(cr-1,cc)?type[cr-1][cc]:0;
+    if (below===0&&above===0) continue;
+    const p=[]; if (below===3) p.push(ph(cr,cc)); if (above===3) p.push(ph(cr-1,cc));
+    spr(corner(cr,cc),corner(cr,cc+1), p.length?avg(p):null, Math.max(typeStiff(below),typeStiff(above))); }
+  // 垂直エッジ（type4＝垂直アクチュエータで伸縮）
+  for (let cr=0;cr<GH;cr++) for (let cc=0;cc<=GW;cc++){
+    const right=inC(cr,cc)?type[cr][cc]:0, left=inC(cr,cc-1)?type[cr][cc-1]:0;
+    if (right===0&&left===0) continue;
+    const p=[]; if (right===4) p.push(ph(cr,cc)); if (left===4) p.push(ph(cr,cc-1));
+    spr(corner(cr,cc),corner(cr+1,cc), p.length?avg(p):null, Math.max(typeStiff(right),typeStiff(left))); }
+  // 対角（せん断補強）
+  for (let i=0;i<voxels.length;i++){ const v=voxels[i], st=typeStiff(v.type)*0.7; spr(v.tl,v.br,null,st); spr(v.tr,v.bl,null,st); }
+
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  for (let i=0;i<pts.length;i++){ const p=pts[i];
+    if (p.x<minX)minX=p.x; if (p.x>maxX)maxX=p.x; if (p.y<minY)minY=p.y; if (p.y>maxY)maxY=p.y; }
+  const lift=12-minY; for (let i=0;i<pts.length;i++){ pts[i].y+=lift; pts[i].py+=lift; }
+  let cx=0; for (let i=0;i<pts.length;i++) cx+=pts[i].x; cx/=pts.length;
+  return { empty:false, pts:pts, springs:springs, voxels:voxels, t:0, amp:d.amp, freq:d.freq,
+           comX0:cx, comX:cx, spanX:Math.max(1,maxX-minX), spanY:Math.max(1,maxY-minY), VS:VS };
+}
+
+function stepWorld(w, params){
+  if (w.empty) return w;
+  const dt=1/60, g=(params.gravity!=null?params.gravity:18), friction=0.6;
+  w.t += dt;
+  for (let it=0; it<3; it++){
+    for (let k=0;k<w.springs.length;k++){ const s=w.springs[k];
+      let target=s.rest;
+      if (s.phase!==null) target=s.rest*(1 + w.amp*Math.sin(2*Math.PI*w.freq*w.t + s.phase));
+      const A=w.pts[s.a], B=w.pts[s.b];
+      let dx=B.x-A.x, dy=B.y-A.y; const dist=Math.hypot(dx,dy)||1e-6;
+      const diff=(dist-target)/dist*0.5*s.stiff, ox=dx*diff, oy=dy*diff;
+      A.x+=ox; A.y+=oy; B.x-=ox; B.y-=oy; } }
+  for (let i=0;i<w.pts.length;i++){ const p=w.pts[i];
+    const vx=(p.x-p.px)*0.99, vy=(p.y-p.py)*0.99;
+    p.px=p.x; p.py=p.y; p.x+=vx; p.y+=vy - g*dt*dt*60;
+    if (p.y<0){ p.y=0; const nvx=p.x-p.px; p.px=p.x-nvx*friction; p.py=0; } }
+  let cx=0; for (let i=0;i<w.pts.length;i++) cx+=w.pts[i].x; w.comX=cx/w.pts.length;
+  return w;
+}
+
+function simulate(genome, params){
+  const steps=Math.round(params.simSteps!=null?params.simSteps:200);
+  const w=buildCreature(genome, params);
+  if (w.empty) return { distance:-1000 };
+  for (let i=0;i<steps;i++) stepWorld(w, params);
+  return { distance:(w.comX - w.comX0)/VS };
+}
+
+// ★★★ 評価関数（適応度）：ここを書き換えてください ★★★
+//   既定は「右へ進んだ距離（ボクセル数換算）」。体が無い個体は強く罰します。
+function fitness(genome, params){ return simulate(genome, params).distance; }
+
+// 表示：最良個体を毎フレーム歩かせる
+function viewReset(best, params){ return best ? buildCreature(best, params) : null; }
+function viewStep(view, params){ if (view) stepWorld(view, params); }
+const viewStepsPerFrame = 2;
+
+const geneInfo = '52個の実数（0〜1）。前半25個が5×5の形態（floorで 0=空/1=剛体/2=軟体/3=水平/4=垂直）、' +
+  '次の25個が各マスの位相φ、最後の2個が振幅と周波数を表します。';
+
+function geneView(genome, params){
+  const segs=[];
+  for (let r=0;r<GH;r++) segs.push({ label:'形態 行'+r, reals: genome.slice(r*GW, r*GW+GW) });
+  segs.push({ label:'位相 φ×25', reals: genome.slice(N, 2*N) });
+  segs.push({ label:'振幅・周波数', reals:[genome[I_AMP], genome[I_FREQ]],
+    value:'amp '+(0.05+genome[I_AMP]*0.45).toFixed(2)+' / freq '+(0.4+genome[I_FREQ]*1.6).toFixed(2) });
+  return segs;
+}
+
+const PLOT_DEFS = [
+  { title:'到達距離（適応度・世代ごと）',
+    series:[ { id:'best', label:'最良', color:'#16a34a', fn:s=>s.bestFitness },
+             { id:'avg',  label:'平均', color:'#0ea5e9', fn:s=>s.avg } ] },
+];
+const MAX_GEN = 300;
+
+const VOX_COLOR = ['#ffffff','#374151','#cbd5e1','#f59e0b','#7aa2d6'];
+
+function draw(ctx, state, W, H, params){
+  ctx.fillStyle='#eef2f7'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(100,116,139,.14)'; ctx.lineWidth=1;
+  for (let x=0;x<=W;x+=18){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y=0;y<=H;y+=18){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  const groundY=H-34;
+  ctx.strokeStyle='#111827'; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(0,groundY); ctx.lineTo(W,groundY); ctx.stroke();
+  const w=state.view;
+  if (w && !w.empty){
+    const scale=Math.max(0.6, Math.min(2.4, Math.min(W*0.42/w.spanX, H*0.42/w.spanY)));
+    const ox=W*0.4 - w.comX*scale;
+    // 距離の目盛り
+    ctx.fillStyle='rgba(100,116,139,.5)'; ctx.font='9px IBM Plex Mono, monospace'; ctx.textAlign='center';
+    for (let m=-2;m<80;m++){ const X=ox+m*VS*scale; if (X<0||X>W) continue; ctx.fillRect(X,groundY,1,5); if (m%2===0) ctx.fillText(m+'', X, groundY+16); }
+    for (let i=0;i<w.voxels.length;i++){ const v=w.voxels[i];
+      const TL=w.pts[v.tl], TR=w.pts[v.tr], BR=w.pts[v.br], BL=w.pts[v.bl];
+      ctx.beginPath();
+      ctx.moveTo(ox+TL.x*scale, groundY-TL.y*scale); ctx.lineTo(ox+TR.x*scale, groundY-TR.y*scale);
+      ctx.lineTo(ox+BR.x*scale, groundY-BR.y*scale); ctx.lineTo(ox+BL.x*scale, groundY-BL.y*scale); ctx.closePath();
+      ctx.fillStyle=VOX_COLOR[v.type]; ctx.fill();
+      ctx.strokeStyle='rgba(15,23,42,.55)'; ctx.lineWidth=1.4; ctx.stroke(); }
+    if (state.showCoM){
+      let cy=0; for (const p of w.pts) cy+=p.y; cy/=w.pts.length;
+      const sx=ox+w.comX*scale, sy=groundY-cy*scale;
+      ctx.setLineDash([5,4]); ctx.strokeStyle='rgba(22,163,74,.9)'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(sx,6); ctx.lineTo(sx,groundY); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle='rgba(22,163,74,.4)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(0,sy); ctx.lineTo(W,sy); ctx.stroke();
+      ctx.fillStyle='#16a34a'; ctx.beginPath(); ctx.arc(sx,sy,4.5,0,7); ctx.fill();
+      ctx.fillStyle='rgba(22,163,74,.95)'; ctx.font='9px IBM Plex Mono, monospace'; ctx.textAlign='left'; ctx.fillText('重心', sx+5, 14);
+    }
+  } else if (w && w.empty){
+    ctx.fillStyle='#94a3b8'; ctx.font='13px IBM Plex Mono, monospace'; ctx.textAlign='center';
+    ctx.fillText('（体がありません）', W/2, H/2);
+  }
+  ctx.fillStyle='#1e293b'; ctx.font='12px IBM Plex Mono, monospace'; ctx.textAlign='left';
+  ctx.fillText('世代 '+(state.gen||0), 10, 18);
+  ctx.fillText('最良距離 '+(isFinite(state.bestFitness)?state.bestFitness.toFixed(2):'—'), 10, 34);
+  ctx.fillText('通算最良 '+(isFinite(state.bestEverFitness)?state.bestEverFitness.toFixed(2):'—'), 10, 50);
+}
+
+const DESCRIPTION = {
+  summary: '5×5ボクセルのソフトボディ生物を進化させ、アクチュエータの伸縮で歩かせます。',
+  gene: '52個の実数(0〜1)。前半25個＝各マスの種類(空/剛体/軟体/水平・垂直アクチュエータ)、後半25個＝位相、＋振幅・周波数。',
+  phenotype: '5×5の質点バネ体。アクチュエータが伸縮して地面を歩きます（画面で歩行）。',
+  fitness: '既定は右への到達距離。fitness() を変えれば評価方法を変えられます。'
+};
+
+// このモデルは「ソフトボディの仮想生物」を進化させます。
+// 5×5 のボクセル（剛体/軟体/水平・垂直アクチュエータ）と位相・振幅・周波数を遺伝子に持ち、
+// 質点バネの物理で歩かせ、右への到達距離を最大化します（fitness の return を変えれば評価も自在）。
+// 遺伝子は 0〜1 の実数52個。decode() で形態・位相へ変換しています。`;
+
+// ═══════════════════════════════════════════════════════════════
+// 追加モデル④：ナップザック問題（0/1 ナップザック）
+// ═══════════════════════════════════════════════════════════════
+const CODE_KNAPSACK = `const TITLE = 'ナップザック問題';
+// ── ナップザック問題（0/1 Knapsack）─────────────────────────────────
+// 重さの上限（容量）を超えない範囲で、入れる品物の価値の合計を最大化します。
+// 遺伝子＝各品物を「入れる(1)／入れない(0)」のビット列。
+// ★ fitness() を書き換えると評価（容量超過の扱いなど）を変えられます。
+
+const N_ITEMS = 24;
+function mkRng(seed){ let s=seed>>>0; return function(){ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
+const _rng = mkRng(20240607);
+const WEIGHTS=[], VALUES=[];
+for (let i=0;i<N_ITEMS;i++){ WEIGHTS.push(2+Math.floor(_rng()*14)); VALUES.push(3+Math.floor(_rng()*18)); }  // 固定の品物
+const TOTAL_W = WEIGHTS.reduce(function(a,b){return a+b;},0);
+const MAX_V   = Math.max.apply(null, VALUES);
+
+const GENE = { type:'bit', length:N_ITEMS };
+
+const PARAM_DEFS = [
+  { id:'popSize',      label:'個体数',     min:10, max:200, step:5,    default:60, help:'1世代の個体数（変更時は再初期化）。' },
+  { id:'mutationRate', label:'突然変異率', min:0,  max:0.2, step:0.005,default:0.02, help:'各ビットが反転する確率。' },
+  { id:'crossoverRate',label:'交叉率',     min:0,  max:1,   step:0.05, default:0.9, help:'2個体を一点交叉する確率。' },
+  { id:'elitism',      label:'エリート保存',min:0, max:10,  step:1,    default:2, help:'無条件に次世代へ残す上位個体数。' },
+  { id:'tournamentK',  label:'選択圧',     min:2,  max:10,  step:1,    default:3, help:'親選択のトーナメント参加数。' },
+  { id:'capacity',     label:'容量(上限重量)', min:10, max:TOTAL_W, step:1, default:Math.round(TOTAL_W*0.45),
+    help:'ナップザックの重さの上限。これを超えると評価が大きく下がります（その場で反映）。' },
+];
+
+function totals(genome){ let v=0, w=0; for (let i=0;i<N_ITEMS;i++) if (genome[i]){ v+=VALUES[i]; w+=WEIGHTS[i]; } return { v:v, w:w }; }
+
+// ★★★ 評価関数（適応度）：ここを書き換えてください ★★★
+//   容量内なら価値の合計、超過したら超過分×ペナルティを差し引きます（大きいほど良い）。
+function fitness(genome, params){
+  const cap = params.capacity!=null ? params.capacity : Math.round(TOTAL_W*0.45);
+  const t = totals(genome);
+  if (t.w <= cap) return t.v;
+  return t.v - (MAX_V+1) * (t.w - cap);   // 容量超過のペナルティ
+}
+
+const geneInfo = N_ITEMS + '個の品物それぞれを「入れる(1)／入れない(0)」で表すビット列です。' +
+  '各品物には固定の重さと価値があり、合計重量が容量以下で価値合計を最大化します。';
+
+function geneView(genome, params){
+  const t = totals(genome);
+  return [ { label:'採用(1)/不採用(0)', bits: genome, value:'価値 '+t.v+' / 重量 '+t.w } ];
+}
+
+const PLOT_DEFS = [
+  { title:'価値の合計（適応度・世代ごと）',
+    series:[ { id:'best', label:'最良', color:'#16a34a', fn:s=>s.bestFitness },
+             { id:'avg',  label:'平均', color:'#0ea5e9', fn:s=>s.avg } ] },
+];
+const MAX_GEN = 200;
+
+function draw(ctx, state, W, H, params){
+  ctx.fillStyle='#0b1020'; ctx.fillRect(0,0,W,H);
+  const cap = params.capacity!=null ? params.capacity : Math.round(TOTAL_W*0.45);
+  const best = state.best;
+  const t = best ? totals(best) : { v:0, w:0 };
+  const over = t.w > cap;
+  const pad=14, topH=46;
+  // 容量ゲージ
+  ctx.fillStyle='#e5e7eb'; ctx.font='12px IBM Plex Mono, monospace'; ctx.textAlign='left';
+  ctx.fillText('世代 '+(state.gen||0)+'   価値合計 '+t.v+'   重量 '+t.w+' / 容量 '+cap, pad, 18);
+  const gx=pad, gy=28, gw=W-2*pad, gh=12;
+  ctx.fillStyle='rgba(255,255,255,.10)'; ctx.fillRect(gx,gy,gw,gh);
+  const frac=Math.max(0, Math.min(1, t.w/cap));
+  ctx.fillStyle = over ? '#f87171' : '#34d399'; ctx.fillRect(gx,gy,gw*frac,gh);
+  ctx.strokeStyle='rgba(255,255,255,.45)'; ctx.lineWidth=1; ctx.strokeRect(gx+0.5,gy+0.5,gw-1,gh-1);
+  // 品物グリッド
+  const cols=6, rows=Math.ceil(N_ITEMS/cols);
+  const cellW=(W-2*pad)/cols, cellH=(H-topH-pad)/rows;
+  for (let i=0;i<N_ITEMS;i++){
+    const r=Math.floor(i/cols), c=i%cols;
+    const x=pad+c*cellW, y=topH+r*cellH, bw=cellW-6, bh=cellH-6;
+    const on = best ? best[i] : 0;
+    ctx.fillStyle = on ? 'rgba(52,211,153,.85)' : 'rgba(255,255,255,.06)';
+    ctx.fillRect(x, y, bw, bh);
+    ctx.strokeStyle = on ? '#34d399' : 'rgba(255,255,255,.18)'; ctx.lineWidth=1; ctx.strokeRect(x+.5,y+.5,bw-1,bh-1);
+    ctx.fillStyle = on ? '#06281d' : 'rgba(229,231,235,.7)'; ctx.font='9px IBM Plex Mono, monospace'; ctx.textAlign='center';
+    ctx.fillText('v'+VALUES[i], x+bw/2, y+bh/2-2);
+    ctx.fillText('w'+WEIGHTS[i], x+bw/2, y+bh/2+9);
+  }
+}
+
+const DESCRIPTION = {
+  summary: '容量を超えない範囲で品物の価値合計を最大化する 0/1 ナップザック問題を解きます。',
+  gene: '品物ごとの「入れる(1)／入れない(0)」を表す長さ ' + N_ITEMS + ' のビット列。',
+  phenotype: '選んだ品物の集合。画面では採用品をハイライトし、容量ゲージで重量を表示します。',
+  fitness: '採用品の価値合計。ただし容量(capacity)を超えると大きく減点されます。'
+};
+
+// このモデルは 0/1 ナップザック問題を遺伝的アルゴリズムで解きます。
+// 遺伝子は品物ごとの採用ビット。容量を超えると fitness が大きく下がる設計です。
+// capacity スライダーを動かすと最適な詰め方が変わる様子を観察できます。
+// 品物の重さ・価値は固定（乱数シードで生成）。WEIGHTS / VALUES を編集して問題を変えられます。`;
+
+// ═══════════════════════════════════════════════════════════════
+// 追加モデル⑤：巡回セールスマン問題（TSP・ランダムキー法）
+// ═══════════════════════════════════════════════════════════════
+const CODE_TSP = `const TITLE = '巡回セールスマン問題';
+// ── 巡回セールスマン問題（TSP）─────────────────────────────────────
+// すべての都市を1回ずつ訪れて戻る、最短の巡回路を探します。
+// 遺伝子＝各都市の「鍵」(0〜1)。鍵の昇順に訪問＝順列（ランダムキー法）。
+//   → 実数の遺伝子のまま、一様交叉・正規変異で常に正しい巡回路になります。
+// ★ fitness() は「− 巡回路の長さ」（短いほど良い＝最大化）。
+
+const N_CITY = 14;
+function mkRng(seed){ let s=seed>>>0; return function(){ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
+const _rng2 = mkRng(99991);
+const CITIES=[]; for (let i=0;i<N_CITY;i++) CITIES.push({ x:0.07+_rng2()*0.86, y:0.10+_rng2()*0.80 });  // 固定の都市
+
+const GENE = { type:'real', length:N_CITY, min:0, max:1 };
+
+const PARAM_DEFS = [
+  { id:'popSize',      label:'個体数',     min:20, max:300, step:10,   default:120, help:'1世代の個体数（変更時は再初期化）。' },
+  { id:'mutationRate', label:'突然変異率', min:0,  max:0.4, step:0.01, default:0.10, help:'各遺伝子（鍵）に正規乱数を加える確率。' },
+  { id:'crossoverRate',label:'交叉率',     min:0,  max:1,   step:0.05, default:0.9, help:'2個体を一様交叉する確率。' },
+  { id:'elitism',      label:'エリート保存',min:0, max:10,  step:1,    default:2, help:'無条件に次世代へ残す上位個体数。' },
+  { id:'tournamentK',  label:'選択圧',     min:2,  max:12,  step:1,    default:4, help:'親選択のトーナメント参加数。' },
+];
+
+// 遺伝子（鍵） → 訪問順（鍵の昇順に都市を並べた順列）
+function decode(genome, params){
+  const idx=[]; for (let i=0;i<N_CITY;i++) idx.push(i);
+  idx.sort(function(a,b){ return genome[a]-genome[b]; });
+  return idx;
+}
+function tourLength(order){
+  let L=0;
+  for (let i=0;i<order.length;i++){ const a=CITIES[order[i]], b=CITIES[order[(i+1)%order.length]];
+    L += Math.hypot(a.x-b.x, a.y-b.y); }
+  return L;
+}
+
+// ★★★ 評価関数（適応度）：ここを書き換えてください ★★★
+//   巡回路は短いほど良いので「− 長さ」を返して最大化します。
+function fitness(genome, params){ return -tourLength(decode(genome, params)); }
+
+const geneInfo = N_CITY + '都市それぞれの「鍵」(0〜1)を遺伝子に持ちます。' +
+  '鍵の小さい順に都市を訪問することで巡回路（順列）を表します（ランダムキー法）。';
+
+function geneView(genome, params){
+  return [ { label:'都市の鍵（昇順に訪問）', reals: genome, value:'長さ '+tourLength(decode(genome, params)).toFixed(3) } ];
+}
+
+const PLOT_DEFS = [
+  { title:'巡回路の長さ（短いほど良い・世代ごと）',
+    series:[ { id:'best', label:'最良', color:'#16a34a', fn:s=> -s.bestFitness },
+             { id:'avg',  label:'平均', color:'#0ea5e9', fn:s=> -s.avg } ] },
+];
+const MAX_GEN = 400;
+
+function draw(ctx, state, W, H, params){
+  ctx.fillStyle='#0b1020'; ctx.fillRect(0,0,W,H);
+  const pad=28;
+  const SX=function(x){ return pad + x*(W-2*pad); };
+  const SY=function(y){ return pad + y*(H-2*pad); };
+  // 最良の巡回路
+  if (state.best){
+    const order=decode(state.best, params);
+    ctx.strokeStyle='rgba(96,165,250,.9)'; ctx.lineWidth=2; ctx.beginPath();
+    for (let i=0;i<order.length;i++){ const c=CITIES[order[i]];
+      if (i===0) ctx.moveTo(SX(c.x),SY(c.y)); else ctx.lineTo(SX(c.x),SY(c.y)); }
+    const c0=CITIES[order[0]]; ctx.lineTo(SX(c0.x),SY(c0.y)); ctx.stroke();
+  }
+  // 都市
+  for (let i=0;i<CITIES.length;i++){ const c=CITIES[i];
+    ctx.fillStyle = (state.best && decode(state.best,params)[0]===i) ? '#fbbf24' : '#34d399';
+    ctx.beginPath(); ctx.arc(SX(c.x), SY(c.y), (state.best && decode(state.best,params)[0]===i)?6:4, 0, 7); ctx.fill(); }
+  ctx.fillStyle='#e5e7eb'; ctx.font='12px IBM Plex Mono, monospace'; ctx.textAlign='left';
+  ctx.fillText('世代 '+(state.gen||0), 10, 18);
+  ctx.fillText('最短長 '+(isFinite(state.bestFitness)? (-state.bestFitness).toFixed(3) :'—'), 10, 34);
+  ctx.fillText('通算最短 '+(isFinite(state.bestEverFitness)? (-state.bestEverFitness).toFixed(3) :'—'), 10, 50);
+}
+
+const DESCRIPTION = {
+  summary: 'すべての都市を1回ずつ巡って戻る最短経路を、ランダムキー法のGAで探します。',
+  gene: '各都市の「鍵」(実数0〜1)を並べた長さ ' + N_CITY + ' の配列。鍵の昇順に訪問＝巡回順（常に正しい順列）。',
+  phenotype: '都市を結ぶ巡回路。画面に経路・都市・出発都市を表示します。',
+  fitness: '−（巡回路の総距離）。短いほど適応度が高い（＝最大化）。'
+};
+
+// このモデルは巡回セールスマン問題（TSP）を遺伝的アルゴリズムで解きます。
+// 順列を「ランダムキー法」（各都市の鍵を実数で持ち昇順に訪問）で表すため、
+// 通常の一様交叉・正規変異がそのまま使え、常に正しい巡回路になります。
+// fitness は −（巡回路の長さ）。都市 CITIES は固定（乱数シードで生成）です。`;
+
+const MODELS = {
+  funcopt:  CODE_FUNCOPT,
+  springbot: CODE_SPRINGBOT,
+  softbody:  CODE_SOFTBODY,
+  knapsack: CODE_KNAPSACK,
+  tsp:      CODE_TSP,
+};
+
+
+let defs=null, simState=null, running=false, rafHandle=null, lastTs=null;
+let viewMode='best';   // 'best' = 最良個体のみ / 'all' = 全個体タイル表示（既定は best）
+let showCoM=false;     // 歩行モデルの重心線オン/オフ
+let paramDefs=[], paramVals={};
+let setupDefs=[], activeSetupIdx=0;
+let buttonDefs=[];
+let chartDefs=[], chartHistories=[], chartAxisState=[];
+let stopCondFn=null, stopCondEnabled=true;
+const PLOT_MAX=800;
+let chartW=340;
+// ── v6 state ──
+let paramMode='live';            // 'live' | 'reset'
+let setupAffecting={};           // {paramId: true} → 変更に再セットアップが要る
+let lastSetupParams={};          // 直近のセットアップ時のパラメータ
+let pendingReset=false;          // setup系パラメータが変わった
+let frameCount=0;                // 描画間引き用フレームカウンタ
+let fpsSamples=[], fpsLastTs=null;
+let snapshots=[];                // 保存した実験 [{id,label,params,histories,color,visible}]
+let snapSeq=0;
+const SNAP_COLORS=['#0ea5e9','#16a34a','#d97706','#9333ea','#dc2626','#0891b2','#65a30d','#db2777'];
+
+// ── Evo: 世代/秒、世代カウンタ用アクセサ ──
+let genAccum=0;
+// 実行速度：スライダー位置(0〜100)を対数で 0.1〜60 世代/秒に対応づける（遅い側も細かく選べる）
+const GEN_MIN=0.1, GEN_MAX=60;
+function getGensPerSec(){
+  const pos=parseFloat(document.getElementById('speedSlider').value);
+  const p=isFinite(pos)?Math.max(0,Math.min(100,pos)):64;
+  return GEN_MIN*Math.pow(GEN_MAX/GEN_MIN, p/100);
+}
+
+// ── Evo: GA エンジン本体 ──────────────────────────────────────
+function getP(params,id,def){ const v=params[id]; return (typeof v==='number'&&isFinite(v))?v:def; }
+function clampNum(v,lo,hi){ return v<lo?lo:(v>hi?hi:v); }
+function gaussian(){ let u=0,v=0; while(u===0)u=Math.random(); while(v===0)v=Math.random();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+function geneConf(params){
+  const g=defs.GENE||{};
+  const len=(typeof g.length==='function')?g.length(params):(g.length||10);
+  return { type:g.type||'real', length:Math.max(1,Math.round(len)), min:(g.min??0), max:(g.max??1), sigma:g.sigma };
+}
+function makeGenome(params){
+  if(typeof defs.randomGenome==='function') return defs.randomGenome(params);
+  const c=geneConf(params), a=new Array(c.length);
+  for(let i=0;i<c.length;i++) a[i]= c.type==='bit' ? (Math.random()<0.5?0:1) : (c.min+Math.random()*(c.max-c.min));
+  return a;
+}
+function mutateGenome(g,params){
+  const c=geneConf(params), rate=clampNum(getP(params,'mutationRate',0.05),0,1), out=g.slice();
+  if(c.type==='bit'){ for(let i=0;i<out.length;i++) if(Math.random()<rate) out[i]=out[i]?0:1; }
+  else { const sigma=(c.sigma??(c.max-c.min)*0.1)||0.1;
+    for(let i=0;i<out.length;i++) if(Math.random()<rate){ out[i]=clampNum(out[i]+gaussian()*sigma,c.min,c.max); } }
+  return out;
+}
+function crossoverGenome(a,b,params){
+  const c=geneConf(params), cr=clampNum(getP(params,'crossoverRate',0.9),0,1);
+  if(Math.random()>cr) return a.slice();
+  const out=new Array(a.length);
+  if(c.type==='bit'){ const pt=1+Math.floor(Math.random()*Math.max(1,a.length-1));
+    for(let i=0;i<a.length;i++) out[i]= i<pt? a[i] : b[i]; }
+  else { for(let i=0;i<a.length;i++) out[i]= Math.random()<0.5? a[i] : b[i]; }
+  return out;
+}
+function tournamentPick(state,params){
+  const k=Math.max(2,Math.round(getP(params,'tournamentK',3)));
+  let bi=Math.floor(Math.random()*state.pop.length), bf=state.fit[bi];
+  for(let i=1;i<k;i++){ const idx=Math.floor(Math.random()*state.pop.length); if(state.fit[idx]>bf){bf=state.fit[idx];bi=idx;} }
+  return state.pop[bi];
+}
+function sameGenome(a,b){ if(!a||!b||a.length!==b.length)return false; for(let i=0;i<a.length;i++) if(a[i]!==b[i])return false; return true; }
+function evoEvaluate(state,params){
+  state.fit=state.pop.map(g=>{ let f; try{ f=defs.fitness(g,params); }catch(e){ throw new Error('fitness() エラー: '+e.message); }
+    return (typeof f==='number'&&isFinite(f))? f : -1e18; });
+  let bi=0; for(let i=1;i<state.fit.length;i++) if(state.fit[i]>state.fit[bi]) bi=i;
+  state.best=state.pop[bi].slice(); state.bestFitness=state.fit[bi]; state.max=state.bestFitness;
+  let sum=0,mn=Infinity; for(const f of state.fit){ sum+=f; if(f<mn)mn=f; }
+  state.avg=sum/state.fit.length; state.min=mn;
+  if(state.bestEver===undefined || state.bestFitness>state.bestEverFitness){ state.bestEver=state.best.slice(); state.bestEverFitness=state.bestFitness; }
+}
+function evoSetup(params,W,H){
+  const n=Math.max(2,Math.round(getP(params,'popSize',30)));
+  const pop=[]; for(let i=0;i<n;i++) pop.push(makeGenome(params));
+  const state={ tick:0, gen:0, pop, fit:[], best:null, bestFitness:-Infinity,
+                bestEver:undefined, bestEverFitness:-Infinity, avg:0, min:0, max:0, view:null, frame:0, W, H };
+  evoEvaluate(state,params);
+  if(typeof defs.viewStepsPerFrame==='number') state.viewStepsPerFrame=defs.viewStepsPerFrame;
+  if(typeof defs.viewReset==='function'){ try{ state.view=defs.viewReset(state.best,params); }catch(_){ state.view=null; } }
+  return state;
+}
+function evoStepGen(state,params){
+  const n=state.pop.length;
+  const elit=Math.max(0,Math.min(n-1,Math.round(getP(params,'elitism',1))));
+  const order=state.fit.map((f,i)=>[f,i]).sort((a,b)=>b[0]-a[0]).map(x=>x[1]);
+  const next=[];
+  for(let i=0;i<elit;i++) next.push(state.pop[order[i]].slice());
+  while(next.length<n){ const pa=tournamentPick(state,params), pb=tournamentPick(state,params);
+    next.push(mutateGenome(crossoverGenome(pa,pb,params),params)); }
+  const prevBest=state.best;
+  state.pop=next; state.gen++; state.tick=state.gen;
+  evoEvaluate(state,params);
+  recordPlot();
+  if(typeof defs.viewReset==='function' && !sameGenome(prevBest,state.best)){
+    try{ state.view=defs.viewReset(state.best,params); }catch(_){}
+  }
+  if(viewMode==='all') rebuildAllView(state,params);
+}
+function evoViewStep(state,params){
+  if(typeof defs.viewStep==='function' && state.view){ try{ defs.viewStep(state.view,params); }catch(_){} }
+}
+// 全個体表示：上位 N 個体（適応度順）の並びと、各個体の表示状態を用意
+function getAllCount(){ const el=document.getElementById('allCountSlider'); return el?(parseInt(el.value)||9):9; }
+function rebuildAllView(state,params){
+  if(!state||!state.fit||!state.pop){ if(state){ state.allOrder=null; state.allViews=null; } return; }
+  const cap=Math.max(1, Math.min(state.pop.length, getAllCount(), 64));
+  const order=state.fit.map((f,i)=>[f,i]).sort((a,b)=>b[0]-a[0]).map(x=>x[1]).slice(0,cap);
+  state.allOrder=order;
+  if(typeof defs.viewReset==='function'){
+    state.allViews=order.map(i=>{ try{ return defs.viewReset(state.pop[i],params); }catch(_){ return null; } });
+  } else state.allViews=null;
+}
+function evoViewStepAll(state,params){
+  if(typeof defs.viewStep!=='function' || !state.allViews) return;
+  for(let i=0;i<state.allViews.length;i++){ if(state.allViews[i]){ try{ defs.viewStep(state.allViews[i],params); }catch(_){} } }
+}
+function setViewMode(m){
+  viewMode = (m==='all') ? 'all' : 'best';
+  const b=document.getElementById('vmBest'), a=document.getElementById('vmAll');
+  if(b) b.classList.toggle('on', viewMode==='best');
+  if(a) a.classList.toggle('on', viewMode==='all');
+  const wrap=document.getElementById('allCountWrap'); if(wrap) wrap.style.display = (viewMode==='all')?'inline-flex':'none';
+  if(defs && simState){
+    if(viewMode==='all') rebuildAllView(simState,getParams());
+    renderFrame();
+  }
+}
+function updateAllCount(){
+  const v=getAllCount(); const el=document.getElementById('allCountVal'); if(el) el.textContent=v+' 個';
+  if(defs && simState && viewMode==='all'){ rebuildAllView(simState,getParams()); renderFrame(); }
+}
+
+
+function getMaxTicks(){ return parseInt(document.getElementById('maxTickSlider').value)||500; }
+// 既定は「⏹ 停止のみ」。「🔁 ループ」を選んだときだけ最大世代到達時に自動初期化して繰り返す。
+function isLoopEnabled(){ const el=document.getElementById('maxTickModeSel'); return !!el && el.value==='loop'; }
+
+// ──────────────────────────────────────────────────────────────
+// Init
+// ──────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const rc = document.querySelector('.right-col');
+  if (rc) chartW = Math.max(240, rc.clientWidth - 24);
+  applyRecFramesDefault();   // decide before applyCode() captures the first frame
+  // code editor: line-number gutter sync
+  const ta = document.getElementById('codeArea');
+  const sync = () => syncGutter();
+  ta.addEventListener('input', sync);
+  ta.addEventListener('scroll', () => { document.getElementById('codeGutter').scrollTop = ta.scrollTop; });
+  document.getElementById('codeArea').value = CODE_FUNCOPT;
+  updateDrawEveryLabel();
+  applyCode(true);
+  syncGutter();
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeEvoZoom(); closeHelp(); } });
+});
+window.addEventListener('resize', () => {
+  chartDefs.forEach((_,ci) => renderChart(ci));
+});
+
+// ──────────────────────────────────────────────────────────────
+// Code toggle
+// ──────────────────────────────────────────────────────────────
+function toggleCode() {
+  const body=document.getElementById('codeBody'),toggle=document.getElementById('codeToggle');
+  const open=body.classList.toggle('open');
+  toggle.textContent=open?'▾ コード':'▸ コード';
+  toggle.classList.toggle('open',open);
+}
+
+// ──────────────────────────────────────────────────────────────
+// Code parser
+// ──────────────────────────────────────────────────────────────
+function applyCode(silent) {
+  const code=document.getElementById('codeArea').value;
+  const err=document.getElementById('errorBox'),ok=document.getElementById('okBadge');
+  err.className='error-box';err.innerHTML='';
+  syncGutter();
+
+  // ── v6: 禁止構文の事前チェック（行番号つきで分かりやすく） ──
+  const banned = lintCode(code);
+  if (banned) {
+    showCodeError(banned.msg, banned.line, code, banned.hint);
+    if (!silent) {} // 失敗時はバッジを出さない
+    return;
+  }
+
+  let res;
+  try {
+    const fn=new Function(code+`
+      return {
+        GENE:         typeof GENE         !=='undefined'?GENE:null,
+        randomGenome: typeof randomGenome !=='undefined'?randomGenome:null,
+        fitness:      typeof fitness      !=='undefined'?fitness:null,
+        decode:       typeof decode       !=='undefined'?decode:null,
+        geneInfo:     typeof geneInfo     !=='undefined'?geneInfo:null,
+        DESCRIPTION:  typeof DESCRIPTION  !=='undefined'?DESCRIPTION:null,
+        TITLE:        typeof TITLE        !=='undefined'?TITLE:null,
+        geneView:     typeof geneView     !=='undefined'?geneView:null,
+        draw:         typeof draw         !=='undefined'?draw:null,
+        viewReset:    typeof viewReset    !=='undefined'?viewReset:null,
+        viewStep:     typeof viewStep     !=='undefined'?viewStep:null,
+        viewStepsPerFrame: typeof viewStepsPerFrame!=='undefined'?viewStepsPerFrame:null,
+        PARAM_DEFS:   typeof PARAM_DEFS   !=='undefined'?PARAM_DEFS:null,
+        BUTTON_DEFS:  typeof BUTTON_DEFS  !=='undefined'?BUTTON_DEFS:null,
+        PLOT_DEFS:    typeof PLOT_DEFS    !=='undefined'?PLOT_DEFS:null,
+        MAX_GEN:      typeof MAX_GEN      !=='undefined'?MAX_GEN:0,
+        STOP_COND:    typeof STOP_COND    !=='undefined'?STOP_COND:null,
+      };
+    `);
+    res=fn();
+  } catch(e){
+    const line=errorLine(e);
+    showCodeError(e.message, line, code, friendlyHint(e.message));
+    return;
+  }
+  try {
+    if(typeof res.fitness!=='function') throw new Error('fitness() 関数が見つかりません（評価関数は必須です）．');
+    if(typeof res.draw   !=='function') throw new Error('draw() 関数が見つかりません．');
+    if(typeof res.randomGenome!=='function' && !(res.GENE&&(res.GENE.length||typeof res.GENE.length==='function')))
+      throw new Error('GENE（遺伝子の形式）か randomGenome() のどちらかが必要です．');
+    defs=res;
+    setModelTitle(res.TITLE);
+    renderDescription(res.DESCRIPTION);
+    const maxGen=(typeof res.MAX_GEN==='number'&&res.MAX_GEN>0)?res.MAX_GEN:0;
+    if(maxGen>0){
+      document.getElementById('maxTickSlider').value=Math.min(maxGen,5000);
+      const modeSel=document.getElementById('maxTickModeSel');
+      if(modeSel) modeSel.value='stop';   // 既定では最大世代に達したら停止する（繰り返したい場合は🔁ループに切り替える）
+      updateMaxTickLabel();
+    }
+    buildStopCond(res.STOP_COND||null);
+    buildParamSliders((res.PARAM_DEFS&&Array.isArray(res.PARAM_DEFS)&&res.PARAM_DEFS.length)?res.PARAM_DEFS:[]);
+    detectSetupAffecting(res);
+    buildSetupSelector(null);     // Evo 版はプリセット未使用
+    buildActionButtons((res.BUTTON_DEFS&&Array.isArray(res.BUTTON_DEFS)&&res.BUTTON_DEFS.length)?res.BUTTON_DEFS:null);
+    const plot=(res.PLOT_DEFS&&Array.isArray(res.PLOT_DEFS)&&res.PLOT_DEFS.length)?res.PLOT_DEFS:DEFAULT_PLOT;
+    setupCharts(plot);
+    renderGeneDef();             // 遺伝子の定義を表示
+    clearSnapshots(true);
+    resetSim();
+    if(!silent){ok.className='ok-badge show';setTimeout(()=>ok.className='ok-badge',1800);}
+  } catch(e){ showCodeError(e.message, errorLine(e), code, friendlyHint(e.message)); }
+}
+const DEFAULT_PLOT=[{ title:'適応度（世代ごと）', series:[
+  { id:'best', label:'最良', color:'#16a34a', fn:s=>s.bestFitness },
+  { id:'avg',  label:'平均', color:'#0ea5e9', fn:s=>s.avg },
+]}];
+
+// ── v6: 禁止構文チェック ──
+function lintCode(code){
+  const lines=code.split('\n');
+  const rules=[
+    {re:/(^|[^.\w])class\s+[A-Za-z_$]/, msg:'class キーワードは使えません', hint:'オブジェクトリテラル {} やファクトリ関数で代替してください（例: const make = () => ({x:0,y:0}); ）'},
+    {re:/\bdocument\s*\./, msg:'document.* は使えません（DOM 操作は不可）', hint:'描画は draw(ctx, ...) の中で Canvas 2D（ctx）だけを使ってください'},
+    {re:/\bwindow\s*\./, msg:'window.* は使えません', hint:'グローバルなブラウザ API には触れられません。state と params だけで完結させてください'},
+    {re:/\.addEventListener\s*\(/, msg:'addEventListener は使えません', hint:'入力は PARAM_DEFS のスライダーや BUTTON_DEFS のボタンで受け取ってください'},
+    {re:/\bfetch\s*\(/, msg:'fetch（外部通信）は使えません', hint:'外部データは読み込めません。初期値は setup() の中で生成してください'},
+    {re:/\bXMLHttpRequest\b/, msg:'XMLHttpRequest（外部通信）は使えません', hint:'外部通信はできません'},
+    {re:/\bset(Timeout|Interval)\s*\(/, msg:'setTimeout / setInterval は使えません', hint:'時間発展は step() が毎フレーム呼ばれることで進みます。非同期処理は不要です'},
+    {re:/^\s*import\s/, msg:'import 文は使えません', hint:'外部ライブラリは読み込めません（純粋な JS + Canvas のみ）'},
+    {re:/^\s*export\s/, msg:'export 文は使えません', hint:'モジュール構文は使えません'},
+  ];
+  // 文字列・コメントを大ざっぱに除去してから判定（誤検知を減らす）
+  for(let i=0;i<lines.length;i++){
+    const stripped=lines[i]
+      .replace(/\/\/.*$/,'')
+      .replace(/(["'`])(?:\\.|(?!\1).)*\1/g,'""');
+    for(const r of rules){
+      if(r.re.test(stripped)) return {msg:r.msg, line:i+1, hint:r.hint};
+    }
+  }
+  return null;
+}
+
+function errorLine(e){
+  // new Function 内のエラー行から、ユーザーコード上の行番号を推定
+  const m=(e.stack||'').match(/<anonymous>:(\d+):\d+/) || (e.stack||'').match(/Function:(\d+):\d+/);
+  if(m){ const n=parseInt(m[1]); return n>1? n-1 : n; } // 関数ラッパで +1 行ずれる分を補正
+  if(typeof e.lineNumber==='number') return e.lineNumber;
+  return null;
+}
+
+function friendlyHint(msg){
+  if(/is not defined/.test(msg)) return '変数名のスペルミス、または定義する前に使っている可能性があります';
+  if(/Unexpected token|Unexpected end|missing/.test(msg)) return '括弧 () {} [] の対応や、カンマ・セミコロンの抜けを確認してください';
+  if(/is not a function/.test(msg)) return '関数でないものを () で呼び出しています。変数の中身を確認してください';
+  if(/Cannot read|reading/.test(msg)) return 'undefined のプロパティを参照しています。state の初期化（setup の return）を確認してください';
+  return '';
+}
+
+function showCodeError(msg, line, code, hint){
+  const el=document.getElementById('errorBox');
+  let html='⚠ '+escHtml(msg)+(line?'（'+line+' 行目あたり）':'');
+  if(line && code){
+    const ln=code.split('\n')[line-1];
+    if(ln!==undefined) html+='<span class="errline">'+line+' | '+escHtml(ln.trim().slice(0,120))+'</span>';
+  }
+  if(hint) html+='<span class="errhint">💡 '+escHtml(hint)+'</span>';
+  el.innerHTML=html; el.className='error-box show';
+  // コード欄が閉じていたら開いて気づけるように
+  const body=document.getElementById('codeBody');
+  if(!body.classList.contains('open')) toggleCode();
+}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function loadFromSelect(key) {
+  const sel = document.getElementById('modelSelect');
+  if (sel) sel.value = '';
+  if (!key || !MODELS[key]) return;
+  paramVals = {};   // 組み込みモデルは自前の既定値を持つので，前のモデルの値を引き継がない
+  document.getElementById('codeArea').value = MODELS[key];
+  applyCode();
+}
+// 後方互換（旧ボタンリンクが残っていた場合）
+function loadDefault()  { loadFromSelect('funcopt'); }
+function loadFuncOpt()  { loadFromSelect('funcopt'); }
+function loadSpringbot(){ loadFromSelect('springbot'); }
+
+// ──────────────────────────────────────────────────────────────
+// Stop condition (STOP_COND)
+// ──────────────────────────────────────────────────────────────
+function buildStopCond(raw){
+  // 形式A: 関数のみ  const STOP_COND = (state, params) => ...
+  // 形式B: オブジェクト  const STOP_COND = { label: '説明', fn: (state,params)=>... }
+  let fn=null, label='', code='';
+  if(typeof raw==='function'){
+    fn=raw;
+    code=raw.toString().replace(/^[^=]*=>\s*/,'').trim();  // arrow body
+    label='条件が true になると自動停止';
+  } else if(raw&&typeof raw==='object'&&typeof raw.fn==='function'){
+    fn=raw.fn;
+    label=raw.label||'';
+    code=raw.code||raw.fn.toString().replace(/^[^=]*=>\s*/,'').trim();
+  }
+  stopCondFn=fn;
+  stopCondEnabled=true;
+  const section=document.getElementById('stopcondSection');
+  const labelEl=document.getElementById('stopcondLabel');
+  const codeEl=document.getElementById('stopcondCode');
+  const chk=document.getElementById('stopcondToggle');
+  if(!fn){
+    section.classList.remove('show');
+    updateSepTop();
+    return;
+  }
+  section.classList.add('show');
+  updateSepTop();
+  chk.checked=true;
+  labelEl.textContent=label;
+  labelEl.classList.remove('active');
+  if(code){codeEl.textContent=code;codeEl.classList.add('show');}
+  else{codeEl.classList.remove('show');}
+}
+
+function onStopCondToggle(){
+  stopCondEnabled=document.getElementById('stopcondToggle').checked;
+  if(!stopCondEnabled){
+    document.getElementById('stoppedBadge').classList.remove('show');
+    document.getElementById('stopcondLabel').classList.remove('active');
+  }
+}
+
+function checkStopCond(){
+  if(!stopCondFn||!stopCondEnabled||!simState)return false;
+  let result=false;
+  try{result=stopCondFn(simState,getParams());}catch(_){return false;}
+  if(result){
+    stopSim();
+    renderFrame();updateTickUI();  // 停止時の最終状態を確実に描画
+    document.getElementById('stoppedBadge').classList.add('show');
+    document.getElementById('stopcondLabel').classList.add('active');
+    showToast('停止条件が満たされました（世代 '+(simState.gen??0)+'）');
+    return true;
+  }
+  return false;
+}
+
+// ──────────────────────────────────────────────────────────────
+// Param sliders
+// ──────────────────────────────────────────────────────────────
+function buildParamSliders(pdefs) {
+  paramDefs=pdefs;
+  const group=document.getElementById('paramGroup');
+  [...group.querySelectorAll('.slider-row')].forEach(el=>el.remove());
+  pdefs.forEach(p=>{
+    if(!(p.id in paramVals))paramVals[p.id]=p.default;
+    paramVals[p.id]=Math.min(p.max,Math.max(p.min,paramVals[p.id]));
+    const row=document.createElement('div');row.className='slider-row';
+    const label=document.createElement('label');label.className='param-label';label.id='paramlbl_'+p.id;
+    label.textContent=p.label;label.htmlFor='param_'+p.id;
+    // 名前が長い場合は省略されるため、全文をホバーで参照できるようにする。
+    label.title=p.label+'  ['+p.id+']'+(p.help?'\n'+p.help:'');
+    const lblVar=document.createElement('span');lblVar.className='pvar';
+    lblVar.textContent=p.id;lblVar.title=p.id;
+    const input=document.createElement('input');
+    input.type='range';input.min=p.min;input.max=p.max;input.step=p.step;
+    input.value=paramVals[p.id];input.id='param_'+p.id;
+    const val=document.createElement('input');
+    val.type='number';val.className='slider-num';val.id='paramval_'+p.id;
+    val.min=p.min;val.max=p.max;val.step=p.step;
+    const dPV=p.step<0.01?3:p.step<0.1?2:p.step<1?1:0;
+    const numStr=(v)=>+(+v).toFixed(dPV);
+    val.value=numStr(paramVals[p.id]);
+    // スライダー → 数値欄
+    input.addEventListener('input',()=>{
+      paramVals[p.id]=parseFloat(input.value);
+      val.value=numStr(paramVals[p.id]);
+      onParamChanged(p.id);
+    });
+    // 数値欄に直接入力 → スライダーへ反映（入力途中は欄を書き換えない）
+    val.addEventListener('input',()=>{
+      const v=parseFloat(val.value);
+      if(!isFinite(v))return;
+      input.value=v;                                   // range が min/max/step に丸める
+      paramVals[p.id]=parseFloat(input.value);
+      onParamChanged(p.id);
+    });
+    // 確定時に範囲内へ整える
+    val.addEventListener('change',()=>{
+      let v=parseFloat(val.value);
+      if(!isFinite(v))v=paramVals[p.id];
+      v=Math.min(p.max,Math.max(p.min,v));
+      input.value=v;paramVals[p.id]=parseFloat(input.value);
+      val.value=numStr(paramVals[p.id]);
+      onParamChanged(p.id);
+    });
+    row.append(label,lblVar,input,val);
+    if(p.unit){const u=document.createElement('span');u.className='param-unit';u.textContent=p.unit;row.append(u);}
+    if(p.help){
+      const info=document.createElement('span');info.className='pinfo';info.textContent='ⓘ';
+      const tip=document.createElement('span');tip.className='tip';tip.textContent=p.help;
+      info.appendChild(tip);row.appendChild(info);
+    }
+    group.appendChild(row);
+  });
+}
+// v6: パラメータ変更時の挙動
+function onParamChanged(id){
+  if(paramMode==='reset'){
+    clearTimeout(onParamChanged._t);
+    onParamChanged._t=setTimeout(()=>resetSim(),220);
+    return;
+  }
+  // live モード: step が毎フレーム getParams() を読むので即時反映される。
+  // ただし setup でしか使われない値は再セットアップが必要 → ヒント表示。
+  if(setupAffecting[id]){
+    pendingReset=true;
+    document.getElementById('resetHint').classList.add('show');
+    const lbl=document.getElementById('paramlbl_'+id);
+    if(lbl) lbl.classList.add('needs-setup');
+  }
+}
+function setParamMode(m){
+  paramMode=m;
+  document.getElementById('pmode_live').classList.toggle('on',m==='live');
+  document.getElementById('pmode_reset').classList.toggle('on',m==='reset');
+  if(m==='reset'){ resetSim(); }
+}
+// v6: PARAM_DEFS のうち、setup 系でのみ使われる（=変更に再セットアップが要る）ものを判定
+function detectSetupAffecting(res){
+  setupAffecting={};
+  const setupSrc=[];
+  if(typeof res.randomGenome==='function') setupSrc.push(res.randomGenome.toString());
+  if(res.GENE && typeof res.GENE.length==='function') setupSrc.push(res.GENE.length.toString());
+  const stepSrc=(typeof res.fitness==='function')?res.fitness.toString():'';
+  paramDefs.forEach(p=>{
+    const pat=new RegExp('params(?:\\.'+p.id+'\\b|\\[[\'"]'+p.id+'[\'"]\\])');
+    const inSetup=setupSrc.some(s=>pat.test(s));
+    const inStep=pat.test(stepSrc);
+    // popSize は必ず再初期化が必要（個体数が変わるため）
+    setupAffecting[p.id]= (p.id==='popSize') || (inSetup && !inStep);
+  });
+}
+function fmtPV(v,p){const d=p.step<0.01?3:p.step<0.1?2:p.step<1?1:0;return v.toFixed(d)+(p.unit||'');}
+function getParams(){
+  const obj={};
+  paramDefs.forEach(p=>{const el=document.getElementById('param_'+p.id);obj[p.id]=el?parseFloat(el.value):(paramVals[p.id]??p.default);});
+  return obj;
+}
+
+// ──────────────────────────────────────────────────────────────
+// Setup selector (SETUP_DEFS)
+// ──────────────────────────────────────────────────────────────
+function buildSetupSelector(sdefs) {
+  setupDefs=sdefs||[];
+  activeSetupIdx=0;
+  const section=document.getElementById('setupSection');
+  const btnsEl=document.getElementById('setupBtns');
+  btnsEl.innerHTML='';
+  section.classList.toggle('show',sdefs&&sdefs.length>0);
+  if(!sdefs||!sdefs.length)return;
+  sdefs.forEach((s,i)=>{
+    const btn=document.createElement('button');
+    btn.className='setup-btn'+(i===0?' active':'');
+    btn.textContent=s.label;
+    btn.id='setupBtn_'+i;
+    btn.onclick=()=>selectSetup(i);
+    btnsEl.appendChild(btn);
+  });
+}
+
+function selectSetup(idx) {
+  activeSetupIdx=idx;
+  document.querySelectorAll('.setup-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  resetSim();
+}
+
+// ──────────────────────────────────────────────────────────────
+// Action buttons (BUTTON_DEFS)
+// ──────────────────────────────────────────────────────────────
+function buildActionButtons(bdefs) {
+  buttonDefs=bdefs||[];
+  const section=document.getElementById('actionSection');
+  const btnsEl=document.getElementById('actionBtns');
+  btnsEl.innerHTML='';
+  section.classList.toggle('show',bdefs&&bdefs.length>0);
+  if(!bdefs||!bdefs.length)return;
+  bdefs.forEach((b,i)=>{
+    const btn=document.createElement('button');
+    btn.className='action-btn';
+    btn.textContent=b.label;
+    if(b.color){
+      btn.style.borderColor=b.color;
+      btn.style.color=b.color;
+    }
+    btn.onclick=()=>fireAction(i,btn);
+    btnsEl.appendChild(btn);
+  });
+}
+
+function updateSepTop(){
+  const hasAny=document.getElementById('setupSection').classList.contains('show')||
+               document.getElementById('actionSection').classList.contains('show')||
+               document.getElementById('stopcondSection').classList.contains('show');
+  document.getElementById('sepTop').style.display=hasAny?'':'none';
+}
+
+function fireAction(idx, btn) {
+  if(!simState||!buttonDefs[idx])return;
+  const canvas=document.getElementById('simCanvas');
+  try{
+    buttonDefs[idx].fn(simState,getParams(),canvas.width,canvas.height);
+    renderFrame();updateTickUI();
+    if(btn){btn.style.opacity='.6';setTimeout(()=>btn.style.opacity='',200);}
+  }catch(e){showErr('BUTTON_DEFS['+idx+'] エラー: '+e.message);}
+}
+
+// ──────────────────────────────────────────────────────────────
+// Chart setup
+// ──────────────────────────────────────────────────────────────
+function normalizePlotDefs(raw){
+  if(!raw||!Array.isArray(raw)||!raw.length)return[];
+  if(raw[0]&&typeof raw[0]==='object'&&Array.isArray(raw[0].series))
+    return raw.map(c=>({title:c.title||'',yMin:c.yMin!==undefined?c.yMin:null,yMax:c.yMax!==undefined?c.yMax:null,series:c.series||[]}));
+  return[{title:'',yMin:null,yMax:null,series:raw}];
+}
+
+function setupCharts(rawPlotDefs){
+  chartDefs=normalizePlotDefs(rawPlotDefs);
+  chartHistories=chartDefs.map(()=>[]);
+  chartAxisState=chartDefs.map(cd=>({
+    yMode:'auto', yMin:(cd.yMin!==null?cd.yMin:0), yMax:(cd.yMax!==null?cd.yMax:100),
+    xMode:'auto', xMin:0, xMax:100,
+  }));
+  const section=document.getElementById('chartsSection');
+  section.innerHTML='';
+  if(!chartDefs.length){section.classList.remove('show');renderSnapshots();return;}
+  section.classList.add('show');
+  chartDefs.forEach((cd,idx)=>{
+    const block=document.createElement('div');block.className='chart-block';
+    const hdr=document.createElement('div');hdr.className='chart-hdr';
+    if(cd.title){const t=document.createElement('span');t.className='chart-title';t.textContent=cd.title;hdr.appendChild(t);}
+    const legend=document.createElement('div');legend.className='legend';
+    cd.series.forEach(s=>{
+      const item=document.createElement('div');item.className='legend-item';
+      const dot=document.createElement('div');dot.className='legend-dot';dot.style.background=s.color;
+      const lbl=document.createElement('span');lbl.textContent=s.label;
+      item.append(dot,lbl);legend.appendChild(item);
+    });
+    hdr.appendChild(legend);
+    const csvBtn=document.createElement('button');csvBtn.className='chart-action-btn';
+    csvBtn.textContent='⬇ CSV';csvBtn.title='クリップボードにコピー';csvBtn.onclick=()=>copyChartCSV(idx,csvBtn);hdr.appendChild(csvBtn);
+    const fileBtn=document.createElement('button');fileBtn.className='chart-action-btn';
+    fileBtn.textContent='💾';fileBtn.title='CSVファイルとして保存';fileBtn.onclick=()=>downloadChartCSV(idx,fileBtn);hdr.appendChild(fileBtn);
+    const imgBtn=document.createElement('button');imgBtn.className='chart-action-btn';
+    imgBtn.textContent='🖼 画像';imgBtn.onclick=()=>copyChartImage(idx,imgBtn);hdr.appendChild(imgBtn);
+    const axisBtn=document.createElement('button');axisBtn.className='chart-action-btn';
+    axisBtn.textContent='⚙ 軸';axisBtn.title='縦軸・横軸の範囲を手動設定／自動調整に切り替え';axisBtn.onclick=()=>toggleAxisRow(idx);hdr.appendChild(axisBtn);
+    const axisRow=document.createElement('div');axisRow.className='chart-axis-row';axisRow.id='chartAxisRow_'+idx;
+    axisRow.innerHTML=
+      '<span class="axis-lbl">縦軸(Y)</span>'+
+      '<select class="mini-sel" id="yMode_'+idx+'" onchange="onAxisModeChange('+idx+')"><option value="auto">自動調整</option><option value="manual">手動設定</option></select>'+
+      '<input type="number" class="axis-num" id="yMinIn_'+idx+'" placeholder="min" oninput="onAxisValChange('+idx+')">'+
+      '<span class="axis-lbl">〜</span>'+
+      '<input type="number" class="axis-num" id="yMaxIn_'+idx+'" placeholder="max" oninput="onAxisValChange('+idx+')">'+
+      '<span class="axis-lbl" style="margin-left:8px">横軸(X, 世代)</span>'+
+      '<select class="mini-sel" id="xMode_'+idx+'" onchange="onAxisModeChange('+idx+')"><option value="auto">自動調整</option><option value="manual">手動設定</option></select>'+
+      '<input type="number" class="axis-num" id="xMinIn_'+idx+'" placeholder="min" oninput="onAxisValChange('+idx+')">'+
+      '<span class="axis-lbl">〜</span>'+
+      '<input type="number" class="axis-num" id="xMaxIn_'+idx+'" placeholder="max" oninput="onAxisValChange('+idx+')">';
+    const wrap=document.createElement('div');wrap.className='chart-canvas-wrap';
+    const canvas=document.createElement('canvas');
+    canvas.id='chartCanvas_'+idx;canvas.style.width='100%';canvas.style.height='140px';canvas.style.display='block';
+    wrap.appendChild(canvas);block.append(hdr,axisRow,wrap);section.appendChild(block);
+    initAxisInputs(idx);
+  });
+  renderSnapshots();
+}
+
+// ── 縦軸・横軸の手動設定／自動調整 ──
+function initAxisInputs(ci){
+  const st=chartAxisState[ci];if(!st)return;
+  const yModeEl=document.getElementById('yMode_'+ci),xModeEl=document.getElementById('xMode_'+ci);
+  const yMinEl=document.getElementById('yMinIn_'+ci),yMaxEl=document.getElementById('yMaxIn_'+ci);
+  const xMinEl=document.getElementById('xMinIn_'+ci),xMaxEl=document.getElementById('xMaxIn_'+ci);
+  if(yModeEl)yModeEl.value=st.yMode; if(xModeEl)xModeEl.value=st.xMode;
+  if(yMinEl)yMinEl.value=fmtNum(st.yMin); if(yMaxEl)yMaxEl.value=fmtNum(st.yMax);
+  if(xMinEl)xMinEl.value=st.xMin; if(xMaxEl)xMaxEl.value=st.xMax;
+  updateAxisInputsDisabled(ci);
+}
+function toggleAxisRow(ci){
+  const row=document.getElementById('chartAxisRow_'+ci);if(!row)return;
+  row.classList.toggle('show');
+}
+function updateAxisInputsDisabled(ci){
+  const st=chartAxisState[ci];if(!st)return;
+  const yMan=st.yMode==='manual', xMan=st.xMode==='manual';
+  const yMinEl=document.getElementById('yMinIn_'+ci),yMaxEl=document.getElementById('yMaxIn_'+ci);
+  const xMinEl=document.getElementById('xMinIn_'+ci),xMaxEl=document.getElementById('xMaxIn_'+ci);
+  if(yMinEl)yMinEl.disabled=!yMan; if(yMaxEl)yMaxEl.disabled=!yMan;
+  if(xMinEl)xMinEl.disabled=!xMan; if(xMaxEl)xMaxEl.disabled=!xMan;
+}
+function computeAutoYRange(ci){
+  const cd=chartDefs[ci],hist=chartHistories[ci]||[];
+  let yMin=cd.yMin!==null?cd.yMin:Infinity,yMax=cd.yMax!==null?cd.yMax:-Infinity;
+  const snaps=(typeof snapshots!=='undefined'?snapshots:[]).filter(s=>s.visible&&s.histories[ci]&&s.histories[ci].length);
+  const scan=h=>{for(const e of h)for(const v of Object.values(e.vals)){if(isFinite(v)){if(cd.yMin===null)yMin=Math.min(yMin,v);if(cd.yMax===null)yMax=Math.max(yMax,v);}}};
+  scan(hist);snaps.forEach(s=>scan(s.histories[ci]));
+  if(!isFinite(yMin))yMin=0;if(!isFinite(yMax)||yMax===yMin)yMax=yMin+1;
+  if(cd.yMin===null)yMin=yMin>0?0:yMin;if(cd.yMax===null)yMax=niceCeil(yMax);
+  return {yMin,yMax};
+}
+function onAxisModeChange(ci){
+  const st=chartAxisState[ci];if(!st)return;
+  const newY=document.getElementById('yMode_'+ci).value;
+  const newX=document.getElementById('xMode_'+ci).value;
+  if(newY==='manual'&&st.yMode!=='manual'){
+    const auto=computeAutoYRange(ci);
+    st.yMin=auto.yMin;st.yMax=auto.yMax;
+    document.getElementById('yMinIn_'+ci).value=fmtNum(st.yMin);
+    document.getElementById('yMaxIn_'+ci).value=fmtNum(st.yMax);
+  }
+  if(newX==='manual'&&st.xMode!=='manual'){
+    const hist=chartHistories[ci];
+    if(hist&&hist.length){st.xMin=hist[0].tick;st.xMax=hist[hist.length-1].tick;}
+    document.getElementById('xMinIn_'+ci).value=st.xMin;
+    document.getElementById('xMaxIn_'+ci).value=st.xMax;
+  }
+  st.yMode=newY;st.xMode=newX;
+  updateAxisInputsDisabled(ci);
+  renderChart(ci);
+}
+function onAxisValChange(ci){
+  const st=chartAxisState[ci];if(!st)return;
+  st.yMin=parseFloat(document.getElementById('yMinIn_'+ci).value);
+  st.yMax=parseFloat(document.getElementById('yMaxIn_'+ci).value);
+  st.xMin=parseFloat(document.getElementById('xMinIn_'+ci).value);
+  st.xMax=parseFloat(document.getElementById('xMaxIn_'+ci).value);
+  renderChart(ci);
+}
+
+// ──────────────────────────────────────────────────────────────
+// Simulation
+// ──────────────────────────────────────────────────────────────
+// フィールドの表示サイズ変更（純粋な拡大＝ズーム）
+// 内部解像度（モデルに渡す W/H＝世界の広さ）は変えず、表示サイズだけ拡大する。
+// これでモデルの中身は一切変わらず、同じ絵がそのまま大きくなる。
+function setFieldSize(px){
+  px=parseInt(px)||470;
+  const isDesktop=window.matchMedia('(min-width:901px)').matches;
+  const canvas=document.getElementById('simCanvas');
+  if(canvas){ canvas.style.width = isDesktop?(px+'px'):''; canvas.style.height = isDesktop?(px+'px'):''; }
+  const lc=document.querySelector('.left-col');
+  if(lc){ lc.style.width = isDesktop ? (px+24)+'px' : ''; }
+}
+// ── 再現性のためのシード付き乱数（方式A）── 実行中は Math.random をシード付き乱数に差し替え、各世代直前に (seed, gen) で再seed する。
+const __nativeRandom = Math.random;
+let __runSeed = 0, __rng = __nativeRandom;
+function mulberry32(a){ return function(){ a|=0; a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; }
+function seedForSetup(){ __rng = mulberry32(__runSeed>>>0); }
+function seedForStep(t){ __rng = mulberry32(((__runSeed>>>0) + (t+1)*2654435761)>>>0); }
+function newRunSeed(){ __runSeed = ((Date.now()>>>0) ^ ((Math.floor(performance.now()*1000))>>>0)) >>> 0; }
+Math.random = function(){ return __rng(); };
+
+// ── 状態フレームの記録（方式B）── 各世代の state を保存し、あとで同梱ビュワーで再生できるようにする
+let frameRec = { lines:[], bytes:0, truncated:false };
+function frameRecEnabled(){ const el=document.getElementById('recFramesChk'); return !!(el&&el.checked); }
+function frameRecInterval(){ const el=document.getElementById('recFramesInterval'); return el?(parseInt(el.value)||1):1; }
+// 記録した状態が使ってよいメモリの上限（利用者が選ぶ）。0 は無制限で、
+// その場合はブラウザのメモリが尽きるまで記録し続ける。
+function frameRecCapBytes(){
+  const el=document.getElementById('recFramesCap');
+  const mb = el ? parseInt(el.value) : 500;
+  return (!mb || mb<=0) ? Infinity : mb*1024*1024;
+}
+function jsonReplacer(k,v){
+  if(v && ArrayBuffer.isView(v) && !(v instanceof DataView)) return Array.from(v);
+  if(typeof v==='function') return undefined;
+  if(v instanceof Set) return Array.from(v);
+  if(v instanceof Map) return Array.from(v.entries());
+  return v;
+}
+function resetFrameRec(){
+  frameRec.lines=[]; frameRec.bytes=0; frameRec.truncated=false;
+  reviewCache={i:-1,state:null};
+  if(typeof stopReviewPlay==='function'){ stopReviewPlay(); reviewIdx=null; }
+  updateRecFramesInfo(); if(typeof updateTimelineUI==='function') updateTimelineUI();
+}
+function captureFrame(){
+  if(!frameRecEnabled()||!simState) return;
+  const t = simState.tick||0, iv = frameRecInterval();
+  if(iv>1 && (t%iv)!==0) return;
+  let line;
+  try{ line = JSON.stringify({tick:t, state:simState}, jsonReplacer); }
+  catch(e){ line = JSON.stringify({tick:t, state:null, unserializable:true}); }
+  if(frameRec.bytes+line.length > frameRecCapBytes()){ frameRec.truncated=true; updateRecFramesInfo(); return; }
+  frameRec.bytes += line.length; frameRec.lines.push(line);
+  updateRecFramesInfo(); updateTimelineUI();
+}
+function updateRecFramesInfo(){
+  const el=document.getElementById('recFramesInfo'); if(!el) return;
+  if(!frameRec.lines.length){ el.textContent=''; return; }
+  const mb = frameRec.bytes/1024/1024;
+  const size = mb>=1024 ? (mb/1024).toFixed(2)+' GB' : mb>=1 ? mb.toFixed(1)+' MB' : Math.round(frameRec.bytes/1024)+' KB';
+  el.textContent = '記録 '+frameRec.lines.length+' フレーム・'+size+(frameRec.truncated?'（上限に到達）':'');
+}
+// ── 追っかけ再生 ── 実験を続けたまま、記録した状態を遡って見る。
+// reviewIdx === null はライブで、キャンバスは最新のステップを追う。
+let reviewIdx = null, reviewPlaying = false, reviewRaf = null, reviewLastT = 0, reviewAcc = 0;
+let reviewCache = { i:-1, state:null };
+function isReviewing(){ return reviewIdx !== null; }
+function reviewFrameAt(i){
+  if(i===reviewCache.i) return reviewCache.state;          // 再描画は頻繁なので一度だけ解析する
+  const line = frameRec.lines[i]; if(!line) return null;
+  let fr=null; try{ fr = JSON.parse(line); }catch(e){ return null; }
+  reviewCache = { i, state: fr && fr.state, tick: fr && fr.tick };
+  return reviewCache.state;
+}
+// Tick/generation number of a recorded frame, read straight off the JSON line
+// (recording can start mid-run, so the frame index and the tick no longer coincide).
+function frameTickAt(i){
+  const l = frameRec.lines[i]; if(!l) return null;
+  const m = /^\{"tick":(-?\d+)/.exec(l);
+  return m ? parseInt(m[1]) : null;
+}
+// 各ステップの記録はメモリを消費する（重いモデルでは1ステップ数百KB）。
+// その影響が最も大きいスマートフォン・タブレットでは既定をオフにし、PCではオンのままにする。
+function isHandheld(){
+  try{ return matchMedia('(max-width:900px)').matches || matchMedia('(pointer:coarse)').matches; }
+  catch(_){ return false; }
+}
+function applyRecFramesDefault(){
+  if(!isHandheld()) return;
+  const el=document.getElementById('recFramesChk');
+  if(el && el.checked){ el.checked=false; updateTimelineUI(); }
+}
+function updateTimelineUI(){
+  const row=document.getElementById('timelineRow'); if(!row) return;
+  const n=frameRec.lines.length;
+  // 記録がオンなら（まだフレームが無くても）出す．オフに戻しても記録済みが残っていれば出したまま
+  row.style.display = (frameRecEnabled() || n>1) ? 'flex' : 'none';
+  const scrub=document.getElementById('tlScrub');
+  scrub.max = Math.max(0, n-1);
+  if(!isReviewing()) scrub.value = Math.max(0, n-1);       // ライブ：つまみは右端に追従する
+  row.classList.toggle('reviewing', isReviewing());
+  const pos=document.getElementById('tlPos');
+  if(isReviewing()){
+    reviewFrameAt(reviewIdx);
+    const t = (reviewCache.tick!=null)?reviewCache.tick:reviewIdx;
+    pos.textContent = 'gen '+t+' / '+((frameTickAt(n-1)!=null)?frameTickAt(n-1):(n-1>=0?n-1:0));
+  } else {
+    pos.textContent = n ? 'LIVE・'+n+'件' : '—';
+  }
+  const playBtn=document.getElementById('tlPlayBtn');
+  playBtn.textContent = reviewPlaying ? '⏸' : '▶';
+  playBtn.disabled = n<2; scrub.disabled = n<2;
+  const chk=document.getElementById('tlLiveChk'); if(chk) chk.checked = !isReviewing();
+}
+function showReviewFrame(i){
+  const n=frameRec.lines.length; if(!n) return;
+  reviewIdx = Math.max(0, Math.min(n-1, i|0));
+  const st = reviewFrameAt(reviewIdx);
+  const canvas=document.getElementById('simCanvas'), ctx=canvas.getContext('2d');
+  if(st && defs && defs.draw){
+    try{ defs.draw(ctx, st, canvas.width, canvas.height); }
+    catch(e){ ctx.fillStyle='#0a1020'; ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle='#f87171'; ctx.font='11px IBM Plex Mono,monospace'; ctx.fillText('draw() error: '+e.message,8,20); }
+  }
+  document.getElementById('tlScrub').value = reviewIdx;
+  if(typeof renderAllCharts==='function') renderAllCharts();   // move the playhead
+  if(st) updateTickUI(st);                                  // 表示は見ているフレームに合わせる
+  updateTimelineUI();
+}
+function goLive(){
+  stopReviewPlay();
+  reviewIdx = null;
+  updateTimelineUI();
+  renderFrame(); updateTickUI();
+  if(typeof renderAllCharts==='function') renderAllCharts();   // clear the playhead                            // キャンバスを実行側へ返す
+}
+function onLiveToggle(){
+  const chk=document.getElementById('tlLiveChk');
+  if(chk.checked) goLive();
+  else showReviewFrame(frameRec.lines.length-1);            // 最新フレームからライブを抜ける
+}
+function onScrubInput(v){ stopReviewPlay(); showReviewFrame(parseInt(v)||0); }
+function reviewTick(t){
+  if(!reviewPlaying) return;
+  if(!reviewLastT) reviewLastT=t;
+  reviewAcc += (t-reviewLastT)/1000 * 12; reviewLastT=t;    // 毎秒12フレームで再生
+  if(reviewAcc>=1){
+    const adv=Math.floor(reviewAcc); reviewAcc-=adv;
+    const next=reviewIdx+adv, last=frameRec.lines.length-1;
+    if(next>=last){ showReviewFrame(last); stopReviewPlay(); return; }  // 実行に追いついた
+    showReviewFrame(next);
+  }
+  reviewRaf=requestAnimationFrame(reviewTick);
+}
+function startReviewPlay(){
+  if(!frameRec.lines.length) return;
+  if(!isReviewing()) showReviewFrame(0);
+  else if(reviewIdx>=frameRec.lines.length-1) showReviewFrame(0);        // 先頭から再生し直す
+  reviewPlaying=true; reviewLastT=0; reviewAcc=0;
+  reviewRaf=requestAnimationFrame(reviewTick);
+  updateTimelineUI();
+}
+function stopReviewPlay(){
+  reviewPlaying=false;
+  if(reviewRaf){ cancelAnimationFrame(reviewRaf); reviewRaf=null; }
+  updateTimelineUI();
+}
+function toggleReviewPlay(){ reviewPlaying ? stopReviewPlay() : startReviewPlay(); }
+
+// 1世代を実行（再seed → 世代更新 → フレーム記録）
+function engineStepGen(params){
+  seedForStep(simState.tick||0);
+  evoStepGen(simState, params);
+  captureFrame();
+}
+
+function resetSim(){
+  stopSim();chartHistories=chartDefs.map(()=>[]);
+  document.getElementById('stoppedBadge').classList.remove('show');
+  document.getElementById('stopcondLabel').classList.remove('active');
+  document.getElementById('stopcondCode').classList.remove('active');
+  // v6: 再セットアップ待ちヒントをクリア
+  pendingReset=false;
+  document.getElementById('resetHint').classList.remove('show');
+  document.querySelectorAll('#paramGroup label.needs-setup').forEach(l=>l.classList.remove('needs-setup'));
+  if(!defs)return;
+  const canvas=document.getElementById('simCanvas');
+  try{
+    newRunSeed(); seedForSetup(); resetFrameRec();   // 方式A: 新しいシードを決めて記録／方式B: フレームをクリア
+    lastSetupParams=getParams();
+    genAccum=0;
+    simState=evoSetup(lastSetupParams,canvas.width,canvas.height);
+    captureFrame();            // フレーム0（第0世代の初期状態）
+    if(viewMode==='all') rebuildAllView(simState,lastSetupParams);
+    recordPlot();              // 第0世代を初期値としてグラフに記録
+    updateTickUI();
+    frameCount=0; fpsSamples=[]; fpsLastTs=null;
+    document.getElementById('fpsBadge').textContent='— fps';
+    requestAnimationFrame(()=>{
+      renderFrame();
+      renderAllCharts();
+    });
+  }catch(e){showErr('初期化エラー: '+e.message);}
+}
+
+function toggleSim(){if(running)stopSim();else startSim();}
+
+function startSim(){
+  if(!defs||!simState)return;
+  // 最大世代に達して停止している状態で再度開始したら、初期化してからやり直す（ループOFF時）
+  if(!isLoopEnabled() && (simState.tick??0)>=getMaxTicks()){ resetSim(); }
+  running=true;lastTs=null;rafHandle=requestAnimationFrame(loop);
+  document.getElementById('playBtn').textContent='⏸ 停止';
+  document.getElementById('playBtn').className='ctrl-btn pause-act';
+  document.getElementById('canvasWrap').classList.add('running');
+  document.getElementById('runBadge').classList.add('show');
+}
+function stopSim(){
+  running=false;if(rafHandle){cancelAnimationFrame(rafHandle);rafHandle=null;}lastTs=null;
+  fpsLastTs=null;fpsSamples=[];
+  const fb=document.getElementById('fpsBadge'); if(fb) fb.textContent='— fps';
+  document.getElementById('playBtn').textContent='▶ 実行';
+  document.getElementById('playBtn').className='ctrl-btn play-act';
+  document.getElementById('canvasWrap').classList.remove('running');
+  document.getElementById('runBadge').classList.remove('show');
+}
+function stepOnce(){
+  if(!defs||!simState)return;
+  const was=running;if(running)stopSim();
+  try{
+    const params=getParams();
+    engineStepGen(params);
+    renderFrame();updateTickUI();renderAllCharts();
+    if(checkStopCond())return;
+    if(checkMaxTicks())return;
+  }catch(e){showErr(e.message);return;}
+  if(was)startSim();
+}
+
+function loop(ts){
+  if(!running)return;
+  if(lastTs!==null){
+    const dt=Math.min((ts-lastTs)*0.001,0.1);
+    const params=getParams();
+    try{
+      // 世代を「世代/秒」のレートで進める（小数も蓄積して反映）
+      const gps=getGensPerSec();
+      genAccum += gps*dt;
+      let stepped=0;
+      while(genAccum>=1 && stepped<300){
+        engineStepGen(params); genAccum-=1; stepped++;
+        if(checkStopCond()){ renderFrame();renderAllCharts(); return; }
+        if(checkMaxTicks()) return;   // ループで初期化済み（rAFは再起動される）
+      }
+      // 表示用アニメーション（最良個体）は毎フレーム進める
+      const vsteps=(typeof simState.viewStepsPerFrame==='number')?simState.viewStepsPerFrame:2;
+      for(let i=0;i<vsteps;i++){ if(viewMode==='all') evoViewStepAll(simState,params); else evoViewStep(simState,params); }
+      simState.frame=(simState.frame||0)+1;
+      updateFps(ts);
+      const every=getDrawEvery(); frameCount++;
+      if(every<=1||frameCount%every===0){ renderFrame();renderAllCharts(); }
+      updateTickUI();
+    }catch(e){showErr('エラー: '+e.message);stopSim();return;}
+  }
+  lastTs=ts;rafHandle=requestAnimationFrame(loop);
+}
+function updateFps(ts){
+  if(fpsLastTs!==null){
+    const d=ts-fpsLastTs;
+    if(d>0){ fpsSamples.push(1000/d); if(fpsSamples.length>20)fpsSamples.shift(); }
+  }
+  fpsLastTs=ts;
+  if(fpsSamples.length>=3){
+    const avg=fpsSamples.reduce((a,b)=>a+b,0)/fpsSamples.length;
+    document.getElementById('fpsBadge').textContent=Math.round(avg)+' fps';
+  }
+}
+
+function checkMaxTicks(){
+  if(!simState)return false;
+  const maxT=getMaxTicks();
+  if((simState.tick??0)>=maxT){
+    if(isLoopEnabled()){
+      const wasRunning=running;
+      stopSim();resetSim();
+      if(wasRunning)startSim();
+    }else{
+      // 最大世代に到達したら停止する
+      stopSim();
+      document.getElementById('stoppedBadge').classList.add('show');
+      if(typeof showToast==='function') showToast('最大世代（'+maxT+'）に到達したため停止しました');
+    }
+    return true;
+  }
+  return false;
+}
+
+function renderDescription(desc){
+  const box=document.getElementById('descBox'); if(!box) return;
+  const E=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  if(!desc){ box.className='desc-box empty'; box.innerHTML=''; return; }
+  box.className='desc-box';
+  if(typeof desc==='string'){ box.innerHTML=E(desc).replace(/\n/g,'<br>'); return; }
+  let h='';
+  if(modelTitle) h+='<div class="desc-title" style="font-weight:700;color:var(--accent);margin-bottom:4px">'+E(modelTitle)+'</div>';
+  if(desc.summary) h+='<div class="desc-sum">'+E(desc.summary)+'</div>';
+  const row=(k,v)=> v?('<div class="desc-row"><span class="desc-k">'+k+'</span><span class="desc-v">'+E(v)+'</span></div>'):'';
+  h+=row('遺伝子',desc.gene)+row('表現型',desc.phenotype)+row('適応度',desc.fitness);
+  if(!h) h=E(JSON.stringify(desc));
+  box.innerHTML=h;
+}
+function toggleCoM(){
+  const el=document.getElementById('comToggle');
+  showCoM = !!(el && el.checked);
+  if(defs && simState) renderFrame();
+}
+function renderFrame(){
+  if(!defs||!simState)return;
+  if(isReviewing())return;     // 追っかけ中はタイムラインがキャンバスを持つ
+  const canvas=document.getElementById('simCanvas');const ctx=canvas.getContext('2d');
+  const params=getParams();
+  simState.showCoM=showCoM;     // 重心線フラグ（歩行モデルの draw が参照）
+  try{
+    if(viewMode==='all') drawAllIndividuals(ctx,canvas.width,canvas.height,params);
+    else defs.draw(ctx,simState,canvas.width,canvas.height,params);
+  }
+  catch(e){ctx.fillStyle='#0a1020';ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#f87171';ctx.font='11px IBM Plex Mono,monospace';ctx.fillText('draw() エラー: '+e.message,8,20);}
+}
+
+// 全個体をタイル表示（適応度の高い順に上位 N 個体）。各タイルでその個体をモデルの draw で描く。
+function drawAllIndividuals(ctx,W,H,params){
+  const st=simState, pop=st.pop||[], n=pop.length;
+  ctx.fillStyle='#0a1020'; ctx.fillRect(0,0,W,H);
+  if(!n) return;
+  if(!st.allOrder) rebuildAllView(st,params);
+  const order=st.allOrder||[], cap=order.length;
+  if(!cap) return;
+  const cols=Math.ceil(Math.sqrt(cap)), rows=Math.ceil(cap/cols);
+  const tw=W/cols, th=H/rows;
+  for(let k=0;k<cap;k++){
+    const i=order[k], gx=(k%cols)*tw, gy=Math.floor(k/cols)*th;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(gx+1,gy+1,tw-2,th-2); ctx.clip();
+    ctx.translate(gx+1,gy+1);
+    const sub={}; for(const key in st) sub[key]=st[key];
+    sub.best=pop[i]; sub.bestFitness=st.fit[i]; sub.pop=[pop[i]]; sub.fit=[st.fit[i]];
+    sub.view = st.allViews ? st.allViews[k] : null; sub.thumb=true; sub.showCoM=false;
+    try{ defs.draw(ctx, sub, tw-2, th-2, params); }catch(_){}
+    ctx.restore();
+    const isBest=(k===0);
+    const fv=st.fit[i], lbl=(isBest?'★':'#'+(k+1))+'  '+(isFinite(fv)?fv.toFixed(2):'—');
+    ctx.font='11px IBM Plex Mono,monospace'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+    const lw=ctx.measureText(lbl).width+10;
+    ctx.fillStyle='rgba(10,16,32,.62)'; ctx.fillRect(gx+1,gy+1,lw,16);
+    ctx.fillStyle=isBest?'#34d399':'#e5e7eb'; ctx.fillText(lbl, gx+6, gy+12);
+    ctx.lineWidth=isBest?2.5:1; ctx.strokeStyle=isBest?'#34d399':'rgba(148,163,184,.4)';
+    ctx.strokeRect(gx+1,gy+1,tw-2,th-2);
+  }
+  ctx.fillStyle='rgba(226,232,240,.95)'; ctx.font='11px IBM Plex Mono,monospace'; ctx.textAlign='right'; ctx.textBaseline='alphabetic';
+  ctx.fillText('上位 '+cap+' / '+n+' 個体　世代 '+(st.gen||0), W-6, H-6);
+}
+
+// ──────────────────────────────────────────────────────────────
+// Chart rendering
+// ──────────────────────────────────────────────────────────────
+function recordPlot(){
+  if(!chartDefs.length||!simState)return;
+  const tick=simState.tick??0;
+  chartDefs.forEach((cd,ci)=>{
+    const vals={};
+    cd.series.forEach(s=>{try{vals[s.id]=s.fn(simState)??0;}catch(_){vals[s.id]=0;}});
+    chartHistories[ci].push({tick,vals});
+    if(chartHistories[ci].length>PLOT_MAX)chartHistories[ci].shift();
+  });
+}
+function renderAllCharts(){chartDefs.forEach((_,ci)=>renderChart(ci));}
+
+function renderChart(ci){
+  const cd=chartDefs[ci],hist=chartHistories[ci];
+  const canvas=document.getElementById('chartCanvas_'+ci);if(!canvas)return;
+  const wrap=canvas.parentElement;
+  const cssW=Math.max(200,(wrap?wrap.clientWidth:340)),cssH=140;
+  const dpr=window.devicePixelRatio||1;
+  if(canvas.width!==Math.round(cssW*dpr)||canvas.height!==Math.round(cssH*dpr)){
+    canvas.width=Math.round(cssW*dpr);canvas.height=Math.round(cssH*dpr);
+  }
+  const ctx=canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const W=cssW,H=cssH;
+  const ml=46,mr=12,mt=10,mb=22,cw=W-ml-mr,ch=H-mt-mb;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);
+  if(!hist.length)return;
+
+  // visible snapshots for this chart
+  const snaps=snapshots.filter(s=>s.visible&&s.histories[ci]&&s.histories[ci].length);
+
+  // 縦軸・横軸とも「自動調整」または「手動設定」を選べる
+  const axisSt=chartAxisState[ci]||{yMode:'auto',xMode:'auto'};
+
+  // tick(世代)range (横軸/X): 手動設定なら固定範囲、自動調整なら現在+比較実験の全履歴
+  let t0,t1;
+  if(axisSt.xMode==='manual'&&isFinite(axisSt.xMin)&&isFinite(axisSt.xMax)&&axisSt.xMax>axisSt.xMin){
+    t0=axisSt.xMin;t1=axisSt.xMax;
+  }else{
+    t0=hist[0].tick;t1=hist[hist.length-1].tick;
+    snaps.forEach(s=>{const h=s.histories[ci];t0=Math.min(t0,h[0].tick);t1=Math.max(t1,h[h.length-1].tick);});
+    if(t1<=t0)t1=t0+1;
+  }
+
+  // y range (縦軸/Y): 手動設定なら固定範囲、自動調整なら従来通り履歴からスキャン
+  let yMin,yMax;
+  if(axisSt.yMode==='manual'&&isFinite(axisSt.yMin)&&isFinite(axisSt.yMax)&&axisSt.yMax>axisSt.yMin){
+    yMin=axisSt.yMin;yMax=axisSt.yMax;
+  }else{
+    const auto=computeAutoYRange(ci);yMin=auto.yMin;yMax=auto.yMax;
+  }
+  const yRange=yMax-yMin||1;
+  const xAt=tick=>ml+(tick-t0)/(t1-t0)*cw;
+  const yAt=v=>mt+ch-Math.max(0,Math.min(1,(v-yMin)/yRange))*ch;
+
+  // grid + y labels
+  const gridN=4;
+  for(let i=0;i<=gridN;i++){
+    const y=mt+ch-(i/gridN)*ch;
+    ctx.strokeStyle=i===0?'#9ca3af':'#e5e7eb';ctx.lineWidth=i===0?1:.8;
+    ctx.beginPath();ctx.moveTo(ml,y);ctx.lineTo(ml+cw,y);ctx.stroke();
+    ctx.fillStyle='#6b7280';ctx.font='9px IBM Plex Mono,monospace';ctx.textAlign='right';
+    ctx.fillText(fmtNum(yMin+(yMax-yMin)*i/gridN),ml-4,y+3);
+  }
+  ctx.strokeStyle='#9ca3af';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(ml,mt);ctx.lineTo(ml,mt+ch);ctx.stroke();
+
+  // MAX_TICKS marker
+  if(isLoopEnabled()){
+    const maxT=getMaxTicks();
+    if(maxT>=t0&&maxT<=t1){
+      const xm=xAt(maxT);
+      ctx.strokeStyle='rgba(167,139,250,.6)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.moveTo(xm,mt);ctx.lineTo(xm,mt+ch);ctx.stroke();ctx.setLineDash([]);
+    }
+  }
+
+  // 追っかけ再生の位置マーカー：グラフのどこを見ているかを示す
+  if(typeof isReviewing==='function' && isReviewing() && reviewCache.tick!=null){
+    const xr=xAt(reviewCache.tick);
+    if(xr>=ml&&xr<=ml+cw){
+      ctx.strokeStyle='rgba(180,83,9,.85)';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(xr,mt);ctx.lineTo(xr,mt+ch);ctx.stroke();
+      ctx.fillStyle='rgba(180,83,9,.85)';
+      ctx.beginPath();ctx.moveTo(xr,mt);ctx.lineTo(xr-4,mt-5);ctx.lineTo(xr+4,mt-5);ctx.closePath();ctx.fill();
+    }
+  }
+
+  // x labels
+  ctx.fillStyle='#9ca3af';ctx.font='9px IBM Plex Mono,monospace';
+  ctx.textAlign='left';ctx.fillText(t0,ml,mt+ch+14);
+  ctx.textAlign='right';ctx.fillText(t1,ml+cw,mt+ch+14);
+  if(t1-t0>2){ctx.textAlign='center';ctx.fillText(Math.round((t0+t1)/2),ml+cw/2,mt+ch+14);}
+
+  // clip plot area so nothing overflows the frame
+  ctx.save();
+  ctx.beginPath();ctx.rect(ml,mt-1,cw+1,ch+2);ctx.clip();
+
+  // snapshot ghost lines (drawn faint, behind)
+  snaps.forEach(s=>{
+    const h=s.histories[ci];if(h.length<2)return;
+    cd.series.forEach(se=>{
+      ctx.strokeStyle=hexA(s.color,.32);ctx.lineWidth=1.4;ctx.setLineDash([4,3]);ctx.lineJoin='round';
+      ctx.beginPath();let first=true;
+      for(let i=0;i<h.length;i++){
+        const v=h[i].vals[se.id];if(v===undefined)continue;
+        const x=xAt(h[i].tick),y=yAt(v);
+        if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    });
+  });
+  ctx.setLineDash([]);
+
+  // current series
+  if(hist.length>=2){
+    cd.series.forEach(s=>{
+      ctx.strokeStyle=s.color;ctx.lineWidth=1.8;ctx.lineJoin='round';
+      ctx.beginPath();let first=true;
+      for(let i=0;i<hist.length;i++){
+        const v=hist[i].vals[s.id]??0;const x=xAt(hist[i].tick),y=yAt(v);
+        if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+      const lv=hist[hist.length-1].vals[s.id]??0;
+      ctx.fillStyle=s.color;ctx.beginPath();ctx.arc(xAt(hist[hist.length-1].tick),yAt(lv),3,0,Math.PI*2);ctx.fill();
+    });
+  }
+  ctx.restore();
+}
+function hexA(hex,a){
+  const m=/^#?([0-9a-f]{6})$/i.exec(hex);
+  if(!m)return hex;
+  const n=parseInt(m[1],16);
+  return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';
+}
+function niceCeil(v){if(v<=0)return 1;const mag=Math.pow(10,Math.floor(Math.log10(v)));const n=[1,2,5,10].find(s=>s*mag>=v);return(n||10)*mag;}
+function fmtNum(v){if(!isFinite(v))return'—';if(Math.abs(v)>=10000)return(v/1000).toFixed(1)+'k';if(Math.abs(v)>=1000)return Math.round(v).toString();return Number.isInteger(v)?String(v):parseFloat(v.toFixed(2)).toString();}
+
+// ──────────────────────────────────────────────────────────────
+// CSV / image copy
+// ──────────────────────────────────────────────────────────────
+function copyChartCSV(ci,btn){
+  const cd=chartDefs[ci],hist=chartHistories[ci];
+  if(!hist||!hist.length){showToast('データがありません',true);return;}
+  const header=['tick',...cd.series.map(s=>s.label)].join(',');
+  const rows=hist.map(e=>[e.tick,...cd.series.map(s=>{const v=e.vals[s.id];return v===undefined?'':String(v)})].join(','));
+  navigator.clipboard.writeText([header,...rows].join('\r\n')).then(()=>{
+    showToast('CSV をコピーしました（'+rows.length+' 行）');
+    if(btn){btn.textContent='✓ CSV';btn.classList.add('done');setTimeout(()=>{btn.textContent='⬇ CSV';btn.classList.remove('done');},2000);}
+  });
+}
+function copyChartImage(ci,btn){
+  const src=document.getElementById('chartCanvas_'+ci);
+  if(!src){showToast('グラフが見つかりません',true);return;}
+  src.toBlob(blob=>{
+    if(!blob){showToast('画像生成に失敗しました',true);return;}
+    navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(()=>{
+      showToast('グラフ画像をコピーしました');
+      if(btn){btn.textContent='✓ 画像';btn.classList.add('done');setTimeout(()=>{btn.textContent='🖼 画像';btn.classList.remove('done');},2000);}
+    }).catch(()=>showToast('クリップボード書き込み失敗（HTTPS が必要）',true));
+  });
+}
+
+// ──────────────────────────────────────────────────────────────
+// Speed / stats
+// ──────────────────────────────────────────────────────────────
+function getTicksPerFrame(){return getGensPerSec();}
+function updateSpeedLabel(){
+  const g=getGensPerSec();
+  const s=g>=10?Math.round(g).toString():(g>=1?g.toFixed(1):g.toFixed(2));
+  document.getElementById('speedVal').textContent=s+' 世代/秒';
+}
+
+function updateMaxTickLabel(){
+  const v=getMaxTicks();
+  const valEl=document.getElementById('maxTickVal');
+  valEl.textContent=v;
+  valEl.style.color=isLoopEnabled()?'var(--violet)':'var(--muted)';
+  updateTickUI();
+}
+function onLoopToggle(){
+  const on=isLoopEnabled();
+  document.getElementById('loopBadge').classList.toggle('show',on);
+  document.getElementById('maxTickVal').style.color=on?'var(--violet)':'var(--muted)';
+  updateTickUI();
+}
+
+function fmtFit(v){ return (typeof v==='number'&&isFinite(v))? (Math.abs(v)>=1000||(Math.abs(v)<0.001&&v!==0)? v.toExponential(2): (Number.isInteger(v)? v : v.toFixed(3))) : '—'; }
+function updateTickUI(stateOverride){
+  if(!stateOverride && isReviewing())return;   // 追っかけ中はタイムラインが表示を持つ
+  const st=stateOverride||simState;
+  if(!st)return;
+  const gen=st.gen??0;
+  const loopOn=isLoopEnabled();
+  const maxT=loopOn?getMaxTicks():0;
+  const suffix=loopOn?` / ${maxT}`:'';
+  document.getElementById('tickBadge').textContent='世代: '+gen+suffix;
+  const pop=st.pop?st.pop.length:0;
+  let html='<span style="color:var(--muted)">世代 </span><span class="sv">'+gen+suffix+'</span>';
+  html+='&emsp;<span style="color:var(--muted)">最良 </span><span class="sv">'+fmtFit(st.bestFitness)+'</span>';
+  html+='&emsp;<span style="color:var(--muted)">平均 </span><span class="sv">'+fmtFit(st.avg)+'</span>';
+  html+='&emsp;<span style="color:var(--muted)">通算最良 </span><span class="sv">'+fmtFit(st.bestEverFitness)+'</span>';
+  html+='&emsp;<span style="color:var(--muted)">個体数 </span><span class="sv">'+pop+'</span>';
+  document.getElementById('statsBox').innerHTML=html;
+  renderGenome();
+}
+
+// ── 遺伝子の「定義」を表示 ──
+let _lastGeneKey=null;
+function renderGeneDef(){
+  const box=document.getElementById('geneBox'); if(!box) return;
+  _lastGeneKey=null;                                  // モデルが変わったら最良個体を必ず再描画
+  if(!defs||!defs.GENE){ box.innerHTML='<div class="gene-empty">遺伝子の定義がありません</div>'; return; }
+  const g=defs.GENE;
+  const len=(typeof g.length==='function')?g.length(getParams()):g.length;
+  const typeLabel = g.type==='bit' ? 'ビット列（各遺伝子は 0 か 1）'
+                  : g.type==='real'? '実数ベクトル（各遺伝子は実数）'
+                  : String(g.type);
+  let def='<div class="gene-def">';
+  def+='<div><b>遺伝子の定義（GENE）</b></div>';
+  def+='<div style="margin-top:3px"><span class="pill">型</span>'+escHtml(typeLabel)+'</div>';
+  def+='<div style="margin-top:2px"><span class="pill">長さ</span>'+len+' 個'+(g.type==='real'&&(g.min!==undefined||g.max!==undefined)?'　<span class="pill">範囲</span>['+(g.min??0)+', '+(g.max??1)+']':'')+'</div>';
+  if(defs.geneInfo){
+    let info=defs.geneInfo; if(typeof info==='function'){ try{info=info(getParams());}catch(_){info='';} }
+    if(info) def+='<div style="margin-top:5px;color:var(--text)">'+escHtml(String(info))+'</div>';
+  }
+  def+='</div>';
+  box.innerHTML=def+'<div class="gene-best" id="geneBest"><div class="gene-empty">—</div></div>';
+}
+
+// ── 「最良個体」の遺伝子を表示（変化時のみ再描画） ──
+function renderGenome(force){
+  const best=document.getElementById('geneBest'); if(!best||!simState||!defs) return;
+  const g=simState.best;
+  if(!g){ best.innerHTML='<div class="gene-empty">—</div>'; return; }
+  const key=simState.gen+'|'+g.join(',');
+  if(!force && key===_lastGeneKey) return;            // 変わっていなければ描画しない（負荷軽減）
+  _lastGeneKey=key;
+  const params=getParams();
+  // モデルが geneView を持てばそれを使い、無ければ既定の描き方
+  let segs=null;
+  if(typeof defs.geneView==='function'){ try{ segs=defs.geneView(g,params); }catch(_){ segs=null; } }
+  if(!Array.isArray(segs)){
+    segs=[ (defs.GENE&&defs.GENE.type==='bit') ? {label:'genome', bits:g} : {label:'genome', reals:g} ];
+  }
+  const gmin=(defs.GENE&&defs.GENE.min!==undefined)?defs.GENE.min:0;
+  const gmax=(defs.GENE&&defs.GENE.max!==undefined)?defs.GENE.max:1;
+  let html='';
+  segs.forEach(seg=>{
+    html+='<div class="gene-seg"><span class="gene-seg-label">'+escHtml(seg.label!=null?String(seg.label):'')+'</span>';
+    if(Array.isArray(seg.bits)){
+      html+='<span class="gene-bits">';
+      seg.bits.forEach(b=>{ html+='<span class="bitcell'+(b?' on':'')+'"></span>'; });
+      html+='</span>';
+    } else if(Array.isArray(seg.reals)){
+      html+='<span class="gene-reals">';
+      seg.reals.forEach(r=>{ const t=(gmax>gmin)?Math.max(0,Math.min(1,(r-gmin)/(gmax-gmin))):0.5;
+        html+='<span class="realchip">'+(+r).toFixed(2)+'<span class="bar" style="width:'+(t*100).toFixed(0)+'%"></span></span>'; });
+      html+='</span>';
+    }
+    if(seg.value!=null){ const v=(typeof seg.value==='number')?(Number.isInteger(seg.value)?seg.value:seg.value.toFixed(3)):seg.value;
+      html+='<span class="gene-val">'+escHtml(String(v))+'</span>'; }
+    html+='</div>';
+  });
+  best.innerHTML=html;
+}
+
+// ──────────────────────────────────────────────────────────────
+// Field image copy / save / video recording
+// ──────────────────────────────────────────────────────────────
+function copyFieldImage() {
+  const canvas = document.getElementById('simCanvas');
+  canvas.toBlob(blob => {
+    if (!blob) { showToast('画像生成に失敗しました', true); return; }
+    navigator.clipboard.write([new ClipboardItem({'image/png': blob})])
+      .then(() => showToast('フィールド画像をコピーしました'))
+      .catch(() => showToast('クリップボードへの書き込みに失敗しました（HTTPS が必要）', true));
+  });
+}
+
+function saveFieldImage() {
+  const canvas = document.getElementById('simCanvas');
+  const url = canvas.toDataURL('image/png');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = modelSlug('evo') + '_gen' + (simState?.gen ?? 0) + '.png';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  showToast('フィールド画像を保存しました');
+}
+
+let mediaRecorder = null;
+let recordedChunks = [];
+let isRecording = false;
+
+function toggleRecording() {
+  if (isRecording) stopRecording(); else startRecording();
+}
+
+function startRecording() {
+  const canvas = document.getElementById('simCanvas');
+  if (!canvas.captureStream) { showToast('この環境では録画できません', true); return; }
+
+  const pref = (document.getElementById('recFmtSel')||{}).value || 'auto';
+  // H.264（avc1）を明示的に要求する。'codecs=h264' は認識されない文字列であり，
+  // 'video/mp4' だけだと Chrome は VP9 を MP4 に格納するため QuickTime や PowerPoint で再生できない。
+  let types;
+  if (pref === 'mp4') types = ['video/mp4;codecs=avc1.42E01E','video/mp4;codecs=avc1.4D401E','video/mp4;codecs=avc1','video/webm;codecs=vp9','video/webm'];
+  else if (pref === 'webm') types = ['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'];
+  else types = ['video/mp4;codecs=avc1.42E01E','video/mp4;codecs=avc1.4D401E','video/mp4;codecs=avc1','video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm']; // auto: mp4優先
+  const mimeType = types.find(t => { try { return MediaRecorder.isTypeSupported(t); } catch(_){return false;} }) || '';
+  if (pref === 'mp4' && !(mimeType||'').includes('mp4'))
+    showToast('この環境は MP4 録画に未対応のため WebM で保存します', true);
+
+  const stream = canvas.captureStream(30);
+  try {
+    mediaRecorder = new MediaRecorder(stream, mimeType ? {mimeType} : {});
+  } catch(e) { showToast('録画を開始できません: ' + e.message, true); return; }
+
+  recordedChunks = [];
+  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(recordedChunks, {type: mediaRecorder.mimeType || 'video/webm'});
+    const url  = URL.createObjectURL(blob);
+    const ext  = (mediaRecorder.mimeType||'').includes('mp4') ? 'mp4' : 'webm';
+    const a    = document.createElement('a');
+    a.href = url; a.download = modelSlug('evo') + '_recording.' + ext;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    isRecording = false; updateRecordUI();
+    showToast('動画を保存しました（' + ext + '）');
+  };
+
+  mediaRecorder.start(200);
+  isRecording = true; updateRecordUI();
+  showToast('録画を開始しました — 終了したら「停止」を押してください');
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+}
+
+function updateRecordUI() {
+  const btn   = document.getElementById('recordBtn');
+  const badge = document.getElementById('recBadge');
+  btn.textContent = isRecording ? '⏹ 停止' : '⏺ 録画';
+  btn.classList.toggle('recording', isRecording);
+  badge.classList.toggle('show', isRecording);
+}
+
+
+function copySpec(){
+  copyToClipboard('【回答は日本語で。コード中のコメントも日本語で。】\n\n'+SPEC_TEXT+'\n\n■ 現在のコード（参考）\n\n'+document.getElementById('codeArea').value, '仕様書をコピーしました');
+}
+
+const SPEC_MIN = `【EVO Studio 最小仕様（厳守）】
+■ 実行環境：new Function() で評価。class / document.* / window.* / addEventListener / import / export / fetch / XMLHttpRequest / setTimeout / setInterval は使用不可（純粋 JS + Canvas2D のみ）。
+■ 必須関数：fitness(genome, params)（★大きいほど良い＝最大化）と draw(ctx, state, W, H, params)。draw 先頭で背景塗りか ctx.clearRect(0,0,W,H)。
+■ 遺伝子：GENE = { type:'bit'|'real', length:整数, min?, max? } で定義（または randomGenome(params) を用意）。decode は任意。
+■ GA パラメータ id（popSize, mutationRate, crossoverRate, elitism, tournamentK）はエンジンが自動利用。
+■ 任意定義（形を厳守）：PARAM_DEFS=[{ id, label, min, max, step, default, help? }]，PLOT_DEFS=[{ title, series:[{ id, label, color, fn: s=>数値 }] }]，STOP_COND={ label, fn:(state,params)=>真偽 }，MAX_GEN=整数，viewReset/viewStep。`;
+function buildModPrompt(instruction){
+  const code = document.getElementById('codeArea').value;
+  const wish = (instruction && instruction.trim()) ? instruction.trim() : '・\n・\n・';
+  const text =
+`以下の EVO Studio（遺伝的アルゴリズム）用 JavaScript コードを改変してください．
+
+【出力ルール（厳守）】
+- 回答は日本語で書くこと（コード中のコメントも日本語で）。
+- 出力は \`\`\`javascript で始まり \`\`\` で終わる コードブロックを1つだけ。前後に説明文・挨拶を書かない。
+- コードは省略せず全文を出力（「// 以下同様」等で省かない）。
+- 必須関数 fitness / draw の役割と引数は変えない。
+
+【現在のコード】
+\`\`\`javascript
+${code}
+\`\`\`
+
+【最小仕様（厳守）】
+${SPEC_MIN}
+
+【改変の進め方】
+- PARAM_DEFS には help: '説明' を付ける。
+- 先頭付近に const TITLE = '短いモデル名（全角10文字程度・改変後の内容を表す）' を定義／更新する。
+- DESCRIPTION（{ summary, gene, phenotype, fitness }）を定義／更新する（画面の「このモデルの説明」に表示）。
+- 末尾に「何をどう変えたか」を3〜5行の解説コメント（// ...）として付ける。
+
+【改変したい内容】（箇条書きで具体的に記入してください。このテキストを添付ファイルとして渡した場合は、この欄を書き換える代わりに、チャットのメッセージ本文に改変したい内容を書いてください。その場合はメッセージ本文の指示をこの欄より優先してください。）
+${wish}
+
+※ 出力はコードブロック1つだけ・全文・前後に文章なし。`;
+  return text;
+}
+function copyExplainPrompt(){
+  const code=document.getElementById('codeArea').value;
+  const fence='```';
+  const text=
+`以下は EVO Studio（進化計算・遺伝的アルゴリズム）で現在実行している JavaScript コードです。
+このコードが構築しているモデルを、コードに忠実に、丁寧に説明してください（コードに無い機能を推測で足さないこと）。
+
+【出力フォーマット】
+- 説明はすべて日本語で書くこと。
+1. 概要：何を進化させ、何を最適化／観察するのかを2〜4文で。その際、適応度が何を高く評価し、
+   現在の集団から次の集団がどう作られるのかという世代更新の要点も含め、題材だけでなく仕組みが
+   伝わるように。
+2. アルゴリズムの説明：遺伝子の表現（GENE / randomGenome / decode）、適応度 fitness
+   （大きいほど良い）、GA の流れ（選択・交叉・突然変異・エリート保存）、描画 draw、
+   主要パラメータ（PARAM_DEFS）の役割を、コードに即して言葉で。
+3. 疑似コード：これだけを読んで同じ挙動のモデルを書き直せる厳密さで書くこと。流れの概略で
+   済ませず、次を明示すること。
+   - 1世代の中で、評価から新しい集団の生成までが何の順に起こるか
+   - 遺伝子をどう復号し、適応度が実際に何を計算しているか。PARAM_DEFS のパラメータ名を
+     使って式として書くこと
+   - 選択方式（トーナメント・ルーレット等）とその規模や選択圧、親を何個体取るか、
+     重複を許すか
+   - 交叉と突然変異が遺伝子のどこを、どれだけ、どの確率で変えるか
+   - エリート保存が何個体を引き継ぐか、集団サイズが一定に保たれるか
+   - 乱数がどこで入り、何を決めるか
+   - 進化が停止する条件があればそれ
+   コードが実行する順に、番号付きの手順として書くこと。
+
+【現在のコード】
+${fence}javascript
+${code}
+${fence}`;
+  copyToClipboard(text, '説明プロンプトをコピーしました');
+}
+// 現在のモデルを単体で動く Python スクリプト＋requirements.txt に変換させるプロンプト
+function buildPythonPrompt(){
+  const code=document.getElementById('codeArea').value;
+  const title=(modelTitle||'').trim();
+  const fence='```';
+  const text=
+`以下は EVO Studio（ブラウザ上で動く遺伝的アルゴリズム・ツール）で実行している JavaScript コードです。
+これと同じ遺伝子表現・評価関数・GAの流れ（選択→交叉→突然変異→エリート保存→次世代）をもつ、単体で実行できる Python スクリプトに変換してください。
+
+【出力ルール（厳守）】
+- 回答は日本語で書くこと（コード中のコメントも日本語で）。
+- 出力は次の2つのコードブロックだけ。前後に説明文・挨拶・見出し以外の文章を書かない。
+  1つ目: ${fence}python
+（ここに実行用スクリプト本体。ファイル名の目安: ${modelSlug('model')}.py）
+${fence}
+  2つ目: ${fence}text
+（ここに requirements.txt の中身だけ。パッケージ名==バージョン、または最低限パッケージ名のみを1行ずつ）
+${fence}
+- コードは省略せず全文を出力する（「# 以下同様」等で省かない）。
+
+【変換方針】
+- 可視化・アニメーションには matplotlib（matplotlib.animation.FuncAnimation）を使い、python model.py で実行すればウィンドウが開いて世代ごとの進化の様子とグラフが動くようにする。
+- 元コードの GENE / randomGenome（遺伝子の形式・ランダム生成）、fitness(genome, params)（適応度評価、大きいほど良い）、draw(ctx, state, W, H)（matplotlib への描画）に1対1で対応する関数を作り、対応関係がわかるコメントを付ける。
+- GA の1世代の更新（評価→選択→交叉→突然変異→エリート保存→次世代）は、EVO Studio のエンジンが内部で行っている処理を Python 側で明示的なループとして実装する（デフォルトはトーナメント選択・一様/one-point交叉・突然変異率に従うビット/実数の変異・エリート保存 でよい。元コードに独自の選択/交叉/突然変異処理があればそれを優先する）。
+- PARAM_DEFS がある場合、各パラメータ（個体数・交叉率・突然変異率・エリート数・最大世代など）をスクリプト冒頭で変数として定義する（コメントで元の min/max/step/既定値を明記）。
+- PLOT_DEFS（グラフ定義）がある場合、世代ごとの最良・平均適応度などの時系列データを記録し、実行終了後またはサブプロットとしてグラフ表示する。
+- MAX_GEN がある場合はその世代数で停止する（元コードの既定「⏹ 停止のみ」に合わせ、ループはさせない）。
+- 乱数は numpy.random（再現性のため任意で np.random.seed を用意）を使う。
+- Sound.beep / Sound.note のような音の呼び出しは Python 版では省略してよい（コメントでその旨を記す）。
+- コード全体に日本語で簡潔な説明コメントを付ける。標準的な範囲のライブラリ（numpy, matplotlib 程度）だけで完結させ、requirements.txt にはそこで実際に import したパッケージだけを列挙する。
+
+【モデル名】
+${title||'（元コードの TITLE を参照）'}
+
+【現在の JavaScript コード】
+${fence}javascript
+${code}
+${fence}
+
+※ 出力は python コードブロックと requirements.txt コードブロックの2つだけ。前後に文章なし。`;
+  return text;
+}
+function copyPythonPrompt(){
+  copyToClipboard(buildPythonPrompt(), 'Python化プロンプトをコピーしました（生成AI に貼り付けてください）');
+}
+function copyModPrompt(){
+  copyToClipboard(buildModPrompt(), '改変プロンプトをコピーしました');
+}
+function buildNewPrompt(instruction){
+  const want = (instruction && instruction.trim()) ? instruction.trim() : '（ここを書き換えてください：例 "巡回セールスマン問題(TSP)を順列遺伝子で解く"）';
+  const text = `あなたは EVO Studio（遺伝的アルゴリズム）用の JavaScript コードを書くエキスパートです。以下の最小仕様に厳密に従い，指定された進化モデルを実装してください。
+
+【出力ルール（厳守）】
+- 回答は日本語で書くこと（コード中のコメントも日本語で）。
+- 出力は \`\`\`javascript で始まり \`\`\` で終わる コードブロックを1つだけ。前後に説明文・挨拶を書かない。
+- コードは省略せず全文を出力（「// 以下同様」等で省かない）。
+
+【最小仕様（厳守）】
+${SPEC_MIN}
+
+【その他】
+- 先頭付近に const TITLE = '短いモデル名（全角10文字程度）' を定義する。
+- DESCRIPTION = { summary, gene, phenotype, fitness } を定義する（画面の「このモデルの説明」に表示）。PARAM_DEFS には help: '説明' を付ける。
+- 末尾に「遺伝子・評価関数・主要パラメータ」を3〜5行の解説コメント（// ...）として付ける。
+
+【実装するモデル】（このテキストを添付ファイルとして渡した場合は、この欄を書き換える代わりに、チャットのメッセージ本文に作りたいモデルを書いてください。その場合はメッセージ本文の指示をこの欄より優先してください。）
+${want}
+
+【追加要件・変更点】（任意。同様に、添付ファイルとして渡した場合はメッセージ本文に書いても構いません）
+・（任意：遺伝子の形式，評価関数，パラメータ，グラフ，表示方法など）
+
+※ 出力はコードブロック1つだけ・全文・前後に文章なし。`;
+  return text;
+}
+function copyNewModelPrompt(){
+  copyToClipboard(buildNewPrompt(), '新規作成プロンプトをコピーしました（生成AI に貼り付けてください）');
+}
+
+function showErr(msg){const el=document.getElementById('errorBox');el.textContent='⚠ '+msg;el.className='error-box show';}
+let toastTimer=null;
+function copyCurrentCode(){
+  copyToClipboard(document.getElementById('codeArea').value, '現在のコードをコピーしました');
+}
+function copyToClipboard(text, okMsg){
+  const ok=()=>showToast(okMsg||'コピーしました');
+  const legacy=()=>{
+    try{
+      const ta=document.createElement('textarea');
+      ta.value=text; ta.style.position='fixed'; ta.style.top='-1000px'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      const done=document.execCommand('copy'); document.body.removeChild(ta);
+      done ? ok() : showToast('コピーできませんでした。手動でコピーしてください', true);
+    }catch(e){ showToast('コピーできませんでした。手動でコピーしてください', true); }
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(ok).catch(legacy);
+  } else { legacy(); }
+}
+// テキスト（```コードブロック``` を含んでいてもよい）からコードを取り出してコード欄へ入れ、適用する
+function applyPastedText(text){
+  if(!text || !text.trim()){ showToast('コードが見つかりませんでした', true); return false; }
+  let code=text;
+  const blocks=[...text.matchAll(/```(?:javascript|js)?\s*\n([\s\S]*?)```/gi)];
+  if(blocks.length){ code=blocks[blocks.length-1][1]; }
+  else { code=text.replace(/^\s*```[a-zA-Z]*\s*\n?/,'').replace(/\n?```\s*$/,''); }
+  code=code.trim();
+  if(!code){ showToast('コードが見つかりませんでした', true); return false; }
+  const ta=document.getElementById('codeArea');
+  ta.value=code; if(typeof syncGutter==='function') syncGutter();
+  applyCode();
+  return true;
+}
+// クリップボードの自動読み取りが使えない環境（Android Chrome の file:// 等）向けの手動貼り付けフォールバック
+function manualPasteFallback(prefix){
+  const body=document.getElementById('codeBody');
+  if(body && !body.classList.contains('open')) toggleCode();   // コード欄を開く
+  const ta=document.getElementById('codeArea');
+  ta.focus();
+  showToast((prefix||'自動で貼り付けできませんでした。')+'コード欄を長押し→「貼り付け」すると自動で適用します（または貼り付け後に ▶ 適用）。', true);
+  const onPaste=()=>{ setTimeout(()=>applyPastedText(ta.value), 30); };  // 貼り付け完了後に取り込む
+  ta.addEventListener('paste', onPaste, {once:true});
+}
+async function pasteAndApply(){
+  let text=null;
+  try{
+    if(!navigator.clipboard || !navigator.clipboard.readText) throw new Error('clipboard read unavailable');
+    text=await navigator.clipboard.readText();
+  }catch(e){ return manualPasteFallback(); }
+  if(!text || !text.trim()){ return manualPasteFallback('クリップボードが空でした。'); }
+  applyPastedText(text);
+}
+function showToast(msg,isBad=false){
+  const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(isBad?' bad':'')+' show';
+  if(toastTimer)clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.className='toast',2400);
+}
+// ──────────────────────────────────────────────────────────────
+// v6: code gutter / draw-throttle / file I/O / snapshots / CSV / help
+// ──────────────────────────────────────────────────────────────
+function syncGutter(){
+  const ta=document.getElementById('codeArea'),g=document.getElementById('codeGutter');
+  if(!ta||!g)return;
+  const n=(ta.value.match(/\n/g)||[]).length+1;
+  let s='';for(let i=1;i<=n;i++)s+=i+'\n';
+  g.textContent=s;g.scrollTop=ta.scrollTop;
+}
+
+function getDrawEvery(){return parseInt(document.getElementById('drawEverySlider').value)||1;}
+function updateDrawEveryLabel(){
+  const v=getDrawEvery();
+  document.getElementById('drawEveryVal').textContent=v<=1?'毎回':('1/'+v);
+}
+
+// ── model file save / load ──
+let modelTitle='';
+function setModelTitle(t){
+  modelTitle = (t!=null && (''+t).trim()) ? (''+t).trim() : '';
+  const base='EVO Studio v1.0';
+  document.title = modelTitle ? (modelTitle+' — '+base) : base;
+}
+function modelSlug(fallback){
+  const t=(modelTitle||'').trim();
+  if(!t) return fallback;
+  const s=t.replace(/[\\\/:*?"<>|]/g,'').replace(/\s+/g,'_').replace(/_+/g,'_').slice(0,60).replace(/^_+|_+$/g,'');
+  return s || fallback;
+}
+function saveModelFile(){
+  const code=document.getElementById('codeArea').value;
+  const blob=new Blob([code],{type:'text/javascript'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=modelSlug('evo_model')+'.js';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  showToast('モデルを .js ファイルに保存しました');
+}
+function loadModelFile(ev){
+  const f=ev.target.files&&ev.target.files[0];
+  if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{document.getElementById('codeArea').value=r.result;syncGutter();applyCode();showToast('モデルを読み込みました（'+f.name+'）');};
+  r.onerror=()=>showToast('ファイルの読み込みに失敗しました',true);
+  r.readAsText(f);
+  ev.target.value=''; // 同じファイルを連続で開けるように
+}
+
+// ══════════════════════════════════════════════════════════════
+// HTML出力：今のモデルだけを動かせる独立HTMLを書き出す
+// ══════════════════════════════════════════════════════════════
+// IEC/ABM Studio と同じ方針：画面（document）をまるごと複製し、
+//   1) コード編集UI（.code-bar）を非表示にする
+//   2) 開いていたダイアログは閉じた状態に戻す
+//   3) 起動時に「今のモデルコード」を codeArea へ再セットする
+//      小さな追加スクリプトを末尾に足す
+// ことで、既存のコード評価エンジンにはまったく手を加えない。
+function exportStandaloneHTML(){
+  if(!defs){ showToast('モデルが読み込まれていません', true); return; }
+  const code=(document.getElementById('codeArea').value||'').trim();
+  if(!code){ showToast('コードが空です', true); return; }
+  try{
+    const clone=document.documentElement.cloneNode(true);
+
+    const codeBar=clone.querySelector('.code-bar');
+    if(codeBar) codeBar.style.display='none';
+
+    const helpCode=clone.querySelector('#helpCodeSection');
+    if(helpCode) helpCode.remove();
+
+    clone.querySelectorAll('.overlay.show')
+      .forEach(el=>el.classList.remove('show'));
+
+    const tickBadgeEl=clone.querySelector('#tickBadge');
+    if(tickBadgeEl){
+      tickBadgeEl.textContent='世代: 0';
+      const pkgBadge=document.createElement('div');
+      pkgBadge.className='tick-badge';
+      pkgBadge.style.color='var(--amber)';
+      pkgBadge.style.background='rgba(180,83,9,.08)';
+      pkgBadge.textContent='📦 スタンドアロン版';
+      tickBadgeEl.after(pkgBadge);
+    }
+
+    const reinit=document.createElement('script');
+    reinit.textContent =
+      'window.addEventListener("DOMContentLoaded", function(){\n' +
+      '  var ta = document.getElementById("codeArea");\n' +
+      '  if (ta) { ta.value = ' + JSON.stringify(code) + '; }\n' +
+      '  if (typeof applyCode === "function") applyCode(true);\n' +
+      '});\n';
+    (clone.querySelector('body')||clone).appendChild(reinit);
+
+    const html='<!DOCTYPE html>\n'+clone.outerHTML;
+    const blob=new Blob([html],{type:'text/html'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=modelSlug('evo_model')+'_standalone.html';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    showToast('スタンドアロンHTMLを書き出しました（このモデルだけを実行できます）');
+  }catch(e){
+    showToast('書き出しに失敗しました: '+e.message, true);
+  }
+}
+
+// ── experiment snapshots / compare ──
+function paramSummary(params){
+  if(!paramDefs.length)return '（パラメータなし）';
+  return paramDefs.slice(0,5).map(p=>{
+    const v=params[p.id];const d=p.step<0.01?3:p.step<0.1?2:p.step<1?1:0;
+    return p.id+'='+(typeof v==='number'?(Number.isInteger(v)?v:v.toFixed(d)):v);
+  }).join('  ');
+}
+function saveSnapshot(){
+  if(!chartDefs.length){showToast('このモデルにはグラフがありません',true);return;}
+  if(!chartHistories.some(h=>h&&h.length>1)){showToast('保存できるデータがありません（少し実行してから保存してください）',true);return;}
+  const color=SNAP_COLORS[snapshots.length%SNAP_COLORS.length];
+  const params=getParams();
+  snapshots.push({
+    id:++snapSeq,
+    label:'実験 '+snapSeq,
+    params,
+    summary:paramSummary(params),
+    histories:JSON.parse(JSON.stringify(chartHistories)),
+    color,
+    visible:true,
+  });
+  renderSnapshots();renderAllCharts();
+  showToast('現在の結果を保存しました（実験 '+snapSeq+'）');
+}
+function clearSnapshots(silent){
+  snapshots=[];snapSeq=0;
+  renderSnapshots();
+  if(typeof renderAllCharts==='function')renderAllCharts();
+  if(!silent)showToast('保存した実験をすべて削除しました');
+}
+function toggleSnapshot(id){
+  const s=snapshots.find(s=>s.id===id);if(!s)return;
+  s.visible=!s.visible;renderSnapshots();renderAllCharts();
+}
+function removeSnapshot(id){
+  snapshots=snapshots.filter(s=>s.id!==id);
+  renderSnapshots();renderAllCharts();
+}
+function renderSnapshots(){
+  const list=document.getElementById('snapList');if(!list)return;
+  list.innerHTML='';
+  if(!snapshots.length){
+    const e=document.createElement('div');e.className='snap-empty';
+    e.textContent='「📸 現在を保存」を押すと、いまのグラフとパラメータを保存し、別条件の結果と重ねて比較できます。';
+    list.appendChild(e);return;
+  }
+  snapshots.forEach(s=>{
+    const item=document.createElement('div');item.className='snap-item'+(s.visible?'':' off');
+    const eye=document.createElement('span');eye.className='eye';eye.textContent=s.visible?'👁':'🚫';
+    eye.title=s.visible?'グラフから隠す':'グラフに表示';eye.onclick=()=>toggleSnapshot(s.id);
+    const dot=document.createElement('span');dot.className='dot';dot.style.background=s.color;
+    const nm=document.createElement('span');nm.className='nm';nm.textContent=s.label;
+    const pm=document.createElement('span');pm.className='pm';pm.textContent=s.summary;
+    const x=document.createElement('span');x.className='x';x.textContent='✕';x.title='削除';x.onclick=()=>removeSnapshot(s.id);
+    item.append(eye,dot,nm,pm,x);list.appendChild(item);
+  });
+}
+
+// ── CSV file download (works offline / no clipboard needed) ──
+function buildChartCSV(ci){
+  const cd=chartDefs[ci];const lines=[];
+  const header=['run','params','tick',...cd.series.map(s=>s.label)];
+  lines.push(header.join(','));
+  const emit=(runName,params,hist)=>{
+    const pstr='"'+paramSummary(params).replace(/"/g,'""')+'"';
+    hist.forEach(e=>{
+      lines.push([csvCell(runName),pstr,e.tick,...cd.series.map(s=>{const v=e.vals[s.id];return v===undefined?'':v;})].join(','));
+    });
+  };
+  emit('現在',getParams(),chartHistories[ci]||[]);
+  snapshots.forEach(s=>{ if(s.histories[ci]) emit(s.label,s.params,s.histories[ci]); });
+  return lines;
+}
+function csvCell(v){const s=String(v);return /[",\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+function triggerDownload(text,filename){
+  const blob=new Blob(['\ufeff'+text],{type:'text/csv;charset=utf-8'}); // BOM付きでExcel文字化け回避
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function downloadChartCSV(ci,btn){
+  const hist=chartHistories[ci];
+  if((!hist||hist.length<1)&&!snapshots.length){showToast('データがありません',true);return;}
+  const title=(chartDefs[ci].title||('chart'+ci)).replace(/[^\w가-힣ぁ-んァ-ヶ一-龠ー]+/g,'_').slice(0,40)||('chart'+ci);
+  triggerDownload(buildChartCSV(ci).join('\r\n'),'evo_'+title+'.csv');
+  showToast('CSVファイルを保存しました');
+  if(btn){btn.textContent='✓';btn.classList.add('done');setTimeout(()=>{btn.textContent='💾';btn.classList.remove('done');},1500);}
+}
+function downloadAllCSV(){
+  if(!chartDefs.length){showToast('グラフがありません',true);return;}
+  if(!chartHistories.some(h=>h&&h.length)&&!snapshots.length){showToast('データがありません',true);return;}
+  const blocks=[];
+  chartDefs.forEach((cd,ci)=>{
+    blocks.push('# '+(cd.title||('グラフ '+(ci+1))));
+    blocks.push(buildChartCSV(ci).join('\r\n'));
+    blocks.push('');
+  });
+  triggerDownload(blocks.join('\r\n'),'evo_all_charts.csv');
+  showToast('全グラフのデータをCSVに保存しました');
+}
+
+// ── データ一式を ZIP でダウンロード（CSV + JSON。外部ライブラリ非依存の store 方式）──
+function crc32(bytes){
+  let c,crc=0xFFFFFFFF;
+  if(!crc32.tab){crc32.tab=[];for(let n=0;n<256;n++){c=n;for(let k=0;k<8;k++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);crc32.tab[n]=c>>>0;}}
+  for(let i=0;i<bytes.length;i++)crc=(crc>>>8)^crc32.tab[(crc^bytes[i])&0xFF];
+  return (crc^0xFFFFFFFF)>>>0;
+}
+function makeZipBlob(files){
+  const enc=new TextEncoder();
+  const u16=v=>[v&0xFF,(v>>>8)&0xFF];
+  const u32=v=>[v&0xFF,(v>>>8)&0xFF,(v>>>16)&0xFF,(v>>>24)&0xFF];
+  const local=[],central=[];let offset=0;
+  files.forEach(f=>{
+    const name=enc.encode(f.name);
+    const data=(typeof f.data==='string')?enc.encode(f.data):f.data;
+    const crc=crc32(data);
+    const lh=[].concat(u32(0x04034b50),u16(20),u16(0x0800),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0));
+    local.push(new Uint8Array(lh),name,data);
+    const ch=[].concat(u32(0x02014b50),u16(20),u16(20),u16(0x0800),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset));
+    central.push(new Uint8Array(ch),name);
+    offset+=lh.length+name.length+data.length;
+  });
+  let cenSize=0;central.forEach(c=>cenSize+=c.length);
+  const eocd=[].concat(u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(cenSize),u32(offset),u16(0));
+  return new Blob([...local,...central,new Uint8Array(eocd)],{type:'application/zip'});
+}
+function triggerBlobDownload(blob,filename){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function chartSlug(cd,ci){
+  return (cd.title||('chart'+(ci+1))).replace(/[^\w가-힣ぁ-んァ-ヶ一-龠ー]+/g,'_').slice(0,40)||('chart'+(ci+1));
+}
+function getExperimentSettings(params){
+  const setup=(setupDefs[activeSetupIdx]&&setupDefs[activeSetupIdx].label)||null;
+  const modeSel=document.getElementById('maxTickModeSel');
+  const drawEl=document.getElementById('drawEverySlider');
+  const spdEl=document.getElementById('speedSlider');
+  const stopSec=document.getElementById('stopcondSection');
+  const stopLbl=document.getElementById('stopcondLabel');
+  return {
+    params: params||getParams(),
+    initialState: setup,
+    maxGenerations: (typeof getMaxTicks==='function')?getMaxTicks():null,
+    onMaxReached: modeSel?modeSel.value:null,
+    drawEvery: drawEl?(parseInt(drawEl.value)||1):null,
+    speed: spdEl?(parseInt(spdEl.value)):null,
+    stopCondition: (stopSec&&stopSec.classList.contains('show'))?{enabled:stopCondEnabled, label:(stopLbl?stopLbl.textContent:null)}:null,
+    seed: __runSeed>>>0
+  };
+}
+function downloadDataZip(){
+  if(!chartDefs.length){showToast('このモデルには記録データ（グラフ）がありません',true);return;}
+  if(!chartHistories.some(h=>h&&h.length)&&!snapshots.length){showToast('データがありません（少し実行してから）',true);return;}
+  const nowISO=new Date().toISOString();
+  const stamp=nowISO.slice(0,19).replace('T','_').replace(/:/g,'');
+  const root='evo_'+modelSlug('model')+'_'+stamp;
+  const code=(document.getElementById('codeArea')||{}).value||'';
+  const params=getParams();
+  const settings=getExperimentSettings(params);
+  const cur0=chartHistories[0]||[];
+  const files=[];
+  const meta={
+    app:'EVO Studio', version:'1.0',
+    model:modelTitle||null,
+    exportedAt:nowISO,
+    generations: cur0.length?cur0[cur0.length-1].tick:0,
+    settings,
+    charts: chartDefs.map(cd=>({title:cd.title||null, series:cd.series.map(s=>({id:s.id,label:s.label}))})),
+    experimentCount: snapshots.length,
+    frameRecording:{
+      enabled: frameRec.lines.length>0,
+      interval: frameRecInterval(),
+      frameCount: frameRec.lines.length,
+      truncated: frameRec.truncated,
+      memoryLimit: (frameRecCapBytes()===Infinity?'none':(frameRecCapBytes()/1024/1024)+' MB'),
+      bytes: frameRec.bytes,
+      schema:'JSON Lines（1行1フレーム）。各行 = {"tick": <世代番号>, "state": <モデルの state オブジェクト>}。model.js の draw(ctx, state, W, H, params) で描き直せば各世代を再生できる。'
+    },
+    files: frameRec.lines.length?['metadata.json','model.js','data.json','frames.jsonl','<各グラフ>.csv']:['metadata.json','model.js','data.json','<各グラフ>.csv'],
+    note:'CSV / JSON / frames の tick 列は世代番号（generation）。settings = 実験設定（パラメータ・初期状態プリセット・最大世代・到達時の挙動・停止条件・乱数シード seed 等）。seed により Math.random が固定されるため、model.js＋settings から実行を再現できる（方式A）。frames.jsonl（「状態を記録」ON時）は各世代の状態そのもので、同梱ビュワーで確実に再生できる（方式B）。model.js = この実験を生成したモデルのコード。current = 初期化以降の現在の実行。experiments = 「📸 現在を保存」で保存した比較用データ。'
+  };
+  files.push({name:root+'/metadata.json', data:JSON.stringify(meta,null,2)});
+  files.push({name:root+'/model.js', data:code});
+  if(frameRec.lines.length){ files.push({name:root+'/frames.jsonl', data:frameRec.lines.join('\n')}); }
+  chartDefs.forEach((cd,ci)=>{
+    files.push({name:root+'/'+String(ci+1).padStart(2,'0')+'_'+chartSlug(cd,ci)+'.csv', data:'﻿'+buildChartCSV(ci).join('\r\n')});
+  });
+  const dumpRun=(hists)=>{
+    const o={};
+    chartDefs.forEach((cd,ci)=>{ o[cd.title||('chart'+(ci+1))]=(hists[ci]||[]).map(e=>Object.assign({gen:e.tick},e.vals)); });
+    return o;
+  };
+  const data={
+    meta:{app:'EVO Studio', version:'1.0', model:modelTitle||null, exportedAt:nowISO},
+    settings,
+    current:{ params, charts:dumpRun(chartHistories) },
+    experiments: snapshots.map(s=>({ label:s.label, params:s.params, charts:dumpRun(s.histories) }))
+  };
+  files.push({name:root+'/data.json', data:JSON.stringify(data,null,2)});
+  triggerBlobDownload(makeZipBlob(files), root+'.zip');
+  showToast('データ一式を ZIP で保存しました（'+files.length+' ファイル）');
+}
+
+// ── help overlay ──
+// ══════════════════════════════════════════════════════════════
+// 最良個体（通算）の拡大表示 ＋ 画像/動画 保存
+// ══════════════════════════════════════════════════════════════
+let ez={state:null, handle:null, lastTs:null, playing:true, walker:false, fit:-Infinity, acc:0};
+function updateEvoZoomSpeed(){ const v=parseFloat(document.getElementById('evoZoomSpeed').value)||1; document.getElementById('evoZoomSpeedVal').textContent=(v<1?v.toFixed(2):v.toFixed(1))+'×'; }
+function getEvoZoomSpeed(){ return parseFloat(document.getElementById('evoZoomSpeed').value)||1; }
+function updateEvoZoomTitle(){
+  const f = simState ? simState.bestEverFitness : NaN;
+  document.getElementById('evoZoomTitle').textContent = '最良個体（通算）の拡大　適応度 ' + (isFinite(f)?f.toFixed(3):'—');
+}
+function stopEvoZoomLoop(){ if(ez.handle!==null){ cancelAnimationFrame(ez.handle); ez.handle=null; } ez.lastTs=null; }
+function openEvoZoom(){
+  if(!defs || !simState){ showToast('先にモデルを実行してください', true); return; }
+  const params=getParams();
+  const g = (simState.bestEver && simState.bestEver.length) ? simState.bestEver : simState.best;
+  if(!g){ showToast('最良個体がまだありません（▶ 進化開始 を押してください）', true); return; }
+  ez.walker = (typeof defs.viewReset==='function' && typeof defs.viewStep==='function');
+  ez.fit = simState.bestEverFitness; ez.acc=0;
+  document.getElementById('evoZoomOverlay').classList.add('show');
+  document.getElementById('evoZoomCtrlAnim').style.display = ez.walker ? 'flex' : 'none';
+  const cv=document.getElementById('evoZoomCanvas'), ctx=cv.getContext('2d'), W=cv.width, H=cv.height;
+  stopEvoZoomLoop();
+  if(ez.walker){
+    try{ ez.state={ view:defs.viewReset(g,params), best:g, bestFitness:simState.bestEverFitness, bestEverFitness:simState.bestEverFitness, gen:simState.gen, showCoM:showCoM }; }
+    catch(e){ ez.state=null; }
+    ez.playing=true; document.getElementById('evoZoomPlayBtn').textContent='⏸ 停止';
+  } else { ez.state=null; }
+  updateEvoZoomSpeed(); updateEvoZoomTitle();
+  ez.lastTs=null; ez.handle=requestAnimationFrame(evoZoomLoop);
+}
+function closeEvoZoom(){ stopEvoZoomLoop(); if(zoomRecording) zoomStopRecording(); document.getElementById('evoZoomOverlay').classList.remove('show'); }
+function toggleEvoZoomPlay(){
+  ez.playing=!ez.playing;
+  document.getElementById('evoZoomPlayBtn').textContent = ez.playing?'⏸ 停止':'▶ 再生';
+  if(ez.playing){ ez.lastTs=null; if(ez.handle===null) ez.handle=requestAnimationFrame(evoZoomLoop); }
+}
+function evoZoomLoop(ts){
+  const ov=document.getElementById('evoZoomOverlay');
+  if(!ov || !ov.classList.contains('show')){ ez.handle=null; return; }
+  const cv=document.getElementById('evoZoomCanvas'), ctx=cv.getContext('2d'), W=cv.width, H=cv.height, params=getParams();
+  if(ez.walker && ez.state){
+    // 通算最良が更新されたら作り直して追従
+    if(simState && simState.bestEver && simState.bestEverFitness>ez.fit+1e-9){
+      try{ ez.state.view=defs.viewReset(simState.bestEver,params); ez.state.best=simState.bestEver;
+           ez.fit=simState.bestEverFitness; ez.state.bestEverFitness=ez.fit; ez.state.bestFitness=ez.fit; }catch(_){}
+      updateEvoZoomTitle();
+    }
+    ez.state.showCoM=showCoM;
+    if(ez.playing){
+      ez.acc += 2*getEvoZoomSpeed();
+      let ns=Math.floor(ez.acc); ez.acc-=ns;
+      if(ns>8) ns=8;
+      for(let i=0;i<ns;i++){ try{ defs.viewStep(ez.state.view, params); }catch(_){} }
+    }
+    try{ defs.draw(ctx, ez.state, W, H, params); }catch(_){}
+  } else {
+    // 非歩行モデル：本体の状態を大きく描画（適応度地形・最良解などを拡大表示）
+    try{ simState.showCoM=showCoM; defs.draw(ctx, simState, W, H, params); }catch(_){}
+    if(simState && simState.bestEverFitness!==ez.fit){ ez.fit=simState.bestEverFitness; updateEvoZoomTitle(); }
+  }
+  ez.handle=requestAnimationFrame(evoZoomLoop);
+}
+function evoZoomSavePNG(){
+  const cv=document.getElementById('evoZoomCanvas');
+  const a=document.createElement('a'); a.href=cv.toDataURL('image/png');
+  a.download='evo_best_gen'+(simState?.gen??0)+'.png';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  showToast('最良個体の画像を保存しました');
+}
+let zMR=null, zChunks=[], zoomRecording=false;
+function zoomToggleRecord(){ if(zoomRecording) zoomStopRecording(); else zoomStartRecording(); }
+function zoomStartRecording(){
+  const cv=document.getElementById('evoZoomCanvas');
+  if(!cv.captureStream){ showToast('この環境では録画できません', true); return; }
+  const types=['video/mp4;codecs=avc1.42E01E','video/mp4;codecs=avc1.4D401E','video/mp4;codecs=avc1','video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'];
+  const mt=types.find(t=>{try{return MediaRecorder.isTypeSupported(t);}catch(_){return false;}})||'';
+  let stream; try{ stream=cv.captureStream(30); }catch(e){ showToast('録画を開始できません', true); return; }
+  try{ zMR=new MediaRecorder(stream, mt?{mimeType:mt}:{}); }catch(e){ showToast('録画を開始できません: '+e.message, true); return; }
+  zChunks=[]; zMR.ondataavailable=e=>{ if(e.data.size>0) zChunks.push(e.data); };
+  zMR.onstop=()=>{ const blob=new Blob(zChunks,{type:zMR.mimeType||'video/webm'}); const url=URL.createObjectURL(blob);
+    const ext=(zMR.mimeType||'').includes('mp4')?'mp4':'webm'; const a=document.createElement('a'); a.href=url; a.download='evo_best.'+ext;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url),1000);
+    zoomRecording=false; updateZoomRecUI(); showToast('動画を保存しました（'+ext+'）'); };
+  zMR.start(200); zoomRecording=true; updateZoomRecUI(); showToast('録画開始 — もう一度押すと保存します');
+}
+function zoomStopRecording(){ if(zMR && zMR.state!=='inactive') zMR.stop(); }
+function updateZoomRecUI(){ const b=document.getElementById('evoZoomRecBtn'); if(b){ b.textContent=zoomRecording?'⏹ 録画停止':'⏺ 録画'; b.classList.toggle('recording',zoomRecording); } }
+
+function openHelp(){document.getElementById('helpOverlay').classList.add('show');}
+function closeHelp(){document.getElementById('helpOverlay').classList.remove('show');}
+
+// ── 文字サイズ調整（既定は標準より1ポイント大きい 13pt）──
+let fontPt = 15;
+function applyFontScale(){
+  document.documentElement.style.fontSize = fontPt + 'pt';
+  const el = document.getElementById('fsVal'); if(el) el.textContent = fontPt + 'pt';
+}
+function adjustFont(d){ fontPt = Math.max(9, Math.min(20, fontPt + d)); applyFontScale(); }
+applyFontScale();
+
+// ── サウンド：全 Studio 共通の安全な音声 API（モデルからは Sound.* だけを呼ぶ）──
+const Sound = (function(){
+  let ctx=null, master=null, enabled=true, vol=0.5;
+  let voices=0; const MAXVOICES=24; let lastReset=0, perFrame=0;
+  function ensure(){
+    if(ctx) return ctx;
+    try{
+      const AC = (typeof window!=='undefined') ? (window.AudioContext||window.webkitAudioContext) : null;
+      if(!AC) return null;
+      ctx = new AC();
+      master = ctx.createGain(); master.gain.value = vol; master.connect(ctx.destination);
+    }catch(e){ ctx=null; }
+    return ctx;
+  }
+  function resume(){ const c=ensure(); if(c && c.state==='suspended'){ try{c.resume();}catch(_){} } }
+  function clampType(t){ return (t==='square'||t==='triangle'||t==='sawtooth'||t==='sine')?t:'sine'; }
+  function tone(freq,dur,v,type,when){
+    if(!enabled) return;
+    const c=ensure(); if(!c) return;
+    const now=c.currentTime;
+    if(now-lastReset>0.016){ lastReset=now; perFrame=0; }   // フレームあたりの発音数を制限
+    if(perFrame>=16) return; perFrame++;
+    if(voices>=MAXVOICES) return;                            // 同時発音数を制限
+    freq=Math.max(20,Math.min(8000,freq||440));
+    dur=Math.max(0.01,Math.min(4,dur||0.15));
+    v=Math.max(0,Math.min(1,(v==null?0.5:v)));
+    when=Math.max(0,Math.min(8,when||0));
+    const t0=now+when;
+    let osc,g;
+    try{ osc=c.createOscillator(); g=c.createGain(); }catch(_){ return; }
+    osc.type=clampType(type); osc.frequency.value=freq;
+    g.gain.setValueAtTime(0.0001,t0);
+    g.gain.linearRampToValueAtTime(v,t0+0.006);
+    g.gain.exponentialRampToValueAtTime(0.0008,t0+dur);
+    osc.connect(g); g.connect(master); voices++;
+    osc.onended=()=>{ voices=Math.max(0,voices-1); try{g.disconnect();osc.disconnect();}catch(_){}; };
+    try{ osc.start(t0); osc.stop(t0+dur+0.02); }catch(_){ voices=Math.max(0,voices-1); }
+  }
+  return {
+    beep(freq,dur,v,type,when){ tone(freq,dur,v,type,when); },
+    note(midi,dur,v,type,when){ const f=440*Math.pow(2,((midi==null?69:midi)-69)/12); tone(f,dur,v,type,when); },
+    setEnabled(b){ enabled=!!b; if(enabled) resume(); },
+    isEnabled(){ return enabled; },
+    setVolume(x){ vol=Math.max(0,Math.min(1,x)); if(master) master.gain.value=vol; },
+    getVolume(){ return vol; },
+    resume
+  };
+})();
+if (typeof globalThis !== 'undefined') globalThis.Sound = Sound;
+function toggleSound(){
+  const on=!Sound.isEnabled(); Sound.setEnabled(on);
+  const b=document.getElementById('soundBtn'); if(b){ b.textContent=on?'🔊':'🔇'; b.title=on?'音：オン（クリックで消音）':'音：オフ（クリックで音を出す）'; }
+  if(on) Sound.resume();
+}
+if (typeof document !== 'undefined') document.addEventListener('pointerdown', ()=>Sound.resume());
+</script>
+
+<!-- ============ AI 生成（OpenAI 互換 API / LM Studio 等） ============ -->
+<div class="overlay" id="aiOverlay" onclick="if(event.target===this)closeAI()">
+  <div class="overlay-card" style="max-width:760px;width:92%">
+    <header>
+      <h2>🤖 AI 生成 — OpenAI 互換 API（LM Studio 等）</h2>
+      <span class="close-x" onclick="closeAI()">✕ 閉じる</span>
+    </header>
+    <div class="ovbody">
+      <div class="ai-grid">
+        <label>エンドポイント (Base URL)
+          <span class="ai-model-row">
+            <input id="aiBaseUrl" type="text" placeholder="http://localhost:1234">
+            <button class="cbtn" type="button" onclick="aiResetUrl()" title="localhost に戻す">🏠</button>
+          </span>
+        </label>
+        <label>API キー（LM Studio は空でOK）
+          <input id="aiApiKey" type="password" placeholder="lm-studio / sk-...">
+        </label>
+        <label style="grid-column:1 / -1">モデル
+          <span class="ai-model-row">
+            <input id="aiModel" type="text" list="aiModelList" placeholder="例: qwen2.5-coder-7b-instruct">
+            <datalist id="aiModelList"></datalist>
+            <button class="cbtn" type="button" onclick="aiFetchModels()">🔄 一覧取得</button>
+          </span>
+        </label>
+        <label>温度 (temperature)
+          <input id="aiTemp" type="number" min="0" max="2" step="0.1" value="0.7" style="width:90px">
+        </label>
+        <label class="ai-inline"><input id="aiStream" type="checkbox" checked> ストリーミング表示</label>
+        <div style="grid-column:1 / -1;font-size:.64rem;color:var(--muted);line-height:1.6">例）LM Studio: <code>http://localhost:1234</code>（キー不要）／ OpenRouter: <code>https://openrouter.ai/api/v1</code> ／ DeepInfra: <code>https://api.deepinfra.com/v1/openai</code> ／ OpenAI: <code>https://api.openai.com/v1</code> 。クラウドは API キー必須。</div>
+      </div>
+
+      <div class="ai-mode">
+        <label><input type="radio" name="aiMode" value="mod" checked> ✏️ 既存コードを改変</label>
+        <label><input type="radio" name="aiMode" value="new"> ✨ 新規作成</label>
+      </div>
+
+      <label class="ai-instr-label">指示（やりたいこと・作りたいモデルを記入）
+        <textarea id="aiInstruction" rows="4" placeholder="例：巡回セールスマン問題(TSP)を順列遺伝子で解くモデルにしてください"></textarea>
+      </label>
+
+      <div class="ai-actions">
+        <button class="cbtn primary" id="aiRunBtn" onclick="aiRun()">▶ 送信</button>
+        <button class="cbtn" id="aiStopBtn" onclick="aiStop()" disabled>⏹ 停止</button>
+        <span id="aiStatus" class="ai-status"></span>
+      </div>
+
+      <div id="aiOutWrap" style="display:none">
+        <div class="ai-out-head">
+          <span>AI 応答</span>
+          <button class="cbtn" type="button" onclick="aiInsertLast()">⬇ コード欄へ挿入</button>
+        </div>
+        <pre id="aiOut" class="ai-out"></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+#aiOverlay .ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-bottom:10px}
+#aiOverlay label{font-family:'Noto Sans JP',sans-serif;font-size:.72rem;color:var(--text);display:flex;flex-direction:column;gap:3px}
+#aiOverlay input[type=text],#aiOverlay input[type=password],#aiOverlay input[type=number],#aiOverlay textarea{
+  font-family:'IBM Plex Mono',monospace;font-size:.72rem;padding:5px 7px;border:1px solid var(--border);
+  border-radius:4px;background:var(--panel);color:var(--text)}
+#aiOverlay textarea{resize:vertical;width:100%}
+#aiOverlay .ai-inline{flex-direction:row;align-items:center;gap:6px}
+#aiOverlay .ai-model-row{display:flex;gap:6px;align-items:center}
+#aiOverlay .ai-model-row input{flex:1}
+#aiOverlay .ai-mode{display:flex;gap:18px;margin:6px 0 10px}
+#aiOverlay .ai-mode label{flex-direction:row;align-items:center;gap:6px}
+#aiOverlay .ai-instr-label{margin-bottom:10px}
+#aiOverlay .ai-actions{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+#aiOverlay .ai-status{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--muted)}
+#aiOverlay .ai-out-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--accent)}
+#aiOverlay .ai-out{max-height:300px;overflow:auto;background:var(--code-bg);border:1px solid var(--border);
+  border-radius:6px;padding:10px;font-family:'IBM Plex Mono',monospace;font-size:.68rem;white-space:pre-wrap;color:var(--text)}
+</style>
+
+<script>
+(function(){
+  const LS_KEY='alife_ai_settings';
+  let aiCtrl=null, aiLastText='';
+  const $=id=>document.getElementById(id);
+
+  window.openAI=function(){
+    const s=loadSettings();
+    $('aiBaseUrl').value=s.baseUrl; $('aiApiKey').value=s.apiKey;
+    $('aiModel').value=s.model; $('aiTemp').value=s.temp; $('aiStream').checked=s.stream;
+    const hasCode=($('codeArea').value||'').trim().length>0;
+    const r=document.querySelector('input[name=aiMode][value="'+(hasCode?'mod':'new')+'"]'); if(r) r.checked=true;
+    status('');
+    $('aiOverlay').classList.add('show');
+  };
+  window.closeAI=function(){ $('aiOverlay').classList.remove('show'); };
+  window.aiResetUrl=function(){ $('aiBaseUrl').value='http://localhost:1234'; saveSettings(); status('URL を localhost に戻しました'); };
+
+  function loadSettings(){
+    let s={};
+    try{ s=JSON.parse(localStorage.getItem(LS_KEY)||'{}'); }catch(e){}
+    return {
+      baseUrl: s.baseUrl||'http://localhost:1234',
+      apiKey:  s.apiKey||'',
+      model:   s.model||'',
+      temp:    (s.temp!=null?s.temp:0.7),
+      stream:  (s.stream!=null?s.stream:true)
+    };
+  }
+  function saveSettings(){
+    const s={ baseUrl:$('aiBaseUrl').value.trim(), apiKey:$('aiApiKey').value,
+      model:$('aiModel').value.trim(), temp:parseFloat($('aiTemp').value)||0.7, stream:$('aiStream').checked };
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(s)); }catch(e){}
+    return s;
+  }
+  // OpenAI互換のベースURL。パスがあればそのまま使う（OpenRouter: .../api/v1、DeepInfra: .../v1/openai、OpenAI: .../v1）。
+  // ホスト名だけ（例 http://localhost:1234）のときは /v1 を補う（LM Studio 等）。
+  function baseUrl(){
+    let u=($('aiBaseUrl').value.trim()||'http://localhost:1234').replace(/\/+$/,'');
+    const m=u.match(/^https?:\/\/[^\/]+(\/.*)?$/);
+    if(!(m && m[1])) u=u+'/v1';   // パスが無ければ /v1 を補う
+    return u;
+  }
+  function authHeaders(){
+    const h={'Content-Type':'application/json'};
+    const k=$('aiApiKey').value.trim(); if(k) h['Authorization']='Bearer '+k;
+    return h;
+  }
+  function status(msg,bad){ const el=$('aiStatus'); el.textContent=msg||''; el.style.color=bad?'var(--bad)':'var(--muted)'; }
+
+  window.aiFetchModels=async function(){
+    saveSettings();
+    status('モデル一覧を取得中…');
+    const base=baseUrl();
+    // OpenAI互換 /v1/models と LM Studio ネイティブ /api/v1/models を両方試す
+    const cands=[ base+'/models' ];
+    if(/\/v1$/.test(base)) cands.push(base.replace(/\/v1$/,'/api/v1')+'/models'); // LM Studio ネイティブも一応試す
+    let lastErr=null, rawDump='';
+    for(const url of cands){
+      try{
+        const r=await fetch(url,{headers:authHeaders()});
+        if(!r.ok){ lastErr=new Error('HTTP '+r.status); continue; }
+        const txt=await r.text(); rawDump=txt;
+        let j; try{ j=JSON.parse(txt); }catch(_){ lastErr=new Error('JSON解析失敗'); continue; }
+        const arr=j.data||j.models||(j.object&&j.object.data)||(Array.isArray(j)?j:[]);
+        const ids=(Array.isArray(arr)?arr:[]).map(m=>(typeof m==='string'?m:(m&&(m.id||m.key||m.modelKey||m.name||m.identifier||m.path)))).filter(Boolean);
+        if(!ids.length){ lastErr=new Error('モデルが空'); continue; }
+        const dl=$('aiModelList'); dl.innerHTML='';
+        ids.forEach(id=>{ const o=document.createElement('option'); o.value=id; dl.appendChild(o); });
+        if(!$('aiModel').value) $('aiModel').value=ids[0];
+        status(ids.length+' 件のモデルを取得しました');
+        return;
+      }catch(e){ lastErr=e; }
+    }
+    if(rawDump){ $('aiOut').textContent='[モデル一覧の生レスポンス（解析できなかった内容）]\n'+rawDump.slice(0,4000); $('aiOutWrap').style.display='block'; }
+    status('一覧の解析に失敗: '+(lastErr&&lastErr.message)+' — モデル名を手入力すれば送信できます（例 google/gemma-4-31b-qat）。生レスポンスを下に表示しました。', true);
+  };
+
+  window.aiStop=function(){ if(aiCtrl){ aiCtrl.abort(); aiCtrl=null; } };
+
+  function appendOut(c){ const el=$('aiOut'); el.textContent+=c; el.scrollTop=el.scrollHeight; }
+
+  function extractCode(text){
+    if(!text) return '';
+    const re=/```(?:javascript|js)?\s*\n([\s\S]*?)```/gi;
+    let m, last=null;
+    while((m=re.exec(text))!==null){ last=m[1]; }
+    if(last!=null) return last.replace(/\s+$/,'');
+    return text.trim();
+  }
+  window.aiInsertLast=function(auto){
+    const code=extractCode(aiLastText);
+    if(!code){ status('コードを抽出できませんでした', true); return; }
+    const ta=$('codeArea'); ta.value=code;
+    if(typeof window.syncGutter==='function') syncGutter();
+    if(typeof window.showToast==='function') showToast('AIの生成コードをコード欄に入れました。▶ 適用で実行してください');
+    if(!auto) status('コード欄へ挿入しました');
+  };
+
+  window.aiRun=async function(){
+    saveSettings();
+    const mode=document.querySelector('input[name=aiMode]:checked').value;
+    const instruction=$('aiInstruction').value;
+    if(mode==='mod' && !($('codeArea').value||'').trim()){
+      status('コード欄が空です。新規作成を選んでください。', true); return;
+    }
+    if(typeof window.buildModPrompt!=='function' || typeof window.buildNewPrompt!=='function'){
+      status('プロンプト生成関数が見つかりません', true); return;
+    }
+    const prompt=(mode==='mod') ? window.buildModPrompt(instruction) : window.buildNewPrompt(instruction);
+    const model=$('aiModel').value.trim();
+    if(!model){ status('モデル名を入力してください（🔄一覧取得で選べます）', true); return; }
+
+    aiLastText='';
+    $('aiOut').textContent=''; $('aiOutWrap').style.display='block';
+    $('aiRunBtn').disabled=true; $('aiStopBtn').disabled=false;
+    status('生成中…');
+    const useStream=$('aiStream').checked;
+    aiCtrl=new AbortController();
+    const body={ model, temperature:parseFloat($('aiTemp').value)||0.7, stream:useStream,
+      messages:[
+        {role:'system', content:'あなたは指定された Studio 用の JavaScript コードを書く専門家です。指示と仕様に厳密に従い、必ず ```javascript ... ``` のコードブロックを1つ含めて回答してください。'},
+        {role:'user', content:prompt}
+      ]};
+    try{
+      const r=await fetch(baseUrl()+'/chat/completions',{method:'POST',headers:authHeaders(),body:JSON.stringify(body),signal:aiCtrl.signal});
+      if(!r.ok){ const t=await r.text().catch(()=>''); throw new Error('HTTP '+r.status+' '+t.slice(0,200)); }
+      if(useStream && r.body){
+        const reader=r.body.getReader(); const dec=new TextDecoder(); let buf='';
+        while(true){
+          const {done,value}=await reader.read(); if(done) break;
+          buf+=dec.decode(value,{stream:true});
+          let nl;
+          while((nl=buf.indexOf('\n'))>=0){
+            const line=buf.slice(0,nl).trim(); buf=buf.slice(nl+1);
+            if(!line.startsWith('data:')) continue;
+            const data=line.slice(5).trim();
+            if(data==='[DONE]') continue;
+            try{ const j=JSON.parse(data); const d=(j.choices&&j.choices[0]&&j.choices[0].delta)||{}; const c=d.content||''; if(c){ aiLastText+=c; appendOut(c); } }catch(e){}
+          }
+        }
+      }else{
+        const j=await r.json();
+        aiLastText=(j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content)||'';
+        $('aiOut').textContent=aiLastText;
+      }
+      aiInsertLast(true);
+      status('完了。コードをコード欄へ挿入しました（▶ 適用で実行）。');
+    }catch(e){
+      if(e.name==='AbortError'){ status('停止しました'); }
+      else{ status('エラー: '+e.message+'（サーバ起動・CORS・URLを確認）', true); }
+    }finally{
+      aiCtrl=null; $('aiRunBtn').disabled=false; $('aiStopBtn').disabled=true;
+    }
+  };
+})();
+</script>
+</body>
+</html>

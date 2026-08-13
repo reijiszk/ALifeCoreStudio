@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABM Studio v1.0: User Manual</title>
+<style>
+:root {
+  --bg:           #ffffff;
+  --sidebar-bg:   #f5f4f0;
+  --text:         #1a1a1a;
+  --muted:        #555;
+  --light:        #999;
+  --border:       #ddd;
+  --border-light: #eee;
+  --accent:       #1a4b8c;
+  --accent2:      #2a7a40;
+  --warn:         #7a4800;
+  --tip-bg:       #f0f7ff;
+  --tip-border:   #1a4b8c;
+  --warn-bg:      #fff8f0;
+  --warn-border:  #c97a00;
+  --step-bg:      #f5f4f0;
+  --code-bg:      #f0f2f6;
+  --tag-ca:       #1a4b8c;
+  --tag-abm:      #2a7a40;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.8;
+  font-size: 0.97rem;
+}
+
+/* ── Layout ── */
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 230px;
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 1.6rem 0 3rem;
+}
+.sidebar-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--muted);
+  padding: 0 1.2rem 0.7rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.6rem;
+  text-transform: uppercase;
+}
+.sidebar nav a {
+  display: block;
+  padding: 0.28rem 1.2rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: color .15s, border-color .15s, background .15s;
+  line-height: 1.5;
+}
+.sidebar nav a:hover { color: var(--accent); background: rgba(26,75,140,.05); }
+.sidebar nav a.active { color: var(--accent); border-left-color: var(--accent); font-weight: 600; background: rgba(26,75,140,.07); }
+.sidebar nav a.sub { padding-left: 2.0rem; font-size: 0.78rem; }
+.sidebar-section { margin-top: 1.2rem; }
+.sidebar-section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--light);
+  padding: 0.4rem 1.2rem 0.1rem;
+}
+
+.main {
+  flex: 1;
+  max-width: 860px;
+  padding: 3rem 3rem 8rem;
+  min-width: 0;
+}
+
+/* ── Header ── */
+.page-header {
+  border-bottom: 2px solid var(--text);
+  padding-bottom: 1.4rem;
+  margin-bottom: 3rem;
+}
+.page-header .breadcrumb {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+.page-header .breadcrumb a { color: var(--accent); text-decoration: none; }
+.page-header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -.01em; }
+.page-header .subtitle { font-size: 0.9rem; color: var(--muted); margin-top: 0.4rem; }
+.page-header .badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  background: var(--accent);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* ── Section headings ── */
+.section-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+  border-bottom: 1.5px solid var(--border);
+  padding-bottom: 0.5rem;
+  margin: 3.5rem 0 1.2rem;
+  scroll-margin-top: 24px;
+}
+.section-title .sec-num {
+  font-size: 0.8em;
+  color: var(--light);
+  font-weight: 400;
+  margin-right: 0.4em;
+}
+.subsection-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 2rem 0 0.8rem;
+  scroll-margin-top: 24px;
+}
+.subsection-title .sub-marker {
+  display: inline-block;
+  width: 4px; height: 1em;
+  background: var(--accent);
+  margin-right: 0.5em;
+  vertical-align: -0.1em;
+  border-radius: 2px;
+}
+
+/* ── Prose ── */
+p { margin-bottom: 1rem; }
+p + p { margin-top: 0; }
+
+/* ── Info boxes ── */
+.tip, .warn, .note {
+  border-left: 3px solid;
+  padding: 0.9rem 1.1rem;
+  margin: 1.4rem 0;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.92rem;
+}
+.tip  { background: var(--tip-bg);  border-color: var(--tip-border); }
+.warn { background: var(--warn-bg); border-color: var(--warn-border); }
+.note { background: #f9f7f4;        border-color: #888; }
+.tip .box-label, .warn .box-label, .note .box-label {
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.tip  .box-label { color: var(--accent); }
+.warn .box-label { color: var(--warn); }
+.note .box-label { color: #555; }
+
+/* ── Step boxes ── */
+.steps { margin: 1.4rem 0; }
+.step {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+  align-items: flex-start;
+}
+.step-num {
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 0.15rem;
+}
+.step-body { flex: 1; }
+.step-body strong { display: block; margin-bottom: 0.2rem; }
+
+/* ── Inline code ── */
+code {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 0.84em;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: #1e4070;
+}
+
+/* ── Code block ── */
+pre {
+  background: #0d1117;
+  color: #e6edf3;
+  border-radius: 6px;
+  padding: 1rem 1.2rem;
+  overflow-x: auto;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  margin: 1rem 0 1.4rem;
+}
+pre .cm { color: #8b949e; }     /* comment */
+pre .kw { color: #ff7b72; }     /* keyword */
+pre .str { color: #a5d6ff; }    /* string */
+pre .fn { color: #d2a8ff; }     /* function name */
+pre .num { color: #79c0ff; }    /* number */
+pre .prop { color: #ffa657; }   /* property */
+
+/* ── Screenshot frame ── */
+.screen-frame {
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 1.2rem 0 1.6rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.07);
+}
+.screen-title {
+  background: var(--sidebar-bg);
+  border-bottom: 1px solid var(--border);
+  padding: 0.4rem 1rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+}
+.screen-body {
+  background: #f4f6f9;
+  padding: 1rem 1.2rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+/* ── UI label ── */
+.ui { /* inline UI element reference */
+  display: inline-block;
+  background: #e8ecf4;
+  border: 1px solid #c0c8d8;
+  border-radius: 3px;
+  padding: 0px 6px;
+  font-size: 0.82em;
+  font-weight: 600;
+  color: #1e3a6e;
+  white-space: nowrap;
+}
+
+/* ── Keyboard keys ── */
+kbd {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 0.83em;
+  background: #fff;
+  border: 1.5px solid #b0b8cc;
+  border-bottom: 3px solid #8090aa;
+  border-radius: 4px;
+  padding: 1px 6px;
+  color: #1e3a6e;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0,0,0,.07);
+  vertical-align: middle;
+}
+.kb-badge {
+  display: inline-block;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  border-radius: 2px;
+  padding: 1px 4px;
+  vertical-align: middle;
+  margin-right: 2px;
+  font-family: sans-serif;
+}
+.kb-badge.win { background: #dde8f5; color: #1e4070; }
+.kb-badge.mac { background: #e8f5e8; color: #1a6a2a; }
+.kb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  vertical-align: middle;
+}
+.kb-divider { color: #bbb; margin: 0 0.25rem; font-size: 0.9em; }
+
+/* ── Shortcut reference box ── */
+.shortcut-box {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin: 1.4rem 0;
+  overflow: hidden;
+}
+.shortcut-box-title {
+  background: var(--sidebar-bg);
+  padding: 0.45rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+}
+.shortcut-box table {
+  margin: 0;
+  border: none;
+  font-size: 0.86rem;
+}
+.shortcut-box table th,
+.shortcut-box table td {
+  border: none;
+  border-bottom: 1px solid var(--border-light);
+  padding: 0.42rem 1rem;
+}
+.shortcut-box table tr:last-child td { border-bottom: none; }
+.shortcut-box table th {
+  background: transparent;
+  font-size: 0.74rem;
+  color: var(--muted);
+  padding-top: 0.6rem;
+  vertical-align: middle;
+}
+.shortcut-box table td:first-child {
+  color: var(--text);
+  font-family: inherit;
+  white-space: normal;
+  font-size: 0.86rem;
+  width: 38%;
+}
+.shortcut-box table td:nth-child(2),
+.shortcut-box table td:nth-child(3) { white-space: nowrap; }
+
+/* ── Model tag ── */
+.tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 3px;
+  color: #fff;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.tag-ca  { background: var(--tag-ca); }
+.tag-abm { background: var(--tag-abm); }
+
+/* ── Model card grid ── */
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  margin: 1.2rem 0 1.8rem;
+}
+.model-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.9rem 1.1rem;
+  background: #fafafa;
+}
+.model-card .mc-name { font-weight: 700; font-size: 0.92rem; margin-bottom: 0.25rem; }
+.model-card .mc-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+.model-card .mc-tips { margin-top: 0.5rem; font-size: 0.8rem; }
+.model-card .mc-tips li { margin-left: 1.2rem; color: var(--muted); margin-bottom: 0.1rem; }
+
+/* ── Error table ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin: 1.2rem 0 1.8rem;
+}
+th, td { border: 1px solid var(--border); padding: 0.55rem 0.9rem; text-align: left; vertical-align: top; }
+th { background: var(--sidebar-bg); font-weight: 700; }
+td:first-child { white-space: nowrap; color: #b91c1c; font-family: 'IBM Plex Mono',monospace; font-size: 0.82em; }
+tr:hover td { background: #fafafa; }
+
+/* ── Divider ── */
+.divider { border: none; border-top: 1px solid var(--border-light); margin: 2.5rem 0; }
+
+/* ── Scrollspy JS ── */
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-title">ABM Studio Manual</div>
+    <nav id="sideNav">
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Getting Started</div>
+        <a href="#overview">1. What is ABM Studio?</a>
+        <a href="#screen"  >2. Screen Layout</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Basic Operation</div>
+        <a href="#builtin" >3. Using Built-in Models</a>
+        <a href="#controls">4. Running &amp; Observing</a>
+        <a href="#params"  >5. Changing Parameters</a>
+        <a href="#export"  >6. Saving &amp; Comparing Results</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Code Generation</div>
+        <a href="#chatgpt" >7. Generating Code with AI</a>
+        <a href="#aigen" class="sub">🤖 AI Generate (Direct API)</a>
+        <a href="#python2py" class="sub">🐍 Python Prompt</a>
+        <a href="#paste"   >8. Pasting and Running Code</a>
+        <a href="#modify"  >9. Modifying Code</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Model-by-Model Guide</div>
+        <a href="#model-eca"     class="sub">ECA (1D Cellular Automaton)</a>
+        <a href="#model-life"    class="sub">Game of Life</a>
+        <a href="#model-seg"     class="sub">Schelling Segregation</a>
+        <a href="#model-boids"   class="sub">Flocking</a>
+        <a href="#model-aco"     class="sub">Ant Pheromone Model (Ant-pheromone)</a>
+        <a href="#model-pd"      class="sub">Prisoner's Dilemma</a>
+        <a href="#model-sps"     class="sub">SPS (Social Particle Swarm)</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Troubleshooting</div>
+        <a href="#errors">10. Errors and Solutions</a>
+        <a href="#faq"   >11. Frequently Asked Questions</a>
+        <a href="#refs">📚 References and Sources</a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="breadcrumb">
+        <a href="ABM_Studio_FirstSteps.html">ABM Studio First Steps</a> &rsaquo; ABM Studio Manual
+      </div>
+      <h1><span class="badge">v1.0</span>ABM Studio User Manual</h1>
+      <p class="subtitle">A Browser-Based Agent-Based Modeling Environment</p>
+    </div>
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="overview"><span class="sec-num">1</span>What is ABM Studio?</h2>
+
+    <p>ABM Studio is <strong>an agent-based model (ABM) modeling environment that runs entirely in your browser.</strong> No installation, no account registration: just double-click the file to launch it.</p>
+
+    <p>The model code is written in JavaScript, and the intended workflow is to <strong>hand a specification to a generative AI to generate the code, then paste it in as-is and run it</strong>. Even without programming experience, you can customize and observe various complex-systems models on the spot.</p>
+
+    <div class="note">
+      <span class="box-label">The idea behind this tool</span>
+      Recent advances in generative AI are reshaping the "understanding by building" (constructive) style of modeling in complex systems and artificial life. By giving a prompt with just the skeleton of an idea, not a complete specification, you can auto-generate a wide variety of models, have the AI explain them when you want to understand them, and refine ideas through dialogue. Letting the AI generate everything, however, tends to produce wildly inconsistent results.<br>
+      ALifeCoreStudio (the three studios, ABM / EVO / IEC) keeps a <strong>common framework for model construction, visualization, and analysis fixed</strong> and lets generative AI produce only the <strong>essential parts</strong> of a model. It is intended for beginners with no programming experience giving free form to their ideas, students growing models together with AI, and researchers building prototypes quickly. By making it easy to <strong>generate possible models freely</strong> within a shared framework, it aims to accelerate the constructive approach to scientific understanding and to spread the joy of imagining and running "what worlds could be."
+    </div>
+
+    <div class="tip">
+      <span class="box-label">Key point</span>
+      ABM Studio comes with the major models covered in coursework built in (ECA, Game of Life, Schelling segregation, Boids, ant pheromones, Prisoner's Dilemma). Start by running these.
+    </div>
+
+    <p><strong>What you can do:</strong></p>
+    <p>You can render a model in real time on a canvas, change parameters with sliders and see the effect immediately, record graphs (time series), <strong>save the results of multiple runs with different parameters and overlay them on a graph to compare conditions</strong>, save field images or record video, export data as CSV files, save and reload the model you built as a <code>.js</code> file, <strong>convert a model into a Python script</strong>, and rewrite the code to build a new model.</p>
+
+    <p><strong>What you cannot do:</strong> internet access, loading large databases, 3D rendering, and sharing data between multiple windows are not supported.</p>
+
+    <hr class="divider">
+
+    <hr class="divider">
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="screen"><span class="sec-num">2</span>Screen Layout</h2>
+
+    <p>When you open ABM Studio, the following four areas are displayed.</p>
+
+    <div class="screen-frame">
+      <div class="screen-title">ABM Studio v1.0: Screen Layout (Schematic)</div>
+      <div class="screen-body">
+        <table style="font-size:.8rem;border:none;margin:0">
+          <tr>
+            <td colspan="2" style="border:1px solid #c0c8d8;background:#e8ecf4;text-align:center;padding:.4rem;font-weight:700;color:#1e3a6e">
+              Header: Title / Tick counter / <strong>FPS display</strong> / Run-state badge / <strong>❔ Help</strong> / ⟳ Initialize
+            </td>
+          </tr>
+          <tr>
+            <td style="width:50%;border:1px solid #c0c8d8;background:#f4f6f9;padding:.8rem;vertical-align:top">
+              <strong>Left area (canvas)</strong><br>
+              • Model view (470×470 px)<br>
+              • Copy / Save / Record buttons + <strong>recording-format selector</strong><br>
+              • ▶ Run / ⏭ 1 tick / ⟳ Initialize<br>
+              • Speed slider<br>
+              • Max-tick slider + behavior-at-max selector (⏹ Stop only / 🔁 Loop)<br>
+              • <strong>Draw-skip slider</strong>
+            </td>
+            <td style="border:1px solid #c0c8d8;background:#f4f6f9;padding:.8rem;vertical-align:top">
+              <strong>Right area (parameters/state)</strong><br>
+              • Initial-state presets (if available)<br>
+              • Command buttons (model-specific)<br>
+              • Stop-condition toggle<br>
+              • <strong>Parameter-change behavior switch (apply immediately/auto-reinitialize)</strong><br>
+              • Parameter sliders (<strong>with ⓘ explanations</strong>)<br>
+              • State display box<br>
+              • <strong>Save/compare experiments</strong><br>
+              • Time-series graph (<strong>💾 CSV / 🖼 Image / ⚙ Axes (vertical/horizontal range settings)</strong>)
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2" style="border:1px solid #c0c8d8;background:#e8ecf4;text-align:center;padding:.4rem;font-weight:700;color:#1e3a6e">
+              Code bar (bottom): ▸ Code (<strong>with line numbers</strong>) / ▶ Apply / Copy Spec / ✨ New / ✏️ Modify / <strong>🐍 Python</strong> / <strong>💾 Save .js</strong> / <strong>📂 Open</strong> / <strong>💾 HTML Export</strong> / Select Model ▾
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="note">
+      <span class="box-label">On smartphones and tablets</span>
+      When the screen is narrow, the left area (canvas) and right area (parameters) automatically switch to a <strong>vertically stacked layout</strong>. The canvas and buttons also shrink to fit the screen width, so the operation itself doesn't change.
+    </div>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Role of Each Part</h3>
+
+    <p>The <strong>header</strong> shows the current tick count, the <strong>FPS (frame rate)</strong> while running, and the run state (RUNNING / LOOP / STOPPED). <span class="ui">❔ Help</span> lets you check the key points of operation at any time, and <span class="ui">⟳ Initialize</span> resets the model.</p>
+
+    <p>The <strong>left area (canvas)</strong> is the heart of the model. The movement of agents, changes in grid colors, pattern growth, and so on are rendered here. Below it are the playback controls and sliders for speed, max tick, and draw skip.</p>
+
+    <p>The <strong>right area</strong> holds the controls that govern the model. Changing a parameter with a slider is reflected immediately in the running model in "Apply Immediately" mode (see §5 for details). You can also save experiments and overlay them on the graph to compare conditions (§6).</p>
+
+    <p>The <strong>code bar (bottom of the screen)</strong> is the area for entering and managing code. It's normally collapsed. Clicking <span class="ui">▸ Code</span> expands it, revealing a code field <strong>with line numbers</strong>. If there's an error, the offending line and a hint are shown below it.</p>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="builtin"><span class="sec-num">3</span>Using Built-in Models</h2>
+
+    <p>ABM Studio comes with 8 models built in. Just choose one from the <span class="ui">── Select a Model ──</span> dropdown in the code bar at the bottom of the screen, and it starts running immediately.</p>
+
+    <div class="model-grid">
+      <div class="model-card">
+        <div class="mc-name"><span class="tag tag-ca">CA</span>ECA (Wolfram's 1D Cellular Automaton)</div>
+        <div class="mc-desc">Observe class 1–4 patterns while changing the rule number from 0–255.</div>
+        <ul class="mc-tips">
+          <li>Set the speed slider to 1 t/f</li>
+          <li>Try rules 30, 90, 110, 184</li>
+        </ul>
+      </div>
+      <div class="model-card">
+        <div class="mc-name"><span class="tag tag-ca">CA</span>Game of Life</div>
+        <div class="mc-desc">The next generation is decided by "birth" at 3 neighbors and "survival" at 2–3 neighbors.</div>
+        <ul class="mc-tips">
+          <li>Try the glider gun preset</li>
+          <li>Changing the initial density drastically alters behavior</li>
+        </ul>
+      </div>
+      <div class="model-card">
+        <div class="mc-name"><span class="tag tag-abm">ABM</span>Schelling Segregation</div>
+        <div class="mc-desc">Residential segregation emerges through self-organization even with a low happiness threshold.</div>
+        <ul class="mc-tips">
+          <li>Compare threshold 0.30 → 0.70</li>
+          <li>Observe from the checkerboard preset</li>
+        </ul>
+      </div>
+      <div class="model-card">
+        <div class="mc-name"><span class="tag tag-abm">ABM</span>Flocking (Boids)</div>
+        <div class="mc-desc">Flock-like flight emerges from three rules: separation, alignment, and cohesion.</div>
+        <ul class="mc-tips">
+          <li>Check ordering with the alignment-index graph</li>
+          <li>Re-observe using the "Scatter All" button</li>
+        </ul>
+      </div>
+      <div class="model-card">
+        <div class="mc-name"><span class="tag tag-abm">ABM</span>Ant Pheromone Model</div>
+        <div class="mc-desc">Foraging behavior of ants in which pheromones lead to the discovery of the shortest path.</div>
+        <ul class="mc-tips">
+          <li>The blue trail is the pheromone path</li>
+          <li>Reset and re-observe with "Clear Pheromones"</li>
+        </ul>
+      </div>
+      <div class="model-card">
+        <div class="mc-name"><span class="tag tag-abm">ABM</span>Spatial Prisoner's Dilemma</div>
+        <div class="mc-desc">The value of the defection payoff b changes the pattern of cooperators and defectors.</div>
+        <ul class="mc-tips">
+          <li>b=1.65 is near the phase transition</li>
+          <li>Watch how the cooperation-rate graph changes</li>
+        </ul>
+      </div>
+      <div class="model-card">
+        <div class="mc-name"><span class="tag tag-abm">ABM</span>SIR Epidemic Model</div>
+        <div class="mc-desc">A spatial SIR model of susceptible (S) → infected (I) → recovered (R).</div>
+        <ul class="mc-tips">
+          <li>Adjust the infection and recovery probabilities</li>
+          <li>See how spread changes with "Add Obstacle"</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>Click "── Select a Model ──" in the code bar at the bottom of the screen</strong>
+          A dropdown opens, grouped into the CA family and the ABM family.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>Choose a model name</strong>
+          The code is set automatically and "▶ Apply" is run. The model is initialized and drawn on the canvas.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>Press the <span class="ui">▶ Run</span> button to observe</strong>
+          The model starts moving. Press again to pause.
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="controls"><span class="sec-num">4</span>Running &amp; Observing</h2>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Run Controls</h3>
+
+    <p>Press <span class="ui">▶ Run</span> to start the model. Press again to pause. Press <span class="ui">⏭ 1 tick</span> to advance a single step while staying paused, which is handy when you want to follow changes slowly. Press <span class="ui">⟳ Initialize</span> to start the model over from the beginning, using the preset selected in the right panel and the current parameter values.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Speed Slider</h3>
+
+    <p>The "Run Speed" slider sets how many steps (ticks) advance per frame. Higher values run faster but draw more coarsely. <strong>For models like ECA where you want to carefully watch changes over time, set it to 1 t/f</strong> so you can observe rows being built up one at a time.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Draw Skip and FPS</h3>
+
+    <p>The "Draw Skip" slider sets <strong>how often the screen is redrawn</strong> (once every 1/2, 1/4 frames, etc.). Computation (step) still advances every frame and only drawing is reduced, which is useful <strong>when you want to run a heavy model with many agents at high speed</strong>. Computed results (graphs, state) are still recorded correctly even when drawing is skipped.</p>
+
+    <p>The <span class="ui">— fps</span> display in the header shows the number of draws per second (frame rate) while running. If this drops significantly, try raising draw skip, lowering the speed, or reducing the number of agents.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Max Tick and Behavior on Reaching It</h3>
+
+    <p>The "Max Tick" slider sets the ending tick. Turning on the toggle to its right shows a selector for choosing the behavior when the max tick is reached. <strong>The default is "⏹ Stop only,"</strong> which pauses in place without reinitializing (it does not go back to the start). Switching to "🔁 Loop" makes it automatically reset and repeat once the max tick is reached, which is useful when you want to repeatedly observe long-term self-organization or a steady state. Turning the toggle off ignores the max tick and lets the model keep running indefinitely.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Stop Conditions</h3>
+
+    <p>Some models have stop conditions defined, such as "stop when everyone is happy" or "stop when the number of infected reaches 0." You can turn this ON/OFF with the stop-condition toggle in the right panel. When the stop condition is met, the "■ STOPPED" badge lights up and a toast shows how many ticks it took to stop.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Initial-State Presets</h3>
+
+    <p>Many models come with several initial-state presets (e.g., "Random," "Glider Gun," "Pulsar" for the Game of Life). Clicking a preset button in the right panel resets the model to that initial state. <strong>After choosing a preset, adjust parameters as needed and then click "⟳ Initialize."</strong></p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Command Buttons</h3>
+
+    <p>Some models have "command buttons" in the right panel that you can press even while running (e.g., "Clear Pheromones," "Add One Glider," "Add Defector at Center"). You can perturb the model without stopping it, and observe how it responds.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>List of Keyboard Shortcuts</h3>
+
+    <div class="shortcut-box">
+      <div class="shortcut-box-title">⌨ Keyboard Shortcuts</div>
+      <table>
+        <tr>
+          <th>Action</th>
+          <th><span class="kb-badge win">Win</span> Windows</th>
+          <th><span class="kb-badge mac">Mac</span> Mac</th>
+        </tr>
+        <tr>
+          <td>Select all (inside the code area)</td>
+          <td><kbd>Ctrl</kbd> + <kbd>A</kbd></td>
+          <td><kbd>⌘</kbd> + <kbd>A</kbd></td>
+        </tr>
+        <tr>
+          <td>Copy</td>
+          <td><kbd>Ctrl</kbd> + <kbd>C</kbd></td>
+          <td><kbd>⌘</kbd> + <kbd>C</kbd></td>
+        </tr>
+        <tr>
+          <td>Paste</td>
+          <td><kbd>Ctrl</kbd> + <kbd>V</kbd></td>
+          <td><kbd>⌘</kbd> + <kbd>V</kbd></td>
+        </tr>
+        <tr>
+          <td>Undo (inside the code area)</td>
+          <td><kbd>Ctrl</kbd> + <kbd>Z</kbd></td>
+          <td><kbd>⌘</kbd> + <kbd>Z</kbd></td>
+        </tr>
+        <tr>
+          <td>Redo (inside the code area)</td>
+          <td><kbd>Ctrl</kbd> + <kbd>Y</kbd></td>
+          <td><kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></td>
+        </tr>
+        <tr>
+          <td>Delete (selected text)</td>
+          <td><kbd>Delete</kbd> or <kbd>Backspace</kbd></td>
+          <td><kbd>Delete</kbd> or <kbd>Backspace</kbd></td>
+        </tr>
+        <tr>
+          <td>Close help</td>
+          <td><kbd>Esc</kbd></td>
+          <td><kbd>Esc</kbd></td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="tip">
+      <span class="box-label">Basic steps for pasting code</span>
+      In the code area:
+      <span class="kb-item"><span class="kb-badge win">Win</span><kbd>Ctrl</kbd>+<kbd>A</kbd></span><span class="kb-divider">/</span><span class="kb-item"><span class="kb-badge mac">Mac</span><kbd>⌘</kbd>+<kbd>A</kbd></span> (select all) →
+      <kbd>Delete</kbd> (delete) →
+      <span class="kb-item"><span class="kb-badge win">Win</span><kbd>Ctrl</kbd>+<kbd>V</kbd></span><span class="kb-divider">/</span><span class="kb-item"><span class="kb-badge mac">Mac</span><kbd>⌘</kbd>+<kbd>V</kbd></span> (paste)
+      replaces the code with the new version.
+    </div>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="params"><span class="sec-num">5</span>Changing Parameters</h2>
+
+    <p>Sliders are arranged in the "Parameters" section of the right panel. Moving a slider changes the value immediately. You can choose the behavior on change between "<strong>Apply Immediately</strong>" and "<strong>Auto-Reinitialize</strong>" (the switch just above the parameters).</p>
+
+    <table>
+      <tr><th style="width:24%">Mode</th><th>Behavior</th></tr>
+      <tr><td><strong>Apply Immediately</strong> (default)</td><td>Moving a slider is reflected in the running model right away. Existing history (graphs) is not cleared.</td></tr>
+      <tr><td><strong>Auto-Reinitialize</strong></td><td>Every time you move a slider, the initial state is automatically rebuilt (history is reset). Useful when you want to see the effect of changing initial conditions repeatedly.</td></tr>
+    </table>
+
+    <div class="tip">
+      <span class="box-label">About the "Initialization needed" hint</span>
+      Values that are used <strong>only at initial placement</strong>, such as density or initial population, are not reflected in the result even if changed while running. If you change such a value in Apply Immediately mode, a "⟳ Initialization needed" hint appears below the parameter field. Press <span class="ui">Initialize Now</span> or <span class="ui">⟳ Initialize</span> to apply it. <strong>History is never cleared automatically.</strong>
+    </div>
+
+    <p>When a <span class="ui">ⓘ</span> icon appears next to a parameter name, hovering over it shows <strong>an explanation of its meaning and effect</strong> (models whose code has <code>help</code> written into <code>PARAM_DEFS</code>). Some representative parameter examples are shown below.</p>
+
+    <table>
+      <tr><th>Parameter name</th><th>Model</th><th>Meaning and effect</th></tr>
+      <tr><td>Rule number</td><td>ECA</td><td>An integer from 0–255. Determines which pattern appears.</td></tr>
+      <tr><td>Happiness threshold</td><td>Schelling</td><td>The required proportion of same-group neighbors. Segregation occurs even at low values.</td></tr>
+      <tr><td>Separation/alignment/cohesion weights</td><td>Boids</td><td>The balance of strength across the three rules changes the shape of the flock.</td></tr>
+      <tr><td>Evaporation rate</td><td>Ant pheromones</td><td>How fast pheromones fade. Higher values make it harder to maintain a path.</td></tr>
+      <tr><td>Defection payoff b</td><td>PD</td><td>1.0–2.5. Coexistence of cooperation and defection is seen around 1.65.</td></tr>
+    </table>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="export"><span class="sec-num">6</span>Saving &amp; Comparing Results</h2>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Saving and Comparing Experiments</h3>
+
+    <p>The "Save/Compare Experiments" section in the right panel lets you <strong>compare the results of multiple runs with different parameters side by side</strong>. After running for a while, press <span class="ui">📸 Save Snapshot</span> to save the graph and full parameter set at that moment; from then on it's overlaid on the graph as a <strong>colored dashed line</strong>. Change conditions and run again, and the difference from the previous run is visible at a glance.</p>
+
+    <p>For saved experiments, toggle visibility with the <span class="ui">👁</span> icon at the start of the row, and delete with <span class="ui">✕</span>. Each row shows the parameters at that time, so you can tell which result belongs to which condition. <span class="ui">🗑 Clear</span> removes everything.</p>
+
+    <div class="tip">
+      <span class="box-label">Using this in a presentation</span>
+      Run scenario A → <span class="ui">📸 Save Snapshot</span> → change parameters and run scenario B, and the graphs for A and B are shown overlaid. You can show live "what happens if you only change the parameters of the same model."
+    </div>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Copying and Saving Field Images</h3>
+
+    <p>The <span class="ui">📋 Copy</span> button below the left area copies the canvas image to the clipboard, so it can be pasted directly into slides or Word. Press <span class="ui">⬇ Save</span> to download it as a PNG file. The filename includes the current tick count.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Saving Graphs and CSV Export</h3>
+
+    <p>Each graph has the following buttons in its top-right corner.</p>
+    <table>
+      <tr><th style="width:22%">Button</th><th>Behavior</th></tr>
+      <tr><td><span class="ui">⬇ CSV</span></td><td>Copies the time-series data to the <strong>clipboard</strong> (can be pasted into Excel or Google Sheets).</td></tr>
+      <tr><td><span class="ui">💾</span></td><td>Saves the time-series data as a <strong>CSV file</strong>. Data from saved experiments is exported along with it. Includes a BOM so it doesn't garble.</td></tr>
+      <tr><td><span class="ui">🖼 Image</span></td><td>Copies the graph image to the clipboard.</td></tr>
+    </table>
+    <p>Pressing <span class="ui">⬇ Save CSV</span> in the "Save/Compare Experiments" section exports <strong>all graphs and saved experiments together into a single CSV file</strong>, which is useful when you want to analyze multiple conditions together in spreadsheet software.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>📦 Download all data (ZIP, v1.0)</h3>
+    <p>Pressing <span class="ui">📦 Download ZIP</span> in the same section exports <strong>all experiment data since initialization into a single ZIP file</strong>, a format for sitting down to analyze it later, or reproducing the same experiment. The ZIP contains:</p>
+    <table>
+      <tr><th style="width:32%">File</th><th>Contents</th></tr>
+      <tr><td><code>metadata.json</code></td><td>Model name, export timestamp, tick count, plus the <strong>experiment settings</strong>: parameters, initial-state preset, max ticks, on-max behavior (stop / loop), draw-throttle, speed, stop condition, and the <strong>random seed</strong>.</td></tr>
+      <tr><td><code>model.js</code></td><td>The <strong>exact model code</strong> that produced this experiment. Paste it back into the code panel and press <span class="ui">▶ Apply</span> to reproduce the same model.</td></tr>
+      <tr><td><code>01_&lt;chart&gt;.csv</code>, …</td><td>Per-chart time-series data (current run and saved experiments distinguished by a <code>run</code> column; with a BOM).</td></tr>
+      <tr><td><code>data.json</code></td><td>Structured JSON bundling the settings, current run, and saved experiments together. For loading from a program.</td></tr>
+      <tr><td><code>frames.jsonl</code><br>(only when "Record states" is on)</td><td>The <strong>state at each step</strong> (one JSON frame per line, <code>{"tick":…, "state":…}</code>). The data the bundled viewer replays step by step.</td></tr>
+    </table>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Live and time-shift playback</h3>
+    <p><span class="ui">Record states</span> in "Save and compare experiments" is <strong>on by default on a computer</strong>, so a <strong>timeline</strong> sits under the run buttons from the start and anything you notice while the run is going can be revisited. On <strong>phones and tablets it starts off</strong>, because recording is the most memory-hungry part of a run and those devices have the least to spare; tick the box there whenever you do want the timeline. The run seed is drawn afresh on every initialization and cannot be typed back in, so a run that was not recorded cannot be recovered. Recording stops on its own at the limit set beside the box. <span class="ui">LIVE</span> is checked by default and the display follows the newest step. Drag the bar, or uncheck <span class="ui">LIVE</span>, and you can go back to any recorded step <strong>while the run continues in the background</strong>, the same idea as the seek bar on a live video.</p>
+    <ul>
+      <li><span class="ui">▶</span> plays the recorded steps back at 12 frames per second, and stops when it catches up with the run.</li>
+      <li>The <strong>position readout</strong> shows where you are within what has been recorded, as in "step 45 / 120". The number on the right keeps growing as the run continues.</li>
+      <li>An <strong>amber marker</strong> on each chart shows where the frame you are viewing sits in the time series.</li>
+      <li>Re-checking <span class="ui">LIVE</span> returns the display to the newest step.</li>
+    </ul>
+    <p>The granularity you can seek to is the <strong>recording interval</strong> (with "every 5 steps", you land on multiples of five). How far back you can go is set by the <span class="ui">limit</span> next to the interval: 500 MB by default, and <strong>no limit</strong> is available (recording then continues until the browser runs out of memory). The readout reports how much has been recorded, so the limit can be raised before it is reached.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Reproducing each step, and viewer replay</h3>
+    <p>So you can <strong>reproduce the state at each step</strong> later, the ZIP carries two mechanisms:</p>
+    <ul>
+      <li><strong>Method A (deterministic seed):</strong> during a run the engine <strong>seeds the randomness</strong> and records the seed in <code>settings.seed</code>. The exact run can be reproduced from <code>model.js</code> + settings + seed (this works for AI-modified or newly-created models too).</li>
+      <li><strong>Method B (recorded state):</strong> turn on <span class="ui">Record states (for replay)</span> in "Save/Compare Experiments" before running, and each step's state is saved to <code>frames.jsonl</code> (you can also choose the interval). Leave it off when you are only observing; the run is faster that way.</li>
+    </ul>
+    <p>Drop the exported ZIP onto the bundled <strong><code>ALifeCoreStudio_Viewer.html</code></strong> to <strong>replay each recorded step along a timeline</strong> (play/pause, scrub, speed), rendered by the model's own drawing code. It works for built-in models as well as modified or newly-created ones.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Manual Range Settings for Graph Axes</h3>
+
+    <p>Pressing <span class="ui">⚙ Axes</span> in the top-right of each graph opens range-setting fields for the vertical (Y) and horizontal (X, tick) axes.</p>
+
+    <table>
+      <tr><th style="width:24%">Mode</th><th>Behavior</th></tr>
+      <tr><td><strong>Auto-scale</strong> (default)</td><td>As before, the axis min/max are determined automatically based on the range of recorded data.</td></tr>
+      <tr><td><strong>Manual</strong></td><td>Fix the range by entering numeric min/max values. Right after switching from "Auto-scale," the current auto-computed range is filled in as the initial value.</td></tr>
+    </table>
+
+    <div class="tip">
+      <span class="box-label">When this is useful</span>
+      Handy when you want to zoom into a specific range to see detail, align the vertical scale across multiple graphs for comparison, or lock the axis appearance for a presentation. The vertical and horizontal axes switch independently, so you can set only one of them to manual. Settings are kept even if you re-run the model, but loading a different model (<span class="ui">▶ Apply</span>) returns them to the initial state (auto-scale).
+    </div>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Saving and Loading Model Files</h3>
+
+    <p>Pressing <span class="ui">💾 Save .js</span> in the code bar saves the model currently in the code field as a <code>.js</code> file. <span class="ui">📂 Open</span> loads a saved <code>.js</code> / <code>.txt</code> file and applies it directly. This lets you reuse a model you've built later, or submit and share it.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>💾 HTML Export</h3>
+
+    <p>Pressing <span class="ui">💾 HTML Export</span> in the code bar exports <strong>a standalone HTML file that runs only the currently running model as-is</strong>. It doesn't include the code-editing area or generative-AI-related UI such as ✨/✏️/🤖: just a simple screen with the model's display, control panel, and graphs. Double-clicking it runs the model (with no internet connection needed), making it handy for distribution or as a coursework/presentation submission.</p>
+
+    <div class="tip">
+      <span class="box-label">How it works and things to note</span>
+      What gets exported is a single HTML file with "the code currently in the code field" embedded as-is. Internally it uses the same engine as ABM Studio itself, so parameter adjustment, graphs, recording, and other features work the same way. Switching to a different model in the code bar afterward has no effect on the file you've already exported.
+    </div>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Video Recording (Choice of Format)</h3>
+
+    <p>The menu next to the record button lets you choose the output format from <strong>MP4 / WebM / Auto</strong>. Press <span class="ui">⏺ Record</span> to start recording, and the "● REC" badge blinks. Press <span class="ui">⏹ Stop</span> again to end recording, and the file downloads.</p>
+
+    <div class="note">
+      <span class="box-label">Choosing a format</span>
+      In most environments, <strong>MP4</strong> is recommended since it plays easily in PowerPoint and various players. The MP4 is written as <strong>H.264</strong>, which QuickTime Player, PowerPoint, and Keynote all open directly. If the browser cannot record H.264, the file is saved as WebM instead (with a toast notification); WebM plays in browsers and VLC, but not in QuickTime Player.
+    </div>
+
+    <div class="tip">
+      <span class="box-label">Tip</span>
+      Field images (PNG) or graph images are handy for presentation materials, and CSV data (comparing multiple conditions) is handy for reports. Video is useful for live demos during a presentation.
+    </div>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="chatgpt"><span class="sec-num">7</span>Generating Code with AI</h2>
+
+    <p>Model code for ABM Studio can be generated by handing a specification and instructions to a generative AI (even the free tier works). Pressing the <span class="ui">✨ New Model Prompt</span> button in the code bar copies a prompt, complete with the necessary specification, to the clipboard.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>Press the "✨ New Model Prompt" button</strong>
+          Found in the code bar (bottom of the screen). A "New model prompt copied" toast is shown.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>Open a generative AI and paste the prompt</strong>
+          Paste it into a new chat with <span class="kb-item"><span class="kb-badge win">Win</span><kbd>Ctrl</kbd>+<kbd>V</kbd></span><span class="kb-divider">/</span><span class="kb-item"><span class="kb-badge mac">Mac</span><kbd>⌘</kbd>+<kbd>V</kbd></span>.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>Rewrite the "[Model to Implement]" field and send it</strong>
+          Change the part in the prompt that says "(Rewrite this: e.g., 'Reynolds' Boids flocking model')" to the name of the model you want to build, then send it.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong>Copy the generated code</strong>
+          The generative AI returns a code block (```javascript ... ```). Use the "Copy" button in the top-right of the code block to copy the code.
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <span class="box-label">Example prompt</span>
+      Writing a specific model name and parameter requests in the "Model to Implement" field improves accuracy. For example, writing something like "Wolf-Sheep predator-prey model (Moore neighborhood, wolves die if they don't eat)" tends to produce more faithful code.
+    </div>
+
+    <div class="warn">
+      <span class="box-label">Note on free-tier generative AI</span>
+      Free-tier GPT-3.5/4o may skip over part of a long specification. If you get an error, try re-instructing it with: "Please fix this according to the specification, observing the following prohibitions: no <code>document.*</code>, no <code>import/export</code>, no <code>class</code> keyword."
+    </div>
+
+    <div class="note">
+      <span class="box-label">About the built-in prompts</span>
+      In addition to the rules on disallowed syntax, the <span class="ui">✨ New Model Prompt</span> / <span class="ui">✏️ Modify Prompt</span> already include instructions to "<strong>add <code>help</code> (an explanation) to parameters</strong>" and "<strong>add a brief explanatory comment about the model at the end</strong>." This makes it easier to see what model the output code is and what was changed. Being as specific as possible about what you want to change in the initial request improves accuracy.
+    </div>
+
+    <h3 class="subsection-title" id="aigen"><span class="sub-marker"></span>🤖 AI Generate: Connecting Directly to a Generative AI API (LM Studio / Cloud)</h3>
+    <p>Pressing <span class="ui">🤖 AI Generate</span> in the code bar lets you connect directly to an OpenAI-compatible API to perform modification or creation. The returned code is automatically inserted into the code field, so no copy-and-paste is needed (it isn't run until you press <span class="ui">▶ Apply</span>).</p>
+    <ul>
+      <li><strong>Local (LM Studio, etc.)</strong>: load a model, start the local server, and turn <strong>"Enable CORS" ON</strong> in the server settings. The endpoint is <code>http://localhost:1234</code> (no API key needed).</li>
+      <li><strong>Cloud (OpenAI-compatible)</strong>: enter the endpoint and API key. Examples: OpenRouter <code>https://openrouter.ai/api/v1</code>, DeepInfra <code>https://api.deepinfra.com/v1/openai</code>, OpenAI <code>https://api.openai.com/v1</code>. Most are pay-as-you-go.</li>
+      <li>You can choose the <strong>model name</strong> via <span class="ui">🔄 Fetch List</span> (manual entry also works). Settings are remembered in the browser.</li>
+    </ul>
+    <div class="note">
+      <span class="box-label">When the connection doesn't work</span>
+      "Failed to fetch" is usually caused by the server not running, CORS not being enabled, or a wrong URL. First try opening <code>http://localhost:1234/v1/models</code> directly in your browser to check whether JSON is returned. For cloud services, the service itself must support CORS (OpenRouter and DeepInfra do).
+    </div>
+
+    <h3 class="subsection-title" id="python2py"><span class="sub-marker"></span>🐍 Python Prompt (Also Generates requirements.txt, v1.0)</h3>
+    <p>Pressing <span class="ui">🐍 Python Prompt</span> in the code bar copies a prompt to the clipboard that converts the model currently in the code field into <strong>a standalone, runnable Python script (using matplotlib) and a <code>requirements.txt</code></strong>. There's nothing to edit: just paste it into a generative AI and send it as-is.</p>
+    <ul>
+      <li>The generative AI's reply is instructed to come back as <strong>two code blocks</strong>: <code>```python ... ```</code> and <code>```text ... ```</code> (the contents of requirements.txt).</li>
+      <li>The original code's <code>setup</code> / <code>step</code> / <code>draw</code> are mapped to the Python side's initialization, update, and matplotlib drawing functions respectively, with the correspondence indicated in comments.</li>
+      <li>When <code>PARAM_DEFS</code> (parameters) and <code>PLOT_DEFS</code> (graphs) are present, they are carried over to the Python side as variable definitions and time-series recording.</li>
+      <li>To run it locally, save the two code blocks as <code>model.py</code> and <code>requirements.txt</code> respectively, then run <code>pip install -r requirements.txt</code> followed by <code>python model.py</code>.</li>
+    </ul>
+    <div class="note">
+      <span class="box-label">Use case</span>
+      Use this when you want to go beyond browser-based observation and do numerical analysis or make figures for a report in Python (numpy, matplotlib, pandas, etc.). What the generative AI outputs varies depending on the model's complexity, so it's a good idea to review the code before running it.
+    </div>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="paste"><span class="sec-num">8</span>Pasting and Running Code</h2>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>Click "▸ Code" in the code bar to expand it</strong>
+          The code bar at the bottom of the screen opens, revealing the code area (text box).
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>Select all the contents of the code area and delete them</strong>
+          Click the code area and press <span class="kb-item"><span class="kb-badge win">Win</span><kbd>Ctrl</kbd>+<kbd>A</kbd></span><span class="kb-divider">/</span><span class="kb-item"><span class="kb-badge mac">Mac</span><kbd>⌘</kbd>+<kbd>A</kbd></span> (select all) → <kbd>Delete</kbd> to erase the existing code.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>Paste the code you copied from the generative AI</strong>
+          Paste with <span class="kb-item"><span class="kb-badge win">Win</span><kbd>Ctrl</kbd>+<kbd>V</kbd></span><span class="kb-divider">/</span><span class="kb-item"><span class="kb-badge mac">Mac</span><kbd>⌘</kbd>+<kbd>V</kbd></span>. <strong>Make sure not to include the ``` code-block markers</strong> (paste only the JavaScript code itself).
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong>Press the "▶ Apply" button</strong>
+          The code is evaluated and the model is initialized. The sliders and graphs in the right panel update, and the initial state is drawn on the canvas.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <strong>Press the "▶ Run" button to start the model</strong>
+          It starts moving if there are no problems. If an error occurs, check the error box (red text) in the code bar.
+        </div>
+      </div>
+    </div>
+
+    <div class="warn">
+      <span class="box-label">Common pasting mistakes</span>
+      Copying the generative AI's entire reply also brings in the explanatory text and the ``` markers. <strong>Be sure to copy only the JavaScript code portion</strong> (starting from <code>const PARAM_DEFS = ...</code>).
+    </div>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="modify"><span class="sec-num">9</span>Modifying Code</h2>
+
+    <p>If you want to change parameters or behavior based on a running model, use the <span class="ui">✏️ Modify Prompt</span> button. This copies the entire current code together with a modification-instruction template.</p>
+    <p>Pressing <span class="ui">📖 Explain Prompt</span> copies <strong>a prompt asking the AI to explain what kind of model the currently running code is</strong> (requesting an overview, an explanation of the algorithm, and pseudocode). Pasting it into a generative AI produces an explanation faithful to the implementation. Also, including <code>const TITLE = 'Model Name'</code> in generated or modified code is reflected in the browser tab name, the "Model Overview" heading, and the filename used by <span class="ui">💾 Save .js</span> (e.g., <code>SegregationModel.js</code>).</p>
+    <div class="note">
+      <span class="box-label">Techniques to reduce failures, even on the free tier</span>
+      The prompts <strong>keep the specification to a minimum</strong> and strongly instruct, at both the beginning and end, to "<strong>output only one code block, in full, without omission</strong>" (to reduce truncated output and mixed-in explanatory text on the free tier and with smaller models). In the <span class="ui">✏️ Modify Prompt</span>, the <strong>[What to Change] section is placed at the end</strong>, so list your changes there as bullet points.
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>Press "✏️ Modify Prompt" to copy it</strong>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>Paste into a generative AI and write your instructions as bullet points in the "[What to Change]" field</strong>
+          Example: "- Extend the infection range to a radius of 2 cells" "- Flash red when the number of infected exceeds a certain count"
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>Copy the returned code and "▶ Apply" it</strong>
+          Paste and run it following the same steps as in Section 8.
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <span class="box-label">Tip</span>
+      Modifications succeed more often when you <strong>change 1–2 things at a time</strong> rather than trying to change a lot at once. Once something works, move on to the next change.
+    </div>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="model-eca">ECA (Wolfram's 1D Cellular Automaton)</h2>
+    <span class="tag tag-ca">CA</span>
+
+    <p>A one-dimensional cellular automaton. Each cell applies a rule based on the state of its left and right neighbors to determine its state on the next row. Time evolution is displayed stacked vertically, so the canvas becomes a "spacetime diagram in which time proceeds downward."</p>
+
+    <p>Setting <strong>the speed slider to 1 t/f</strong> is strongly recommended. Watching each row being drawn one at a time makes it visually clear which rule produces which pattern.</p>
+
+    <p>Example rule numbers worth observing: rule 28, which produces a regular pattern (class 1); rule 90, a periodic pattern (class 2); rule 30, a complex (chaotic) pattern (class 3); and rule 110, said to have computational universality (class 4). The rule number is displayed in the top-left of the canvas.</p>
+
+    <div class="tip">
+      <span class="box-label">Classroom exercise idea</span>
+      An effective exercise is to have each student find one pattern corresponding to each of the four classes by changing the rule number, starting from the same initial state (a single ON cell in the center).
+    </div>
+
+    <h2 class="section-title" id="model-life">Game of Life (Conway's Life)</h2>
+    <span class="tag tag-ca">CA</span>
+
+    <p>A classic two-dimensional cellular automaton. The rule consists of only two conditions: "a living cell survives if it has 2 or 3 living neighbors, and a dead cell is born if it has exactly 3." Yet this produces a surprisingly rich variety of patterns (still lifes, oscillators, gliders).</p>
+
+    <p>The "Glider Gun" preset is Gosper's glider gun (1970), which keeps producing gliders periodically. The "Pulsar" preset is a symmetric pattern that oscillates with period 3. Trying the initial-density slider in the range 0.1–0.5 reveals phase-transition-like changes in behavior.</p>
+
+    <h2 class="section-title" id="model-seg">Schelling Segregation Model</h2>
+    <span class="tag tag-abm">ABM</span>
+
+    <p>Two types of agents (blue and red) live on a grid, following the rule that "an agent becomes unhappy and moves if fewer than a certain fraction of its neighbors share its own color." Remarkably, strong residential segregation emerges even at a low happiness threshold (e.g., 30%).</p>
+
+    <p>The stop condition "stop when everyone is happy" is set, so you can see how many ticks it took to stabilize. Comparing a happiness threshold of 0.30 versus 0.70 shows that stronger segregation occurs faster.</p>
+
+    <h2 class="section-title" id="model-boids">Flocking (Reynolds' Boids)</h2>
+    <span class="tag tag-abm">ABM</span>
+
+    <p>Reynolds' (1987) Boids model. Three purely local rules, separation (avoid crowding neighbors), alignment (steer toward the average heading of neighbors), and cohesion (steer toward the average position of neighbors), are enough to produce emergent alignment reminiscent of a flock of birds or a school of fish.</p>
+
+    <p>The alignment index φ (order parameter) shown on the graph is 0 for disorder and 1 for perfect alignment. Press "Scatter All" and observe the process by which φ rises. The balance among the three spatial scales, separation radius, alignment radius, and cohesion radius, determines the shape of the flock.</p>
+
+    <h2 class="section-title" id="model-aco">Ant Pheromone Model (Ant-pheromone)</h2>
+    <span class="tag tag-abm">ABM</span>
+
+    <p>A foraging-behavior model in which ants discover a path to a food source using pheromones (referred to in this tool as Ant-pheromone. It covers the same subject as NetLogo's "Ants," but the homing mechanism, the diffusion/evaporation formulas, and the parameter set are an independent implementation; none of NetLogo's code is used). When an ant finds food, it lays down pheromone while returning to the nest. Other ants head toward higher pheromone concentrations, gradually reinforcing an efficient path. This is the very natural phenomenon that inspired ACO (Ant Colony Optimization) algorithms.</p>
+
+    <p>On the canvas, the white area is the nest, the green area is the food source, and the blue trail marks paths with high pheromone concentration. Pressing "Clear Pheromones" resets the pheromone memory, sending the ants back into exploration mode. A higher evaporation rate makes paths harder to maintain.</p>
+
+    <h2 class="section-title" id="model-pd">Spatial Prisoner's Dilemma (Nowak &amp; May 1992)</h2>
+    <span class="tag tag-abm">ABM</span>
+
+    <p>Each agent on the grid chooses to be a cooperator (C, blue) or a defector (D, red) and plays a game against every neighbor in its Moore neighborhood. Mutual cooperation earns +1, a defector exploiting a cooperator earns +b (b > 1), and mutual defection earns 0. Each step, every agent copies the strategy of whichever neighbor scored highest.</p>
+
+    <p>Small changes in the defection payoff b produce dramatic differences: cooperators can go extinct, beautiful spatial patterns (fractal-like clusters) can appear, or cooperation and defection can coexist. The most effective way to observe this is to slowly raise b between 1.5 and 2.0 while watching the cooperation-rate graph.</p>
+
+    <h2 class="section-title" id="model-sps">SPS (Social Particle Swarm)</h2>
+    <span class="tag tag-abm">ABM</span>
+
+    <p>An original model developed by this project's author group, in which particles are treated as "individuals," and both a cooperate(C)/defect(D) strategy and "distance = relationship strength" evolve simultaneously (Nishimoto, Suzuki, &amp; Arita, 2023, <em>Psychologia</em>). Each particle has its own "propensity to cooperate" (threshold ct), and decides its next strategy by comparing its threshold against the fraction of cooperators among neighbors within interaction radius R (the higher the neighborhood cooperation rate, the more likely the particle itself is to cooperate, a generalized tit-for-tat).</p>
+
+    <p>Movement is determined by moving at a constant speed v in the direction of the resultant force, where the payoff from each neighboring interaction (mutual cooperation: +1, mutual defection: -1, the exploiter's side: temptation to defect Tem, the exploited side: sucker's payoff Suc) is weighted by the inverse square of distance. In other words, particles are drawn toward partners with a good relationship (positive payoff) and move away from partners with a bad relationship (negative payoff). From this simple rule, a periodic pattern can emerge: "a cooperation cluster forms → defectors invade → the cluster collapses and disperses again."</p>
+
+    <p>Increasing the temptation to defect Tem makes it easier for defectors to invade a cluster, while decreasing (making more negative) the sucker's payoff Suc makes cooperators more likely to flee and disperse. The perturbation probability pd is the chance that a strategy flips randomly each step; periodic collapse can occur even when this is set to 0. It's instructive to compare the "Random placement (diverse ct)" initial-state preset, which tends to show a clear collapse cycle, against "Uniform ct = 0.5 (no diversity)," which tends to produce a relatively stable cooperation cluster.</p>
+
+    <div class="tip">
+      <span class="box-label">Classroom exercise idea</span>
+      Observe the two graphs "fraction of cooperators" and "mean neighbor count (an indicator of aggregation and dispersion)" side by side. You can trace the cycle on the graphs themselves: mean neighbor count rises (aggregation) → cooperation rate falls (defectors invade) → mean neighbor count drops sharply (collapse) → re-aggregation. Please cite the paper above if referencing this model in research.
+    </div>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="errors"><span class="sec-num">10</span>Errors and Solutions</h2>
+
+    <p>If an error occurs when you press "▶ Apply" or while running, a red error message appears in the code bar. <strong>The line number of the cause, the content of that line, and a beginner-friendly hint are shown in plain language</strong>, and the code field opens automatically. Disallowed syntax such as <code>class</code>, <code>document.*</code>, and <code>fetch</code> is <strong>detected before applying</strong>, and guidance on "what isn't allowed and how to fix it" is shown. See the table below as well.</p>
+
+    <div class="tip">
+      <span class="box-label">Check ❔ Help first</span>
+      The <span class="ui">❔ Help</span> in the header has a list of disallowed syntax and writing tips gathered together. Check here if errors keep occurring.
+    </div>
+
+    <table>
+      <tr>
+        <th style="width:34%">Error message</th>
+        <th>Cause</th>
+        <th>Solution</th>
+      </tr>
+      <tr>
+        <td>setup() function not found</td>
+        <td><code>function setup(...)</code> is not defined in the code</td>
+        <td>Re-instruct the generative AI: "Please make sure to define all three functions: setup, step, and draw"</td>
+      </tr>
+      <tr>
+        <td>step() function not found</td>
+        <td>Same as above (step is missing)</td>
+        <td>Same as above</td>
+      </tr>
+      <tr>
+        <td>document.* cannot be used (DOM manipulation not allowed)</td>
+        <td>The code includes DOM manipulation such as <code>document.getElementById()</code> (detected before applying, with the line number shown)</td>
+        <td>Draw only using the Canvas (ctx) inside <code>draw(ctx, ...)</code>. Re-instruct the generative AI: "Using document.* is prohibited"</td>
+      </tr>
+      <tr>
+        <td>The class keyword cannot be used</td>
+        <td>A class is defined using <code>class</code></td>
+        <td>Use an object literal <code>{}</code> or a factory function instead (an example is shown in the hint)</td>
+      </tr>
+      <tr>
+        <td>import statements cannot be used</td>
+        <td><code>import</code> / <code>export</code> statements are present</td>
+        <td>External libraries cannot be used. Re-instruct it to write using only plain JS + Canvas</td>
+      </tr>
+      <tr>
+        <td>step() error: Cannot read properties of undefined</td>
+        <td><code>step()</code> references a property that wasn't initialized in <code>setup()</code></td>
+        <td>Re-instruct: "Please initialize every property of state in setup()"</td>
+      </tr>
+      <tr>
+        <td>draw() error: ctx.xxx is not a function</td>
+        <td>A method that doesn't exist in the Canvas 2D API is being called</td>
+        <td>Re-instruct: "ctx is a Canvas 2D context. Please fix the call to a nonexistent method"</td>
+      </tr>
+      <tr>
+        <td>The canvas stays completely black and nothing happens</td>
+        <td>draw() runs without error but draws nothing, or step() is silently swallowing an error</td>
+        <td>Check the error box in the code bar. Use "⏭ 1 tick" to advance a single step and inspect the state</td>
+      </tr>
+      <tr>
+        <td>Extremely slow or frozen execution</td>
+        <td>A heavy loop is running inside step() (e.g., too many agents)</td>
+        <td><strong>Raise draw skip (e.g., to 1/4)</strong>, lower the speed slider, or reduce the agent-count parameter. Check the FPS display in the header to confirm improvement</td>
+      </tr>
+    </table>
+
+    <div class="note">
+      <span class="box-label">General troubleshooting steps</span>
+      When an error occurs, pasting the red text from the code bar's error box as-is into a generative AI with "Please fix this error: [error text]" often gets you an accurate fix.
+    </div>
+
+    <hr class="divider">
+
+    <!-- ────────────────────────────────────────────────── -->
+    <h2 class="section-title" id="faq"><span class="sec-num">11</span>Frequently Asked Questions</h2>
+
+    <p><strong>Q. I pasted code and the sliders in the right panel disappeared.</strong><br>
+    A. If <code>PARAM_DEFS</code> is not defined in the new code, sliders are not shown. If you need parameters, ask the generative AI to "add PARAM_DEFS."</p>
+
+    <p><strong>Q. The graph isn't showing.</strong><br>
+    A. If <code>PLOT_DEFS</code> is not defined in the code, no graph is shown. Ask the generative AI to "add a graph via PLOT_DEFS."</p>
+
+    <p><strong>Q. My code disappears when I close the browser.</strong><br>
+    A. ABM Studio does not auto-save code. You can save the current model as a <code>.js</code> file using <span class="ui">💾 Save .js</span> in the code bar. Load it next time with <span class="ui">📂 Open</span> to continue right where you left off (keeping it in your generative AI chat history is also a good backup).</p>
+
+    <p><strong>Q. Nothing happens when I press the "📋 Copy" button (a warning says HTTPS is required).</strong><br>
+    A. Clipboard access requires an HTTPS environment. If you're opening the file locally, the copy function may not be available. Use the "⬇ Save" button to save it as a file instead.</p>
+
+    <p><strong>Q. The CSV data I copied from a graph is garbled.</strong><br>
+    A. When pasting into Excel via the clipboard (<span class="ui">⬇ CSV</span>), use the "Import Text" feature and select UTF-8. The <span class="ui">💾</span> (save CSV file) and <span class="ui">⬇ Save CSV</span> features <strong>save with a BOM, so opening them directly in Excel doesn't garble</strong>. Both load into Google Sheets without any issue.</p>
+
+    <p><strong>Q. I want to compare multiple results with different parameters.</strong><br>
+    A. Use "Save/Compare Experiments" in the right panel. Run for a bit, then press <span class="ui">📸 Save Snapshot</span> to have it overlaid on the graph. Change conditions and run again to compare with the previous run (§6). To gather all conditions into a spreadsheet, use <span class="ui">⬇ Save CSV</span> to export everything into one file.</p>
+
+    <p><strong>Q. Increasing the number of agents makes things heavy.</strong><br>
+    A. Raising the "Draw Skip" slider at the bottom left (e.g., to 1/4) speeds things up by leaving computation as-is and only reducing drawing. Check the FPS display in the header to confirm the effect. Lowering the speed slider also helps (§4).</p>
+
+    <p><strong>Q. In some environments the recorded video won't play.</strong><br>
+    A. You can choose <strong>MP4</strong> from the menu next to the record button, which plays more easily in most players and PowerPoint. On browsers that don't support MP4, it's automatically saved as WebM instead (§6).</p>
+
+    <p><strong>Q. I don't understand what this parameter does.</strong><br>
+    A. If there's a <span class="ui">ⓘ</span> icon next to the parameter name, hovering over it shows an explanation. If there isn't one, ask the generative AI to "add help (an explanation) to PARAM_DEFS" and it will appear from then on.</p>
+
+    <p><strong>Q. ECA scrolls by so fast I can't see it.</strong><br>
+    A. Lower the speed slider down to 1 t/f. In ECA, 1 step = 1 row, so at high speed the rows stack up quickly and appear to stream by.</p>
+
+    <p><strong>Q. The code generated by the AI seems too long to fit in the code area.</strong><br>
+    A. The code area is scrollable, so any length is fine. Select all with <span class="kb-item"><span class="kb-badge win">Win</span><kbd>Ctrl</kbd>+<kbd>A</kbd></span><span class="kb-divider">/</span><span class="kb-item"><span class="kb-badge mac">Mac</span><kbd>⌘</kbd>+<kbd>A</kbd></span> before pasting.</p>
+
+    <p><strong>Q. I want to look at a built-in model's code as a reference.</strong><br>
+    A. After selecting a model and pressing "▶ Apply," click "▸ Code" to display that model's code in the code area. You're free to read or modify it. Pressing the <span class="ui">📋 Copy Spec</span> button copies the specification together with the current code, ready to hand to a generative AI.</p>
+
+    <hr class="divider">
+
+    <h2 class="section-title" id="refs"><span class="sec-num">📚</span>References and Sources</h2>
+    <p>These are the primary sources on which the built-in models are based. All code is an original implementation by this project.</p>
+    <ul>
+      <li><strong>Elementary Cellular Automaton (ECA)</strong>: Wolfram, S. (1983). Statistical mechanics of cellular automata. <em>Reviews of Modern Physics</em>, 55(3), 601–644. / Wolfram, S. (2002). <em>A New Kind of Science</em>. Wolfram Media.</li>
+      <li><strong>Game of Life</strong>: Gardner, M. (1970). Mathematical Games: The fantastic combinations of John Conway's new solitaire game "life". <em>Scientific American</em>, 223(4), 120–123.</li>
+      <li><strong>Segregation Model</strong>: Schelling, T. C. (1971). Dynamic models of segregation. <em>Journal of Mathematical Sociology</em>, 1(2), 143–186.</li>
+      <li><strong>Flocking (Boids)</strong>: Reynolds, C. W. (1987). Flocks, herds and schools: A distributed behavioral model. <em>Computer Graphics (SIGGRAPH '87)</em>, 21(4), 25–34.</li>
+      <li><strong>Ant Pheromones</strong>: Deneubourg, J.-L., Aron, S., Goss, S., &amp; Pasteels, J. M. (1990). The self-organizing exploratory pattern of the Argentine ant. <em>Journal of Insect Behavior</em>, 3(2), 159–168.</li>
+      <li><strong>Spatial Prisoner's Dilemma</strong>: Nowak, M. A., &amp; May, R. M. (1992). Evolutionary games and spatial chaos. <em>Nature</em>, 359, 826–829.</li>
+      <li><strong>SIR Epidemic Model</strong>: Kermack, W. O., &amp; McKendrick, A. G. (1927). A contribution to the mathematical theory of epidemics. <em>Proceedings of the Royal Society A</em>, 115(772), 700–721.</li>
+      <li><strong>Social Particle Swarm (SPS)</strong>: Nishimoto, K., Suzuki, R., &amp; Arita, T. (2023). Social Particle Swarm model for investigating the complex dynamics of social relationships. <em>Psychologia</em>, 65(2), 185–210. <a href="https://doi.org/10.2117/psysoc.2023-B039" target="_blank">https://doi.org/10.2117/psysoc.2023-B039</a></li>
+    </ul>
+
+    <hr class="divider">
+
+    <h2 class="section-title"><span class="sec-num">★</span>Acknowledgments</h2>
+    <p>This tool owes a great deal to <a href="https://www.netlogo.org/" target="_blank">NetLogo</a> (Wilensky, U., 1999, Center for Connected Learning and Computer-Based Modeling, Northwestern University). The author has long used NetLogo in his own learning and teaching, and that experience forms the foundation for the concept and design of this tool. We record our deep gratitude here.</p>
+
+    <hr class="divider">
+
+    <p style="font-size:.82rem;color:var(--light);text-align:center;padding-top:1rem">
+      ABM Studio v1.0 &nbsp;|&nbsp;
+      <a href="ABM_Studio.html" style="color:var(--accent)">Open ABM Studio</a>
+      &nbsp;|&nbsp;
+      <a href="ABM_Studio_FirstSteps.html" style="color:var(--accent)">First Steps</a>
+    </p>
+
+  </main>
+</div>
+
+<script>
+// Scroll-spy
+const links = document.querySelectorAll('#sideNav a');
+const sections = Array.from(links).map(l => {
+  const id = l.getAttribute('href').replace('#','');
+  return document.getElementById(id);
+}).filter(Boolean);
+
+function onScroll() {
+  const scrollY = window.scrollY + 80;
+  let current = null;
+  for (const s of sections) {
+    if (s.offsetTop <= scrollY) current = s.id;
+  }
+  links.forEach(l => {
+    const id = l.getAttribute('href').replace('#','');
+    l.classList.toggle('active', id === current);
+  });
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+</script>
+</body>
+</html>

@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IEC Studio v1.0: User Manual</title>
+<style>
+:root {
+  --bg:           #ffffff;
+  --sidebar-bg:   #f5f4f0;
+  --text:         #1a1a1a;
+  --muted:        #555;
+  --light:        #999;
+  --border:       #ddd;
+  --border-light: #eee;
+  --accent:       #1a4b8c;
+  --accent2:      #2a7a40;
+  --warn:         #7a4800;
+  --tip-bg:       #f0f7ff;
+  --tip-border:   #1a4b8c;
+  --warn-bg:      #fff8f0;
+  --warn-border:  #c97a00;
+  --step-bg:      #f5f4f0;
+  --code-bg:      #f0f2f6;
+  --tag-ca:       #1a4b8c;
+  --tag-abm:      #2a7a40;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.8;
+  font-size: 0.97rem;
+}
+
+/* ── Layout ── */
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 230px;
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 1.6rem 0 3rem;
+}
+.sidebar-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--muted);
+  padding: 0 1.2rem 0.7rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.6rem;
+  text-transform: uppercase;
+}
+.sidebar nav a {
+  display: block;
+  padding: 0.28rem 1.2rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: color .15s, border-color .15s, background .15s;
+  line-height: 1.5;
+}
+.sidebar nav a:hover { color: var(--accent); background: rgba(26,75,140,.05); }
+.sidebar nav a.active { color: var(--accent); border-left-color: var(--accent); font-weight: 600; background: rgba(26,75,140,.07); }
+.sidebar nav a.sub { padding-left: 2.0rem; font-size: 0.78rem; }
+.sidebar-section { margin-top: 1.2rem; }
+.sidebar-section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--light);
+  padding: 0.4rem 1.2rem 0.1rem;
+}
+
+.main {
+  flex: 1;
+  max-width: 860px;
+  padding: 3rem 3rem 8rem;
+  min-width: 0;
+}
+
+/* ── Header ── */
+.page-header {
+  border-bottom: 2px solid var(--text);
+  padding-bottom: 1.4rem;
+  margin-bottom: 3rem;
+}
+.page-header .breadcrumb {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+.page-header .breadcrumb a { color: var(--accent); text-decoration: none; }
+.page-header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -.01em; }
+.page-header .subtitle { font-size: 0.9rem; color: var(--muted); margin-top: 0.4rem; }
+.page-header .badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  background: var(--accent);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* ── Section headings ── */
+.section-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+  border-bottom: 1.5px solid var(--border);
+  padding-bottom: 0.5rem;
+  margin: 3.5rem 0 1.2rem;
+  scroll-margin-top: 24px;
+}
+.section-title .sec-num {
+  font-size: 0.8em;
+  color: var(--light);
+  font-weight: 400;
+  margin-right: 0.4em;
+}
+.subsection-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 2rem 0 0.8rem;
+  scroll-margin-top: 24px;
+}
+.subsection-title .sub-marker {
+  display: inline-block;
+  width: 4px; height: 1em;
+  background: var(--accent);
+  margin-right: 0.5em;
+  vertical-align: -0.1em;
+  border-radius: 2px;
+}
+
+/* ── Prose ── */
+p { margin-bottom: 1rem; }
+p + p { margin-top: 0; }
+
+/* ── Info boxes ── */
+.tip, .warn, .note {
+  border-left: 3px solid;
+  padding: 0.9rem 1.1rem;
+  margin: 1.4rem 0;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.92rem;
+}
+.tip  { background: var(--tip-bg);  border-color: var(--tip-border); }
+.warn { background: var(--warn-bg); border-color: var(--warn-border); }
+.note { background: #f9f7f4;        border-color: #888; }
+.tip .box-label, .warn .box-label, .note .box-label {
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.tip  .box-label { color: var(--accent); }
+.warn .box-label { color: var(--warn); }
+.note .box-label { color: #555; }
+
+/* ── Step boxes ── */
+.steps { margin: 1.4rem 0; }
+.step {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+  align-items: flex-start;
+}
+.step-num {
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 0.15rem;
+}
+.step-body { flex: 1; }
+.step-body strong { display: block; margin-bottom: 0.2rem; }
+
+/* ── Inline code ── */
+code {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 0.84em;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: #1e4070;
+}
+
+/* ── Code block ── */
+pre {
+  background: #0d1117;
+  color: #e6edf3;
+  border-radius: 6px;
+  padding: 1rem 1.2rem;
+  overflow-x: auto;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  margin: 1rem 0 1.4rem;
+}
+pre .cm { color: #8b949e; }     /* comment */
+pre .kw { color: #ff7b72; }     /* keyword */
+pre .str { color: #a5d6ff; }    /* string */
+pre .fn { color: #d2a8ff; }     /* function name */
+pre .num { color: #79c0ff; }    /* number */
+pre .prop { color: #ffa657; }   /* property */
+
+/* ── Screenshot frame ── */
+.screen-frame {
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 1.2rem 0 1.6rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.07);
+}
+.screen-title {
+  background: var(--sidebar-bg);
+  border-bottom: 1px solid var(--border);
+  padding: 0.4rem 1rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+}
+.screen-body {
+  background: #f4f6f9;
+  padding: 1rem 1.2rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+/* ── UI label ── */
+.ui { /* inline UI element reference */
+  display: inline-block;
+  background: #e8ecf4;
+  border: 1px solid #c0c8d8;
+  border-radius: 3px;
+  padding: 0px 6px;
+  font-size: 0.82em;
+  font-weight: 600;
+  color: #1e3a6e;
+  white-space: nowrap;
+}
+
+/* ── Keyboard keys ── */
+kbd {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 0.83em;
+  background: #fff;
+  border: 1.5px solid #b0b8cc;
+  border-bottom: 3px solid #8090aa;
+  border-radius: 4px;
+  padding: 1px 6px;
+  color: #1e3a6e;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0,0,0,.07);
+  vertical-align: middle;
+}
+.kb-badge {
+  display: inline-block;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  border-radius: 2px;
+  padding: 1px 4px;
+  vertical-align: middle;
+  margin-right: 2px;
+  font-family: sans-serif;
+}
+.kb-badge.win { background: #dde8f5; color: #1e4070; }
+.kb-badge.mac { background: #e8f5e8; color: #1a6a2a; }
+.kb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  vertical-align: middle;
+}
+.kb-divider { color: #bbb; margin: 0 0.25rem; font-size: 0.9em; }
+
+/* ── Shortcut reference box ── */
+.shortcut-box {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin: 1.4rem 0;
+  overflow: hidden;
+}
+.shortcut-box-title {
+  background: var(--sidebar-bg);
+  padding: 0.45rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+}
+.shortcut-box table {
+  margin: 0;
+  border: none;
+  font-size: 0.86rem;
+}
+.shortcut-box table th,
+.shortcut-box table td {
+  border: none;
+  border-bottom: 1px solid var(--border-light);
+  padding: 0.42rem 1rem;
+}
+.shortcut-box table tr:last-child td { border-bottom: none; }
+.shortcut-box table th {
+  background: transparent;
+  font-size: 0.74rem;
+  color: var(--muted);
+  padding-top: 0.6rem;
+  vertical-align: middle;
+}
+.shortcut-box table td:first-child {
+  color: var(--text);
+  font-family: inherit;
+  white-space: normal;
+  font-size: 0.86rem;
+  width: 38%;
+}
+.shortcut-box table td:nth-child(2),
+.shortcut-box table td:nth-child(3) { white-space: nowrap; }
+
+/* ── Model tag ── */
+.tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 3px;
+  color: #fff;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.tag-ca  { background: var(--tag-ca); }
+.tag-abm { background: var(--tag-abm); }
+
+/* ── Model card grid ── */
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  margin: 1.2rem 0 1.8rem;
+}
+.model-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.9rem 1.1rem;
+  background: #fafafa;
+}
+.model-card .mc-name { font-weight: 700; font-size: 0.92rem; margin-bottom: 0.25rem; }
+.model-card .mc-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+.model-card .mc-tips { margin-top: 0.5rem; font-size: 0.8rem; }
+.model-card .mc-tips li { margin-left: 1.2rem; color: var(--muted); margin-bottom: 0.1rem; }
+
+/* ── Error table ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin: 1.2rem 0 1.8rem;
+}
+th, td { border: 1px solid var(--border); padding: 0.55rem 0.9rem; text-align: left; vertical-align: top; }
+th { background: var(--sidebar-bg); font-weight: 700; }
+td:first-child { white-space: nowrap; color: #b91c1c; font-family: 'IBM Plex Mono',monospace; font-size: 0.82em; }
+tr:hover td { background: #fafafa; }
+
+/* ── Divider ── */
+.divider { border: none; border-top: 1px solid var(--border-light); margin: 2.5rem 0; }
+
+/* ── Scrollspy JS ── */
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-title">IEC Studio Manual</div>
+    <nav id="sideNav">
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Getting Started</div>
+        <a href="#overview">1. What is IEC Studio?</a>
+        <a href="#screen">2. Screen Layout</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Basic Operation</div>
+        <a href="#builtin">3. Using Built-in Models</a>
+        <a href="#evolve">4. Evolution Controls</a>
+        <a href="#params">5. Parameters and Genes</a>
+        <a href="#save">6. Saving and Reproducing Results</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Code Generation</div>
+        <a href="#chatgpt">7. Generating Code with AI</a>
+        <a href="#aigen" class="sub">🤖 AI Generate (Direct API)</a>
+        <a href="#paste">8. Pasting and Running Code</a>
+        <a href="#modify">9. Modifying Code</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Model-by-Model Guide</div>
+        <a href="#model-bio"     class="sub">Branching Shapes</a>
+        <a href="#model-face"    class="sub">Face Evolution</a>
+        <a href="#model-stained" class="sub">Stained Glass</a>
+        <a href="#model-mathart" class="sub">Math Art</a>
+        <a href="#model-boids"   class="sub">Flock (Flocking)</a>
+        <a href="#model-softbody"  class="sub">Virtual Creature (Soft Body)</a>
+        <a href="#model-sound"   class="sub">Sound Evolution</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Troubleshooting</div>
+        <a href="#errors">10. Errors and Solutions</a>
+        <a href="#faq">11. Frequently Asked Questions</a>
+        <a href="#refs">📚 References and Sources</a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="breadcrumb"><a href="IEC_Studio_FirstSteps.html">IEC Studio First Steps</a> &rsaquo; IEC Studio Manual</div>
+      <h1><span class="badge">v1.0</span>IEC Studio User Manual</h1>
+      <p class="subtitle">A Browser-Based Interactive Evolutionary Computation (IEC) Tool</p>
+    </div>
+
+    <!-- ───────── 1 ───────── -->
+    <h2 class="section-title" id="overview"><span class="sec-num">1</span>What is IEC Studio?</h2>
+
+    <p>IEC Studio is <strong>an Interactive Evolutionary Computation (IEC) tool that runs entirely in your browser.</strong> No installation needed: just double-click the file to launch it.</p>
+
+    <p>Ordinary evolutionary computation (GA) automatically decides good from bad with an "evaluation function", but in IEC, <strong>human preference itself is the selection pressure</strong>. When you choose the one you like from the 3×3 = 9 individuals on screen, it becomes the parent of the next generation of 9 individuals. Just by repeating this, shapes evolve toward <strong>"beauty" or "interest" that are hard to measure with a formula</strong> (Richard Dawkins's "Biomorphs" are a classic example).</p>
+
+    <div class="note">
+      <span class="box-label">The idea behind this tool</span>
+      Recent advances in generative AI are reshaping the "understanding by building" (constructive) style of modeling in complex systems and artificial life. By giving a prompt with just the skeleton of an idea, not a complete specification, you can auto-generate a wide variety of models, have the AI explain them when you want to understand them, and refine ideas through dialogue. Letting the AI generate everything, however, tends to produce wildly inconsistent results.<br>
+      ALifeCoreStudio (the three studios, ABM / EVO / IEC) keeps a <strong>common framework for model construction, visualization, and analysis fixed</strong> and lets generative AI produce only the <strong>essential parts</strong> of a model. It is intended for beginners with no programming experience giving free form to their ideas, students growing models together with AI, and researchers building prototypes quickly. By making it easy to <strong>generate possible models freely</strong> within a shared framework, it aims to accelerate the constructive approach to scientific understanding and to spread the joy of imagining and running "what worlds could be."
+    </div>
+
+    <div class="tip">
+      <span class="box-label">How it differs from EVO Studio</span>
+      EVO Studio automatically selects the best via an evaluation function. IEC Studio's difference is that <strong>you yourself choose by clicking</strong>. It suits subjects with no single correct answer, decided by preference (design, shape, pattern).
+    </div>
+
+    <p><strong>What you can do:</strong> compare and select among 9 individuals to evolve them; switch between 1-parent (mutation only) and 2-parent (crossover + mutation); adjust mutation rate and mutation width with sliders; check the gene definition and the contents of the center individual; copy, save, and reproduce the genes of an individual you like; play animated individuals; save a model you built to <code>.js</code> and reload it; and more.</p>
+
+    <p><strong>What you can't do:</strong> internet access, loading external data, 3D rendering, and the like are not supported.</p>
+
+    <hr class="divider">
+
+
+    <!-- ───────── 2 ───────── -->
+    <h2 class="section-title" id="screen"><span class="sec-num">2</span>Screen Layout</h2>
+
+    <p>The screen consists of the <strong>header</strong> at the top, the <strong>9-individual grid</strong> at center-left, the <strong>control panel</strong> on the right, and the <strong>code bar</strong> at the bottom.</p>
+
+    <table>
+      <tr><th>Location</th><th>Contents</th></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Header</td><td>Title, <span class="ui">Gen</span> display, <span class="ui">● Anim</span> (animation-running badge), <span class="ui">⛶ Fullscreen</span>, <span class="ui">💾 HTML Export</span>, <span class="ui">❔ Help</span>. (Reset is in the control bar below the grid.)</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">9-individual grid (left)</td><td>3×3 candidates. Click to select. Hovering over a cell reveals <span class="ui">📋 Genes</span>.</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Control panel (right)</td><td>Selection mode switch (1-parent / 2-parent, crossover type), <span class="ui">Operator parameters</span>, <span class="ui">Animation</span> (animated models only), <span class="ui">Genes (definition and center individual)</span>, <span class="ui">Gene editor</span>, status display.</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Code bar (bottom)</td><td>Toggle open/closed with <span class="ui">▸ Code</span>. <span class="ui">▶ Apply</span>, the various prompts, save/load, model selection. An editor with line numbers and error display.</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Help</td><td>Opens as an overlay via <span class="ui">❔ Help</span> (close with <kbd>Esc</kbd>).</td></tr>
+    </table>
+
+    <hr class="divider">
+
+    <!-- ───────── 3 ───────── -->
+    <h2 class="section-title" id="builtin"><span class="sec-num">3</span>Using Built-in Models</h2>
+
+    <p>Choose one from the "── Select a model ──" dropdown in the code bar, and the code is set automatically, showing the 9 individuals.</p>
+
+    <div class="model-grid">
+      <div class="model-card"><div class="mc-name">Branching Shapes (9 genes, static)</div><div class="mc-desc">9 integers, as in Dawkins's Biomorphs. A branching tree evolves into insect- or plant-like shapes.</div></div>
+      <div class="model-card"><div class="mc-name">Face Evolution (static, aesthetic selection)</div><div class="mc-desc">Choose the shape of eyes, eyebrows, nose, mouth, hair, etc. by preference. An accessible example of IEC.</div></div>
+      <div class="model-card"><div class="mc-name">Stained Glass (static, Voronoi)</div><div class="mc-desc">Colors a Voronoi diagram that divides the plane by seed points. A visualization of spatial partitioning.</div></div>
+      <div class="model-card"><div class="mc-name">Math Art (static, z=f(x,y))</div><div class="mc-desc">Maps a sum of sines to color. The pattern changes continuously with the coefficients.</div></div>
+      <div class="model-card"><div class="mc-name">Flock (flocking, animated)</div><div class="mc-desc">A flock that moves via 3 rules: separation, alignment, cohesion. Evolve its movement style.</div></div>
+      <div class="model-card"><div class="mc-name">Virtual Creature (soft body, voxels)</div><div class="mc-desc">A creature made of voxels that walks via actuator expansion/contraction (animated).</div></div>
+      <div class="model-card"><div class="mc-name">Sound Evolution (melody)</div><div class="mc-desc">Evolve a short 8-note melody by preference, listening with "▶ Play sound".</div></div>
+    </div>
+
+    <div class="tip">
+      <span class="box-label">When you want to read the code</span>
+      After applying a model, open <span class="ui">▸ Code</span> to see the full code. <span class="ui">📋 Copy Spec</span> hands a generative AI the specification plus the current code together.
+    </div>
+
+    <hr class="divider">
+
+    <!-- ───────── 4 ───────── -->
+    <h2 class="section-title" id="evolve"><span class="sec-num">4</span>Evolution Controls</h2>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Selecting an individual</h3>
+    <p>Click the one you like out of the 9 individuals. The next generation of 9 individuals is then born as small variations of that individual as parent. <strong>The center cell (★) stays the parent unchanged</strong>, so the shape you chose is always preserved as one of the nine.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>1-parent mode and 2-parent mode</h3>
+    <table>
+      <tr><th>Mode</th><th>Details</th></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">1 parent: mutation only (default)</td><td>Click <strong>one</strong> individual you like. 9 individuals are born as mutations of it as parent. Good for patiently growing in one direction.</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">2 parents: crossover + mutation</td><td>Click <strong>two</strong> individuals in turn, as parent A and parent B. Children are born by <strong>crossing over (mixing)</strong> the genes of both. Good for combining the strengths of two individuals.</td></tr>
+    </table>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Crossover type</h3>
+    <p>In 2-parent mode, choose <strong>uniform / one-point / two-point crossover</strong> via <span class="ui">Crossover type</span> at bottom left. Uniform picks a parent randomly for each gene; one-point and two-point split the array at cut points and inherit from each segment.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Reset</h3>
+    <p><span class="ui">⟳ Reset</span> in the control bar below the grid returns to a random initial set of 9 individuals. If you get stuck, you can explore from a fresh starting point.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Recording the population</h3>
+    <p>The <span class="ui">⏺ Record</span> button under the grid captures <strong>all nine individuals at once</strong> as a single video, with the generation number burned into the corner. Animated models (Flock, Virtual Creature) are recorded as they move, and static models are recorded as they change from generation to generation, so a selection session can be shown as one clip. Press it again to stop, and the file downloads.</p>
+    <p>The format selector next to it offers <strong>MP4 / WebM / Auto</strong>. MP4 is written as <strong>H.264</strong>, which QuickTime Player, PowerPoint, and Keynote open directly. The video is recorded at the current thumbnail size, so pick <span class="ui">Size: Large</span> or larger before recording if you want a higher-resolution clip.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Animation</h3>
+    <p>For animated models (flock, virtual creature), <span class="ui">Animation</span> is shown on the right, letting you play/pause and adjust speed (0.1×-8×). <span class="ui">● Anim</span> lights up in the header while it is running.</p>
+
+    <hr class="divider">
+
+    <!-- ───────── 5 ───────── -->
+    <h2 class="section-title" id="params"><span class="sec-num">5</span>Parameters and Genes</h2>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Operator parameters</h3>
+    <p>Adjust mutation strength in "Operator parameters" on the right (applied starting from the next generation created. See <span class="ui">ⓘ</span> on each item for an explanation).</p>
+    <table>
+      <tr><th>Parameter</th><th>Meaning</th></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Mutation rate (mutRate)</td><td>Probability that each gene changes. Larger values spread the 9 individuals out more.</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Mutation width (mutScale)</td><td>The size (multiplier) of a single change. Smaller keeps individuals close to the parent; larger produces bolder changes.</td></tr>
+    </table>
+    <p>Some models have their own parameters (e.g., Branching Shapes has <strong># genes mutated (nMut)</strong> and <strong>mutation size (stepSize)</strong>).</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Genes (definition and center individual)</h3>
+    <p>Chips show the <strong>definition</strong> of the genes currently in use (the length of the numeric array and each gene's range, <code>GENE_RANGES</code>) as well as <strong>the genes of the center individual (★) itself</strong>. For models with a <code>geneGrid</code>, like the virtual creature, morphology and phase are shown clearly as a <strong>colored grid</strong>.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Gene editor</h3>
+    <p>A field for saving and reproducing individuals you like.</p>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Import via a cell's <span class="ui">📋 Genes</span></strong>A button that appears when you hover over a cell. Clicking it loads that individual's genes (a JSON numeric array) into the editor, and copies them at the same time. You can paste and save them in a text editor, etc.</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><strong><span class="ui">↓ Place in center</span> / <span class="ui">⊕ Expand to all</span></strong>Paste saved genes into the editor and either place them in the center individual, or expand them to all 9 individuals as parent. Lets you resume from a shape you liked before.</div></div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- ───────── 6 ───────── -->
+    <h2 class="section-title" id="save"><span class="sec-num">6</span>Saving and Reproducing Results</h2>
+    <p>In IEC, it's important to keep the "shapes you liked". There are 3 ways to save and reproduce them.</p>
+    <table>
+      <tr><th>Method</th><th>Use</th></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Copy genes</td><td>Copy an individual's genes with each cell's <span class="ui">📋 Genes</span>. Save it as text and later paste it into the "Gene editor" to restore it (§5).</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Save/open .js</td><td>Save the model (code) with <span class="ui">💾 Save .js</span> in the code bar, and load it with <span class="ui">📂 Open</span>. Always save your custom models.</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Copy Spec</td><td><span class="ui">📋 Copy Spec</span> hands the specification plus the current code to a generative AI, so you can discuss improvements.</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">📦 Download ZIP</td><td>The <span class="ui">📦 Download ZIP</span> next to the lineage checkbox exports all data since initialization as a ZIP. For later analysis and reproduction. See below.</td></tr>
+    </table>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Lineage and branching</h3>
+    <p><span class="ui">Show lineage</span> under the grid lists the parent chosen in each generation, left to right. Clicking any thumbnail continues breeding from that ancestor.</p>
+    <p><strong>The branch you were on is not discarded.</strong> It stays on screen, dimmed and labelled <span class="ui">past</span>, and your next selection begins a <strong>new branch</strong> from the ancestor you clicked, labelled <span class="ui">now</span>. Ancestors in a past branch remain clickable, so you can go back and fork again from anywhere. Up to four earlier branches are kept; beyond that the oldest is dropped. <span class="ui">⟳ Reset</span> clears them all.</p>
+    <p>The ZIP export records the current branch in <code>lineage.csv</code>, and every preserved branch in <code>data.json</code> under <code>lineageBranches</code>.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>📦 Download all data (ZIP, v1.0)</h3>
+    <p>Pressing <span class="ui">📦 Download ZIP</span> below the grid, next to <span class="ui">Show lineage</span>, exports <strong>all data since initialization into a single ZIP</strong>. It contains:</p>
+    <table>
+      <tr><th style="width:32%">File</th><th>Contents</th></tr>
+      <tr><td><code>metadata.json</code></td><td>Model name, export timestamp, generation count, gene length, plus the <strong>experiment settings</strong>: parameters, selection mode (mutation only / crossover+mutation), crossover type, gene ranges, and the <strong>random seed</strong>.</td></tr>
+      <tr><td><code>model.js</code></td><td>The <strong>exact model code</strong> that produced this experiment. Paste it back into the code panel and press <span class="ui">▶ Apply</span> to reproduce it.</td></tr>
+      <tr><td><code>frames.jsonl</code></td><td>All <strong>9 individuals at each generation</strong> (one JSON line per generation, <code>{"tick":&lt;gen&gt;, "state":{"population":…, "chosen":…}}</code>). IEC is lightweight, so this is always recorded and the bundled viewer can replay every generation.</td></tr>
+      <tr><td><code>lineage.csv</code></td><td>Gene history of the parent (center ★ individual) chosen in each generation. Columns are <code>step, gen, g0, g1, …</code>.</td></tr>
+      <tr><td><code>population.csv</code></td><td>Genes of the current 9 individuals. <code>is_center=1</code> marks the center (★) individual.</td></tr>
+      <tr><td><code>data.json</code></td><td>Structured JSON bundling the settings, lineage, and current population. For loading from a program.</td></tr>
+    </table>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Reproducing each generation, and viewer replay</h3>
+    <p>So you can <strong>reproduce each generation</strong> later, IEC always records all <strong>9 individuals of every generation</strong> to <code>frames.jsonl</code> (one click = one generation of lightweight data, so there is no record on/off toggle). It also records the <strong>seed</strong> that fixes the mutation/crossover randomness.</p>
+    <p>Drop the exported ZIP onto the bundled <strong><code>ALifeCoreStudio_Viewer.html</code></strong> to <strong>replay each generation along a timeline</strong>, showing the 9 individuals in a grid rendered by the model's own drawing code (the chosen one is marked ★). It works for built-in models as well as modified or newly-created ones.</p>
+
+    <hr class="divider">
+
+    <!-- ───────── 7 ───────── -->
+    <h2 class="section-title" id="chatgpt"><span class="sec-num">7</span>Generating Code with AI</h2>
+
+    <p>Pressing <span class="ui">✨ New Model Prompt</span> copies a specification. Paste it into a generative AI, write the [Model to implement] section, and send it, and you'll get back code you can just paste in.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Model description spec (key points)</h3>
+    <pre><span class="cm">// Static model: 3 required functions</span>
+<span class="kw">function</span> <span class="fn">createInitialGenome</span>() { <span class="cm">/* return an array of numbers (the individual's genes) */</span> }
+<span class="kw">function</span> <span class="fn">mutateGenome</span>(genome, params) { <span class="cm">/* return a new, mutated array */</span> }
+<span class="kw">function</span> <span class="fn">drawPhenotype</span>(ctx, genome, W, H) { <span class="cm">/* draw the genes as a picture */</span> }
+
+<span class="cm">// Animated model: ANIMATED=true plus 3 functions (in place of drawPhenotype)</span>
+<span class="kw">const</span> <span class="prop">ANIMATED</span> = <span class="kw">true</span>;
+<span class="kw">function</span> <span class="fn">initState</span>(genome, W, H) { <span class="cm">/* return the animation's initial state */</span> }
+<span class="kw">function</span> <span class="fn">stepState</span>(state, dt, genome, W, H) { <span class="cm">/* advance one frame */</span> }
+<span class="kw">function</span> <span class="fn">drawFrame</span>(ctx, state, genome, W, H) { <span class="cm">/* draw the current state */</span> }
+
+<span class="cm">// Optional</span>
+<span class="kw">const</span> <span class="prop">GENE_RANGES</span> = [ [min,max], ... ]; <span class="cm">// range of each gene</span>
+<span class="kw">const</span> <span class="prop">PARAM_DEFS</span> = [ ... ];            <span class="cm">// sliders (adding help is helpful)</span>
+<span class="kw">function</span> <span class="fn">geneGrid</span>(genome) { ... }       <span class="cm">// show genes as a colored grid</span></pre>
+
+    <div class="note">
+      <span class="box-label">Note</span>
+      Only <code>mutateGenome</code> in a static model receives <code>params</code> (the slider values). <code>drawPhenotype</code> / <code>initState</code>, etc. receive only the genes and the drawing area. The animation speed slider is shown automatically when <code>ANIMATED=true</code>, and <code>dt</code> (elapsed time × speed) is passed to <code>stepState</code>.
+    </div>
+
+    <div class="tip">
+      <span class="box-label">Tips for phrasing your request</span>
+      Be clear about <strong>"what shape or pattern" and "what genes (changeable elements)"</strong>. Having the AI make small gene changes shift the appearance <strong>continuously</strong> makes comparing the 9 individuals work well. If you want it to move, add "with animation".
+    </div>
+
+    <hr class="divider">
+
+    <!-- ───────── 8 ───────── -->
+    <h2 class="section-title" id="paste"><span class="sec-num">8</span>Pasting and Running Code</h2>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Copy the code</strong>Use the "Copy" button at the top right of the generative AI's code block to copy just its contents.</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Paste it into the code field</strong>Open <span class="ui">▸ Code</span>, select all with <kbd>Ctrl</kbd>+<kbd>A</kbd> (Mac: <kbd>⌘</kbd>+<kbd>A</kbd>), then paste.</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><strong><span class="ui">▶ Apply</span></strong>The 9 individuals appear immediately. If there's an error, the line number and a hint appear. <code>class</code>, <code>document.*</code>, <code>window.*</code>, <code>fetch</code>, <code>setTimeout</code>, <code>import</code>, etc. cannot be used.</div></div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- ───────── 9 ───────── -->
+    <h2 class="section-title" id="modify"><span class="sec-num">9</span>Modifying Code</h2>
+    <p>Pressing <span class="ui">✏️ Modify Prompt</span> copies the current code together with a frame for modification instructions. Paste it into a generative AI, list what you want changed as bullet points, and the entire modified code is returned. Select all in the code field and replace it, then <span class="ui">▶ Apply</span>.</p>
+    <p>Pressing <span class="ui">📖 Explain Prompt</span> copies <strong>a prompt asking for an explanation of what subject the currently running code implements</strong> (requesting an overview, an explanation of the algorithm, and pseudocode). Pasting it into a generative AI gets you an explanation faithful to the implementation. Also, if you put <code>const TITLE = 'model name'</code> into generated or modified code, it is reflected in the browser tab name, the "About this model" heading, and the filename for <span class="ui">💾 Save .js</span> (e.g. <code>Branching_Shapes.js</code>).</p>
+    <div class="note">
+      <span class="box-label">A design that makes even the free tier less likely to fail</span>
+      The v1.0 prompts are <strong>narrowed to a minimal specification</strong> and strongly instruct, at both the start and the end, to "<strong>output exactly one code block, in full, without omission</strong>" (to reduce output getting cut off or explanatory text mixing in, on free-tier or smaller models). <span class="ui">✏️ Modify Prompt</span> places <strong>[What to change] at the end</strong>, so list your changes there as bullet points.
+    </div>
+    <div class="good">
+      <span class="box-label">Tips for modifying</span>
+      Don't change too much at once: request <strong>1-2 small changes at a time</strong>. It's safer to keep a state you liked via <span class="ui">💾 Save .js</span> or by copying its genes.
+    </div>
+
+    <h3 class="subsection-title" id="aigen"><span class="sub-marker"></span>🤖 AI Generate: connect directly to a generative AI's API (LM Studio / cloud)</h3>
+    <p>Pressing <span class="ui">🤖 AI Generate</span> in the code bar lets you connect directly to an OpenAI-compatible API to modify or create code. The code that comes back is automatically inserted into the code field (it is not run until you press <span class="ui">▶ Apply</span>). No copy and paste needed.</p>
+    <ul>
+      <li><strong>Local (LM Studio, etc.)</strong>: start a local server and turn "Enable CORS" ON in the server settings. The endpoint is <code>http://localhost:1234</code> (no API key needed).</li>
+      <li><strong>Cloud (OpenAI-compatible)</strong>: examples are OpenRouter <code>https://openrouter.ai/api/v1</code>, DeepInfra <code>https://api.deepinfra.com/v1/openai</code>, OpenAI <code>https://api.openai.com/v1</code>. Requires an API key (mostly pay-as-you-go).</li>
+      <li>Choose the model name via <span class="ui">🔄 Fetch List</span> (manual entry also works). Settings are remembered by the browser.</li>
+    </ul>
+    <div class="note">
+      <span class="box-label">When the connection doesn't work</span>
+      "Failed to fetch" is usually caused by the server not running, CORS not enabled, or a wrong URL. Open <code>http://localhost:1234/v1/models</code> directly in the browser and check whether JSON is returned. For cloud services, the service itself must support CORS (OpenRouter and DeepInfra do).
+    </div>
+
+    <hr class="divider">
+
+    <!-- ───────── Model-by-model ───────── -->
+    <h2 class="section-title" id="model-bio">Branching Shapes (Dawkins's 9 genes)</h2>
+    <p>A model recreating the "Biomorphs" from Richard Dawkins's <em>The Blind Watchmaker</em>. The genes are <strong>9 integers</strong>. The first 8 determine branch direction and length, and the 9th determines branching depth. Branches extend recursively, symmetric left-right from the center, drawn in black and white.</p>
+    <p><strong>Mutation characteristics:</strong> designed, as in the original, so that "a few genes each change by ±1", adjustable via <span class="ui"># genes mutated (nMut)</span> and <span class="ui">mutation size (stepSize)</span> (the default is 2/1, so two genes shift by one step each). Over generations, the tree keeps changing into shapes resembling insects, birds, or plants.</p>
+
+    <h2 class="section-title" id="model-face">Face Evolution</h2>
+    <p>Has genes for the shape and placement of parts such as eyes, eyebrows, nose, mouth, contour, and hair, and evolves them toward a face you prefer. Being able to choose by <strong>criteria that are hard to put into words</strong>, like "cute" or "scary", makes this a quintessential IEC model. Changing the angle of the eyebrows or mouth corners changes the expression.</p>
+
+    <h2 class="section-title" id="model-stained">Stained Glass</h2>
+    <p>Builds a <strong>Voronoi diagram</strong> (a partition into regions closest to each point) from multiple <strong>seed points</strong> placed on the plane, and colors each region. Genes are the positions and colors of the seed points. The spatial partition becomes the pattern itself, and moving a seed point changes the glass layout.</p>
+
+    <h2 class="section-title" id="model-mathart">Math Art</h2>
+    <p>Draws a pattern by mapping the value of a two-variable function z = f(x, y) (such as a sum of sines) to color. Genes are the formula's coefficients. Since the pattern changes <strong>continuously</strong> with small changes to the coefficients, this is well suited to searching for "a pattern you like" in IEC.</p>
+
+    <h2 class="section-title" id="model-boids">Flock (Flocking)</h2>
+    <p>An animation of a flock moving via Reynolds's Boids (3 rules: separation, alignment, cohesion). Genes include the strength of the 3 rules, perception radii, speed, and so on. Compare and choose by <strong>the character of the movement</strong> (how it clusters or scatters) to evolve toward flock behavior you prefer. Use <span class="ui">Animation</span> on the right to play and adjust speed.</p>
+
+    <h2 class="section-title" id="model-softbody">Virtual Creature (Soft Body, Voxels)</h2>
+    <p>A soft-body creature whose body is made of 5×5 voxels (empty, rigid, soft, horizontal/vertical actuator) and which moves via the periodic expansion/contraction of actuators. Genes are <strong>morphology (each cell's type) and control (phase)</strong>. Thanks to <code>geneGrid</code>, morphology and phase are displayed as a <strong>colored 5×5 grid</strong>. Select and evolve by how interesting the movement or body shape is (animated).</p>
+
+    <h2 class="section-title" id="model-sound">Sound Evolution</h2>
+    <p>A model with genes for a short 8-note <strong>melody</strong>, which you can actually listen to via each cell's <span class="ui">▶ Play sound</span> before choosing. An example of IEC where you <strong>choose by ear</strong> rather than by visual shape; click and evolve whichever melody feels pleasant or interesting.</p>
+
+    <hr class="divider">
+
+    <!-- ───────── 10 ───────── -->
+    <h2 class="section-title" id="errors"><span class="sec-num">10</span>Errors and Solutions</h2>
+    <p>If an error occurs when you press <span class="ui">▶ Apply</span>, a red message appears in the code bar. <strong>The line number of the cause, that line's content, and a hint</strong> are shown. Syntax that cannot be used (<code>class</code>, <code>document.*</code>, <code>window.*</code>, <code>fetch</code>, <code>setTimeout</code>, <code>import</code>, etc.) is detected before applying.</p>
+    <table>
+      <tr><th>Message / symptom</th><th>What to do</th></tr>
+      <tr><td>createInitialGenome is required</td><td>Check that the 3 required functions (createInitialGenome / mutateGenome / drawPhenotype) are all present. For animation, initState / stepState / drawFrame replace drawPhenotype.</td></tr>
+      <tr><td>addEventListener cannot be used</td><td>Receive input via the sliders in <code>PARAM_DEFS</code>.</td></tr>
+      <tr><td>... is not defined</td><td>A misspelled variable name, or it's used before being defined. const declarations such as <code>GENE_RANGES</code> can be used.</td></tr>
+      <tr><td>Unexpected token ...</td><td>Check that parentheses () {} [] are matched, and that no comma or semicolon is missing.</td></tr>
+      <tr><td>The 9 individuals are blank / all look the same</td><td>Check whether drawPhenotype is actually using the genes to draw, and whether the mutation rate is too small.</td></tr>
+    </table>
+
+    <hr class="divider">
+
+    <!-- ───────── 11 ───────── -->
+    <h2 class="section-title" id="faq"><span class="sec-num">11</span>Frequently Asked Questions</h2>
+
+    <p><strong>Q. The 9 individuals are too similar and I can't choose.</strong><br>
+    A. Raising <span class="ui">Mutation rate</span> / <span class="ui">Mutation width</span> on the right will spread them out more. Lower them if things change too much instead.</p>
+
+    <p><strong>Q. Things change too much and I can't settle on a direction.</strong><br>
+    A. Lowering <span class="ui">Mutation rate</span> / <span class="ui">Mutation width</span> gives gentler changes closer to the parent. Growing patiently in 1-parent mode is also effective.</p>
+
+    <p><strong>Q. I want to go back to a shape I liked.</strong><br>
+    A. Copy and save the individual you liked with <span class="ui">📋 Genes</span>. You can later paste it into the "Gene editor" and restore it with <span class="ui">↓ Place in center</span> (§5).</p>
+
+    <p><strong>Q. No sliders appear.</strong><br>
+    A. If <code>PARAM_DEFS</code> is absent, only the default <span class="ui">Mutation rate</span> and <span class="ui">Mutation width</span> are shown. If you want a custom slider, ask a generative AI to "add PARAM_DEFS, with help text too".</p>
+
+    <p><strong>Q. The animation doesn't move.</strong><br>
+    A. Animation requires <code>const ANIMATED = true</code> plus <code>initState</code> / <code>stepState</code> / <code>drawFrame</code>. Static models don't show the <span class="ui">Animation</span> panel.</p>
+
+    <p><strong>Q. No child appears in 2-parent mode.</strong><br>
+    A. In 2-parent mode you need to <strong>click two individuals in turn</strong>. With only one clicked, it stays waiting for the second selection. Choose the crossover type at bottom left.</p>
+
+    <p><strong>Q. My code disappears when I close the browser.</strong><br>
+    A. There is no auto-save. Keep a file with <span class="ui">💾 Save .js</span> and load it next time with <span class="ui">📂 Open</span>. It's also reassuring to copy and save the genes of individuals you liked.</p>
+
+    <hr class="divider">
+
+    <h2 class="section-title" id="refs"><span class="sec-num">📚</span>References and Sources</h2>
+    <p>These are the representative original sources the built-in subjects draw on. All code is an independent implementation by this project (for the virtual creature, the code is independently implemented, drawing on the inspiration noted below).</p>
+    <ul>
+      <li><strong>Interactive Evolutionary Computation (IEC) in general</strong>: Takagi, H. (2001). Interactive evolutionary computation: Fusion of the capabilities of EC optimization and human evaluation. <em>Proceedings of the IEEE</em>, 89(9), 1275–1296.</li>
+      <li><strong>Branching shapes (Biomorphs)</strong>: Dawkins, R. (1986). <em>The Blind Watchmaker</em>. Longman Scientific &amp; Technical.</li>
+      <li><strong>Interactive evolution of images</strong>: Sims, K. (1991). Artificial evolution for computer graphics. <em>Computer Graphics (SIGGRAPH '91)</em>, 25(4), 319–328.</li>
+      <li><strong>Flock (flocking / Boids)</strong>: Reynolds, C. W. (1987). Flocks, herds and schools: A distributed behavioral model. <em>Computer Graphics (SIGGRAPH '87)</em>, 21(4), 25–34.</li>
+      <li><strong>Virtual creature (soft body, voxels)</strong>: Bhatia, J., Jackson, H., Tian, Y., Xu, J., &amp; Matusik, W. (2021). Evolution Gym: A large-scale benchmark for evolving soft robots. <em>NeurIPS 2021</em>. The idea is drawn from <a href="https://github.com/EvolutionGym/evogym" target="_blank">Evolution Gym</a> (MIT License); the code itself is independently implemented.</li>
+      <li><strong>Stained glass</strong>: a planar partition based on the Voronoi diagram.</li>
+      <li><strong>Face, math art, and sound evolution</strong>: general applications of IEC, with no specific original source.</li>
+    </ul>
+
+    <hr class="divider">
+
+    <h2 class="section-title"><span class="sec-num">★</span>Acknowledgments</h2>
+    <p>This tool has been greatly influenced by <a href="https://www.netlogo.org/" target="_blank">NetLogo</a> (Wilensky, U., 1999, Center for Connected Learning and Computer-Based Modeling, Northwestern University). The author has long used NetLogo for his own understanding and in teaching, and that experience forms the foundation for the ideas and design of this tool. My deep thanks are recorded here.</p>
+
+    <hr class="divider">
+
+    <p style="font-size:.82rem;color:var(--light);text-align:center;padding-top:1rem">
+      IEC Studio v1.0 &nbsp;|&nbsp;
+      <a href="IEC_Studio.html" style="color:var(--accent)">Open IEC Studio</a>
+      &nbsp;|&nbsp;
+      <a href="IEC_Studio_FirstSteps.html" style="color:var(--accent)">First Steps</a>
+    </p>
+
+  </main>
+</div>
+
+<script>
+const links = document.querySelectorAll('#sideNav a');
+const sections = Array.from(links).map(l => document.getElementById(l.getAttribute('href').replace('#',''))).filter(Boolean);
+function onScroll(){
+  const y = window.scrollY + 80; let cur = null;
+  for (const s of sections) if (s.offsetTop <= y) cur = s.id;
+  links.forEach(l => l.classList.toggle('active', l.getAttribute('href').replace('#','') === cur));
+}
+window.addEventListener('scroll', onScroll, { passive:true });
+onScroll();
+</script>
+</body>
+</html>

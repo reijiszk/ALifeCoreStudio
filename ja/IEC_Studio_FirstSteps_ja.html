@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IEC Studio はじめてガイド</title>
+
+<style>
+:root {
+  --bg:       #ffffff;
+  --text:     #1a1a1a;
+  --muted:    #555;
+  --light:    #888;
+  --border:   #e0e0e0;
+  --accent:   #1a4b8c;
+  --green:    #2a7a40;
+  --amber:    #b56800;
+  --tip-bg:   #f0f7ff;
+  --warn-bg:  #fff8f0;
+  --step-num: #1a4b8c;
+  --chat-bg:  #f0f7ff;
+  --chat-ai:  #f5f0ff;
+  --tag-bg:   #e8ecf4;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.85;
+  font-size: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1.4rem 6rem;
+  transition: background 0.3s ease;
+}
+
+/* ── Header ── */
+.page-header {
+  text-align: center;
+  padding: 2.4rem 1rem 2rem;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 2.8rem;
+}
+.page-header .eyebrow {
+  font-size: 0.78rem;
+  letter-spacing: .1em;
+  color: var(--light);
+  text-transform: uppercase;
+  margin-bottom: 0.7rem;
+}
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--accent);
+  line-height: 1.3;
+  margin-bottom: 0.6rem;
+}
+.page-header .tagline {
+  font-size: 1rem;
+  color: var(--muted);
+}
+.page-header .badges {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: .04em;
+}
+.badge-blue  { background: #dde8f5; color: #1a4b8c; }
+.badge-green { background: #d8f0e0; color: #1a6a30; }
+.badge-amber { background: #fef3dc; color: #8a5500; }
+
+/* ── Section heading ── */
+h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 1rem 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+h2 .sec-icon { font-size: 1.4rem; }
+
+h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 1.8rem 0 0.7rem;
+}
+
+p { margin-bottom: 1rem; color: var(--muted); }
+
+/* ── Big step ── */
+.steps { margin: 1.2rem 0 2rem; }
+.big-step {
+  display: flex;
+  gap: 1.1rem;
+  margin-bottom: 1.6rem;
+  align-items: flex-start;
+}
+.big-num {
+  flex-shrink: 0;
+  width: 40px; height: 40px;
+  background: var(--step-num);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 0.1rem;
+  box-shadow: 0 2px 8px rgba(26,75,140,.25);
+}
+.big-body { flex: 1; }
+.big-body .step-title {
+  font-size: 1.0rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+.big-body p { margin-bottom: 0.5rem; font-size: 0.93rem; }
+
+/* ── Info boxes ── */
+.tip, .warn, .good {
+  border-left: 3px solid;
+  padding: 0.85rem 1.1rem;
+  margin: 1.2rem 0;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.93rem;
+}
+.tip  { background: var(--tip-bg);  border-color: var(--accent); }
+.warn { background: var(--warn-bg); border-color: #c97a00; }
+.good { background: #f0fff4;        border-color: var(--green); }
+.box-label {
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.tip  .box-label { color: var(--accent); }
+.warn .box-label { color: var(--amber); }
+.good .box-label { color: var(--green); }
+
+/* ── Chat bubbles ── */
+.chat { margin: 1.2rem 0; }
+.chat-row {
+  display: flex;
+  gap: 0.7rem;
+  margin-bottom: 0.9rem;
+  align-items: flex-start;
+}
+.chat-row.ai { flex-direction: row-reverse; }
+.chat-avatar {
+  flex-shrink: 0;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  background: #e8ecf4;
+  margin-top: 2px;
+}
+.chat-row.ai .chat-avatar { background: #ede8f8; }
+.chat-bubble {
+  max-width: 82%;
+  background: var(--chat-bg);
+  border-radius: 0 14px 14px 14px;
+  padding: 0.7rem 1rem;
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.7;
+  border: 1px solid #d4e4f7;
+}
+.chat-row.ai .chat-bubble {
+  background: var(--chat-ai);
+  border-radius: 14px 0 14px 14px;
+  border-color: #ddd4f7;
+  color: #2d1a6e;
+}
+.chat-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  color: var(--light);
+  margin-bottom: 0.2rem;
+}
+
+/* ── Example prompt card ── */
+.prompt-card {
+  border: 1.5px solid var(--accent);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 1.2rem 0;
+}
+.prompt-card-header {
+  background: var(--accent);
+  color: #fff;
+  padding: 0.4rem 1rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+}
+.prompt-card-body {
+  padding: 0.85rem 1.1rem;
+  font-size: 0.88rem;
+  color: #1a1a1a;
+  line-height: 1.8;
+  background: #f8fbff;
+}
+.prompt-card-body .placeholder {
+  display: inline-block;
+  background: #fff3cd;
+  border: 1px dashed #c97a00;
+  border-radius: 3px;
+  padding: 0 5px;
+  font-weight: 700;
+  color: #7a4800;
+}
+
+/* ── Model idea cards ── */
+.idea-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.85rem;
+  margin: 1rem 0 1.5rem;
+}
+.idea-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  background: #fafafa;
+  transition: box-shadow .15s;
+}
+.idea-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+.idea-card .ic-emoji { font-size: 1.5rem; margin-bottom: 0.3rem; }
+.idea-card .ic-title { font-size: 0.88rem; font-weight: 700; margin-bottom: 0.2rem; }
+.idea-card .ic-desc  { font-size: 0.78rem; color: var(--light); line-height: 1.5; }
+
+/* ── Table ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin: 1rem 0 1.5rem;
+  background: #fff;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 0.6rem 0.85rem;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #f5f5f5; font-weight: 700; font-size: 0.82rem; }
+td:first-child { font-weight: 700; color: #b91c1c; font-size: 0.85rem; width: 25%; }
+td ul { margin: 0 0 0 1.2rem; padding: 0; }
+td li { margin-bottom: 0.3rem; color: var(--muted); }
+
+/* ── kbd & UI Labels ── */
+kbd {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8em;
+  background: #fff;
+  border: 1.5px solid #b0b8cc;
+  border-bottom: 3px solid #8090aa;
+  border-radius: 4px;
+  padding: 1px 6px;
+  color: #1e3a6e;
+}
+.ui {
+  display: inline-block;
+  background: #e8ecf4;
+  border: 1px solid #c0c8d8;
+  border-radius: 3px;
+  padding: 0px 6px;
+  font-size: 0.82em;
+  font-weight: 600;
+  color: #1e3a6e;
+  white-space: nowrap;
+}
+
+/* ── Divider ── */
+hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+
+/* ── TOC ── */
+.toc {
+  background: #f8fbff;
+  border: 1px solid #d4e4f7;
+  border-radius: 8px;
+  padding: 1.1rem 1.4rem;
+  margin: 0 0 2.5rem;
+  font-size: 0.9rem;
+}
+.toc-title { font-weight: 800; font-size: 0.85rem; color: var(--accent); margin-bottom: 0.6rem; letter-spacing: .05em; }
+.toc ol { padding-left: 1.3rem; }
+.toc li { margin-bottom: 0.25rem; }
+.toc a { color: var(--accent); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+
+/* ── Footer ── */
+.footer {
+  margin-top: 3rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--light);
+  text-align: center;
+}
+.footer a { color: var(--accent); text-decoration: none; }
+
+/* ── flow arrow ── */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 1rem 0 1.4rem;
+}
+.flow-step {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.flow-arrow { color: #aaa; font-size: 1.1rem; }
+
+/* ── Slide Mode Button & Controls ── */
+#toggle-slide-mode {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(26, 75, 140, 0.3);
+  transition: transform 0.2s, background 0.2s;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+#toggle-slide-mode:hover { background: #143a6d; transform: translateY(-2px); }
+
+#slide-controls {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(26, 75, 140, 0.95);
+  padding: 0.6rem 1.5rem;
+  border-radius: 30px;
+  display: none;
+  gap: 1.5rem;
+  align-items: center;
+  z-index: 1000;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  color: #fff;
+  font-weight: 700;
+  backdrop-filter: blur(5px);
+}
+#slide-controls button {
+  background: none; border: none; color: #fff; font-size: 1.2rem;
+  cursor: pointer; padding: 0.3rem 0.8rem; border-radius: 4px; transition: background 0.2s;
+}
+#slide-controls button:hover { background: rgba(255, 255, 255, 0.2); }
+#slide-counter { font-family: 'IBM Plex Mono', monospace; font-size: 1.1rem; min-width: 70px; text-align: center; }
+#exit-slide { font-size: 0.95rem !important; border-left: 1px solid rgba(255,255,255,0.3) !important; padding-left: 1.2rem !important; margin-left: 0.5rem; }
+
+/* ── Slide Mode Overrides ── */
+body.is-slide-mode {
+  background: #e5e7eb;
+  max-width: 100%; padding: 0; overflow: hidden;
+  display: flex; justify-content: center; align-items: center; height: 100vh;
+}
+body.is-slide-mode #toggle-slide-mode,
+body.is-slide-mode .footer,
+body.is-slide-mode hr { display: none; }
+
+.slide-section { margin-bottom: 2rem; }
+
+body.is-slide-mode .slide-section {
+  display: none;
+  background: var(--bg);
+  width: 90vw; max-width: 1200px; height: 85vh;
+  padding: 3rem 4rem; border-radius: 12px;
+  box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+  overflow-y: auto; font-size: 1.2rem; margin-bottom: 0;
+}
+body.is-slide-mode .slide-section.active {
+  display: block; animation: slideFadeIn 0.4s ease forwards;
+}
+@keyframes slideFadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Scaling up for presentation */
+body.is-slide-mode .page-header { border-bottom: none; margin-top: 8vh; }
+body.is-slide-mode .page-header h1 { font-size: 3.2rem; margin-bottom: 1.5rem; line-height: 1.3; }
+body.is-slide-mode .page-header .tagline { font-size: 1.4rem; }
+body.is-slide-mode h2 { font-size: 2.0rem; margin: 0 0 1.5rem; border-bottom: 3px solid var(--border); padding-bottom: 0.8rem; }
+body.is-slide-mode h2 .sec-icon { font-size: 2.2rem; }
+body.is-slide-mode h3 { font-size: 1.4rem; margin-top: 2rem; }
+body.is-slide-mode .toc { margin-top: 4vh; border: none; background: transparent; padding: 0; font-size: 1.3rem; }
+body.is-slide-mode .toc-title { font-size: 1.6rem; margin-bottom: 1rem; }
+body.is-slide-mode .toc ol { padding-left: 2.5rem; line-height: 2.0; }
+body.is-slide-mode p, body.is-slide-mode li { line-height: 1.7; }
+body.is-slide-mode .big-step { margin-bottom: 1.5rem; }
+body.is-slide-mode .big-num { width: 45px; height: 45px; font-size: 1.3rem; }
+body.is-slide-mode .big-body .step-title { font-size: 1.2rem; }
+body.is-slide-mode .big-body p { font-size: 1.05rem; }
+body.is-slide-mode .tip, body.is-slide-mode .warn, body.is-slide-mode .good { font-size: 1.05rem; padding: 1.2rem 1.5rem; }
+body.is-slide-mode table { font-size: 1.05rem; }
+body.is-slide-mode th, body.is-slide-mode td { padding: 0.8rem 1rem; }
+body.is-slide-mode .chat-bubble { font-size: 1.05rem; max-width: 90%; }
+</style>
+</head>
+<body>
+
+<button id="toggle-slide-mode" title="スライドモードで表示する" onclick="toggleSlideMode()">
+  <span>📊</span> スライド表示
+</button>
+
+<div id="slide-controls">
+  <button id="prev-slide" title="前のスライド (左矢印キー)" onclick="prevSlide()">◀</button>
+  <span id="slide-counter">1 / 1</span>
+  <button id="next-slide" title="次のスライド (右矢印/スペースキー)" onclick="nextSlide()">▶</button>
+  <button id="exit-slide" title="通常モードに戻る (Escキー)" onclick="toggleSlideMode()">✕ 閉じる</button>
+</div>
+
+<div class="slide-section">
+  <div class="page-header">
+    <div class="eyebrow">IEC Studio ガイド</div>
+    <h1>プログラミングなしで<br>「好み」で進化させよう</h1>
+    <p class="tagline">評価式を書かず，あなたが「いいな」を選ぶだけで形が進化する．生成AI に頼んで，貼って，選ぶだけ．</p>
+    <div class="badges">
+      <span class="badge badge-blue">コーディング不要</span>
+      <span class="badge badge-green">IEC Studio v1.0 対応</span>
+      <span class="badge badge-amber">生成AI 無料版 OK</span>
+    </div>
+  </div>
+</div>
+
+<div class="slide-section">
+  <div class="toc">
+    <div class="toc-title">もくじ</div>
+    <ol>
+      <li><a href="#what">IEC Studio って何？</a></li>
+      <li><a href="#flow">全体の流れ（3ステップ）</a></li>
+      <li><a href="#builtin">まずビルトインモデルを動かしてみよう</a></li>
+      <li><a href="#screen">系統・拡大・概要の見かた</a></li>
+      <li><a href="#modify">動いているモデルを改変しよう（まずはここから）</a></li>
+      <li><a href="#gemini">生成AI に新しいモデルを作ってもらおう</a></li>
+      <li><a href="#localai">生成AI の API に直接つないで生成する（ローカル / クラウド）</a></li>
+      <li><a href="#ideas">どんなものが作れる？ アイデア集</a></li>
+      <li><a href="#trouble">うまくいかないときは</a></li>
+      <li><a href="#refs">参考文献・出典</a></li>
+      <li><a href="#thanks">謝辞</a></li>
+    </ol>
+  </div>
+</div>
+
+<div class="slide-section">
+  <h2 id="what"><span class="sec-icon">🤔</span> IEC Studio って何？</h2>
+  <p>IEC Studio は，<strong>ブラウザで動く「対話型進化計算（IEC）」のツールです．</strong>インストール不要．ファイルをダブルクリックするだけで使えます．</p>
+  <p>ふつうの進化計算（GA）は，良し悪しを<strong>数式（評価関数）</strong>で測ります．IEC では，その役割を<strong>あなたの「好み」</strong>が担います．3×3 の9個体から「いいな」と思うものをクリックすると，それを親にして次の世代9個体が作られ，少しずつ好みの形へ進化していきます．</p>
+  <p>あなたが決めるのは「遺伝子の形」「遺伝子から絵をどう描くか」だけ．それも <strong>生成AI に作ってもらって貼り付けるだけ</strong>でかまいません．</p>
+  <div class="tip">
+    <span class="box-label">このツールのねらい（考え方）</span>
+    近年の生成AIの進展は，複雑系や人工生命の「<strong>作って理解する</strong>（構成論的）」モデリングを大きく変えつつあります．プロンプトで骨子を与えれば，完全な仕様でなくても様々なモデルを自動生成でき，必要に応じて AI に説明してもらって理解したり，対話しながらアイデアを洗練したりできます．ただし，全部を AI に任せると出来上がるものがバラバラになりがちです．<br>
+    ALifeCoreStudio（ABM・EVO・IEC の3スタジオ）は，<strong>モデル構築・可視化・分析の共通の枠組みを固定</strong>したうえで，モデルの<strong>本質的な部分だけ</strong>を生成AIで生み出せるようにした道具です．これにより，<strong>プログラミング未経験の初心者が発想を自由に形にする</strong>／<strong>学生が AI と協働してモデルを育てる</strong>／<strong>研究者が素早くプロトタイプを作る</strong>，といった使い方ができます．<br>
+    枠組みの中で<strong>可能なモデルを自由に生み出す</strong>ことを通じて，<strong>構成論的アプローチによる科学的理解を加速</strong>し，「どんな世界がありうるか」を思い描いて動かす<strong>楽しさ</strong>を広げたい——それがこのツールのねらいです．
+  </div>
+  <div class="good">
+    <span class="box-label">これだけあれば OK</span>
+    IEC Studio（HTML ファイル）を開いたブラウザ ＋ 生成AIサービス（<a href="https://chatgpt.com" target="_blank">ChatGPT</a>・<a href="https://gemini.google.com" target="_blank">Gemini</a>・<a href="https://claude.ai" target="_blank">Claude</a> など，無料版で十分）
+  </div>
+  <div class="tip">
+    <span class="box-label">Evo／ABM Studio との違い</span>
+    Evo は<strong>評価関数</strong>で，ABM は<strong>個体のルール</strong>で動きます．IEC のいちばんの特徴は，<strong>評価関数を書かず「人が選ぶ」</strong>こと．美しさ・好みなど，式にしにくい価値を進化させられます．
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="flow"><span class="sec-icon">🗺️</span> 全体の流れ（3ステップ）</h2>
+  <div class="flow">
+    <div class="flow-step">① 生成AI に頼む</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">② コードをコピー</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">③ IEC Studio に貼って適用</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">🖱 選んで進化！</div>
+  </div>
+  <p>これだけです．コードを読む必要も書く必要もありません．まずは最初から入っているモデルで，「選ぶと進化する」感覚を体験しましょう．</p>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="builtin"><span class="sec-icon">▶️</span> まずビルトインモデルを動かしてみよう</h2>
+  <p>IEC Studio には最初からモデルが入っています．まずそれを動かしてみましょう．</p>
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">モデルを選ぶ</div>
+        <p>画面下のコードバーにあるドロップダウンからモデルを選びます．9個の候補が表示されます．</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">気に入った個体を<strong>クリック</strong></div>
+        <p>選んだ個体を親に，次の世代9個体が作られます．これをくり返すだけで，好みの形へ進化します．<span class="ui">⟳ 初期化</span> でランダムな初期集団からやり直せます．</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <span class="box-label">おすすめの見方</span>
+    まず「枝分かれ図形」を選び，<strong>少しでも「いいな」と思う形を次々クリック</strong>してみてください．10回ほど選ぶと，最初とはまるで違う「自分好みの生き物」が育っていきます．「選ぶだけで形が育つ」進化の体験ができます．
+  </div>
+
+  <div class="good">
+    <span class="box-label">知っておくと得な機能</span>
+    <ul style="margin:.3rem 0 0 1.2rem;line-height:1.8">
+      <li><strong>1親 / 2親モード：</strong>1個体を選んで変異させるか，2個体を選んで<strong>交叉（かけ合わせ）</strong>するかを切り替えられます．</li>
+      <li><strong>🔍 拡大：</strong>各セルにマウスを乗せると出るボタンで，その個体を<strong>大きく</strong>表示（アニメは動きます）．じっくり見てから選べます．</li>
+      <li><strong>系統を表示：</strong>これまで選んだ親の履歴が並びます．サムネイルを<strong>クリックすると，その祖先から育種をやり直せ</strong>（巻き戻し），枝分かれを試せます．</li>
+      <li><strong>📦 データ一式DL：</strong>系統チェックの隣の <span class="ui">📦 データ一式DL</span> で，初期化以降のデータを <b>ZIP</b> にまとめて保存できます．中身は，<b>各世代の全9個体</b> <code>frames.jsonl</code>，選んだ親の系統 <code>lineage.csv</code>，現在の9個体 <code>population.csv</code>，実験設定（選択モード・交叉方式・パラメータ・<b>乱数シード</b> 等）の <code>metadata.json</code>，全データの <code>data.json</code>，そして<b>モデルのコードそのもの</b> <code>model.js</code> です．<br>
+      書き出した ZIP をリポジトリ直下の <code>ALifeCoreStudio_Viewer.html</code> にドロップすると，<b>各世代の9個体を，そのモデル自身の絵で並べてタイムライン再生</b>できます（選んだ個体には ★・組み込み／改変／新規どれでも動作）．IEC は軽いので状態は常に記録され，オン／オフの操作は不要です．</li>
+      <li><strong>このモデルの概要：</strong>右パネル上部に，遺伝子・表現型・選び方の説明が出ます．</li>
+      <li><strong>変異率・変異幅：</strong>大きいほど子が親から大きく変わります．代わり映えしないときは上げる．</li>
+      <li><strong>⛶ 全画面：</strong>ヘッダーのボタンで9個体グリッドだけを画面いっぱいに表示．プロジェクタ投影や教室での一斉閲覧に．</li>
+      <li><strong>💾 HTML出力：</strong>いま動かしているモデルを，編集UIなしの単体HTMLファイルとして書き出せます．配布・提出・発表用の保存に．</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide-section">
+  <h3>ビルトインモデル一覧</h3>
+  <div class="idea-grid">
+    <div class="idea-card"><div class="ic-emoji">🌿</div><div class="ic-title">枝分かれ図形</div><div class="ic-desc">9個の遺伝子から枝分かれの図形が育つ．</div></div>
+    <div class="idea-card"><div class="ic-emoji">🐦</div><div class="ic-title">群れ（フロッキング）</div><div class="ic-desc">群れの動き方（分離・整列・凝集）を好みで進化（アニメ）．</div></div>
+    <div class="idea-card"><div class="ic-emoji">🙂</div><div class="ic-title">顔の進化</div><div class="ic-desc">目・口・輪郭などの特徴を美的選択で進化．</div></div>
+    <div class="idea-card"><div class="ic-emoji">🪟</div><div class="ic-title">ステンドグラス</div><div class="ic-desc">ボロノイ分割＋配色．好みの模様を選んで育てる．</div></div>
+    <div class="idea-card"><div class="ic-emoji">🌀</div><div class="ic-title">数式アート</div><div class="ic-desc">z=f(x,y) の濃淡・色で生まれる模様を進化．</div></div>
+    <div class="idea-card"><div class="ic-emoji">🧬</div><div class="ic-title">ソフトボディ生物</div><div class="ic-desc">5×5 ボクセルの形と歩き方を好みで進化（アニメ）．</div></div>
+    <div class="idea-card"><div class="ic-emoji">🎵</div><div class="ic-title">音の進化</div><div class="ic-desc">8音の短いメロディを「▶ 鳴らす」で聴いて好みで進化．</div></div>
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="screen"><span class="sec-icon">👁️</span> 系統・拡大・概要の見かた</h2>
+  <p>IEC ならではの便利な3つの見かたを覚えておきましょう．</p>
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title"><span class="ui">系統を表示</span>（選んだ親の履歴）</div>
+        <p>グリッド下のチェックを入れると，各世代で選んだ親が左→右に並びます．サムネイルを<strong>クリックするとその祖先から育種をやり直せ</strong>，別の枝を試して比べられます．</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title"><span class="ui">🔍 拡大</span>（大きく観察）</div>
+        <p>各セルにマウスを乗せると左下に出ます．その個体を大きく表示し，アニメのモデルは<strong>動く様子</strong>を速度を変えて観察できます．気に入ったら「この個体から次世代」で選べます．</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">3</div>
+      <div class="big-body">
+        <div class="step-title"><span class="ui">このモデルの概要</span></div>
+        <p>右パネル上部に，<strong>遺伝子（何が変わるか）・表現型（どう絵になるか）・選び方</strong>が書かれています．まず読むと選びやすくなります．</p>
+      </div>
+    </div>
+  </div>
+  <div class="tip">
+    <span class="box-label">使い分けのコツ</span>
+    迷ったら<strong>変異率を上げて</strong>多様な候補を出し，<strong>🔍 拡大</strong>でじっくり見てから選ぶ．行き詰まったら<strong>系統</strong>から前の祖先に戻って別方向へ．これだけで探索の幅が大きく広がります．
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="modify"><span class="sec-icon">✏️</span> 動いているモデルを改変しよう（まずはここから）</h2>
+  <p><strong>いちばん簡単な入り口がこれです．</strong>ビルトインのモデルを少し変えるだけで，自分の関心に近づけられます．<strong>「✏️ 改変プロンプト」ボタン</strong>を押すと，現在のコードと改変指示がセットでコピーされます．</p>
+  <div class="tip">
+    <span class="box-label">📖 説明プロンプト と モデル名</span>
+    いま動かしている題材の「仕組み」を知りたいときは <span class="ui">📖 説明プロンプト</span> を押します．現在のコードを含む説明依頼がコピーされるので，生成AI に貼ると<strong>概要・アルゴリズムの説明・疑似コード</strong>で丁寧に解説してくれます．また生成・改変されたコードには <code>const TITLE = 'モデル名'</code> が付き，ブラウザのタブ名・「説明」の見出し・<span class="ui">💾 .js保存</span> のファイル名（例 <code>枝分かれ図形.js</code>）に反映されます．
+  </div>
+
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">「✏️ 改変プロンプト」を押す</div>
+        <p>コードバーにあります．現在のコードが自動的にプロンプトに含まれます．</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">生成AI に貼り付けて「変えたいこと」を書く</div>
+        <p>貼り付けたプロンプトの<strong>末尾にある【改変したい内容】</strong>に，変えたい内容を日本語で<strong>1〜2 項目ずつ</strong>箇条書きします．</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">3</div>
+      <div class="big-body">
+        <div class="step-title">返ってきたコードを全部入れ替える</div>
+        <p>コード欄で全選択（<kbd>Ctrl</kbd>+<kbd>A</kbd>）して貼り付け（<kbd>Ctrl</kbd>+<kbd>V</kbd>），「▶ 適用」を押します．</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>モデル別・改変リクエストの例（各2つ）💬</h3>
+  <table>
+    <tr><th>ベースモデル</th><th>生成AI への改変指示のアイデア</th></tr>
+    <tr><td>🌿 枝分かれ図形</td><td><ul><li>枝分かれの最大本数や深さを増やして，もっと複雑な形になるようにして．</li><li>色を遺伝子に加えて，枝ごとに色が変わるようにして．</li></ul></td></tr>
+    <tr><td>🐦 群れ（フロッキング）</td><td><ul><li>個体数を増やして大きな群れにして．</li><li>捕食者を1匹加えて，群れが逃げる動きが出るようにして．</li></ul></td></tr>
+    <tr><td>🪟 ステンドグラス</td><td><ul><li>領域（ボロノイの種点）の数を増やして，細かい模様にして．</li><li>配色を寒色系／暖色系に寄せられるパラメータを加えて．</li></ul></td></tr>
+    <tr><td>🧬 ソフトボディ生物</td><td><ul><li>ボクセルを 6×6 に拡大して，より複雑な体にして．</li><li>水中（抵抗が大きい）設定にして，泳ぐような動きが出るようにして．</li></ul></td></tr>
+    <tr><td>🌀 数式アート</td><td><ul><li>左右対称・回転対称の模様になりやすくして．</li><li>使う色数を増やして，もっとカラフルにして．</li></ul></td></tr>
+    <tr><td>🙂 顔の進化</td><td><ul><li>髪型のバリエーションを遺伝子に加えて．</li><li>表情（口角・眉の角度）を遺伝子にして，笑顔や困り顔が出るようにして．</li></ul></td></tr>
+    <tr><td>🎵 音の進化</td><td><ul><li>音の数を8音から16音に増やして，もっと長いメロディにして．</li><li>リズム（音の長さ）も遺伝子に加えて，変化をつけられるようにして．</li></ul></td></tr>
+  </table>
+
+  <div class="good">
+    <span class="box-label">改変のコツ</span>
+    一度に大きく変えようとすると失敗しやすいです．<strong>小さな変更を 1〜2 個ずつ</strong>頼んで，動くたびに確認していくのがおすすめです．
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="gemini"><span class="sec-icon">✨</span> 生成AI に新しいモデルを作ってもらおう</h2>
+  <p>改変に慣れたら，<strong>ゼロから新しいモデル</strong>も作れます．「✨ 新規作成プロンプト」ボタンを押すと，生成AI に渡すための仕様書がクリップボードにコピーされます．</p>
+
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">「✨ 新規作成プロンプト」を押す</div>
+        <p>画面下部のコードバーにあります．「コピーしました」と出れば OK．</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">生成AI に貼り付けて書き換える</div>
+        <p>生成AI のチャット欄に貼り付け，<strong>【作りたいもの】</strong>の欄を進化させたい対象に書き換えて送信します．</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">3</div>
+      <div class="big-body">
+        <div class="step-title">コードをコピーして IEC Studio に貼る</div>
+        <p>生成AI が出力したコードブロック（```javascript ... ```）の中身だけをコピーして，コード欄に貼り付け「▶ 適用」を押します．</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>こんなふうに頼むと伝わりやすい 💬</h3>
+  <p>IEC では「<strong>遺伝子（何が変わるか）と，遺伝子からどんな絵を描くか</strong>」を伝えるのがコツです．良し悪しは人が選ぶので，評価関数は要りません．</p>
+  <div class="chat">
+    <div class="chat-row">
+      <div class="chat-avatar">🙋</div>
+      <div>
+        <div class="chat-label">学生の入力例</div>
+        <div class="chat-bubble">花の形を「好み」で進化させたい．<br>花びらの枚数・色・とがり具合を遺伝子にして，9個の花を描いて．クリックで似た花が9個出るように．</div>
+      </div>
+    </div>
+    <div class="chat-row">
+      <div class="chat-avatar">🙋</div>
+      <div>
+        <div class="chat-label">学生の入力例</div>
+        <div class="chat-bubble">幾何学的な「ロゴ」を進化させたい．<br>図形の数・回転・配色を遺伝子にして，対称性のある模様が出やすいようにして．</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prompt-card">
+    <div class="prompt-card-header">📋 生成AI へのリクエスト例（【作りたいもの】欄に書く内容）</div>
+    <div class="prompt-card-body">
+      <span class="placeholder">進化させたい対象（例：花・ロゴ・模様・生き物）</span> を「好み」で進化させるモデルを作ってください．<br><br>
+      遺伝子（少しずつ変わるもの）は <span class="placeholder">何か（例：色・枚数・角度・大きさ）</span>．<br>
+      遺伝子からの絵の描き方は <span class="placeholder">どんな見た目か（例：放射状の花・幾何学模様）</span>．<br><br>
+      動く絵にしたい場合は，その旨も書いてください（アニメーション対応）．<br>
+      良し悪しは人がクリックで選ぶので，評価関数は不要です．
+    </div>
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="localai"><span class="sec-icon">🤖</span> 生成AI の API に直接つないで生成する（ローカル / クラウド）</h2>
+  <p>生成AI にコピー＆ペーストする代わりに，<strong>自分のPCで動く LLM（LM Studio など）に直接つないで</strong>，改変や新規作成を Studio の中だけで完結させることもできます．コードを貼ったり戻したりする手間がなく，ネットに送らず手元で動かせるのが利点です．<strong>OpenAI 互換 API なら何でも</strong>使えます（LM Studio・Ollama・OpenAI など）．</p>
+  <div class="tip">
+    <span class="box-label">必要なもの</span>
+    LM Studio（無料）などの OpenAI 互換サーバ．モデルを1つロードし，ローカルサーバを起動しておきます．
+  </div>
+  <div class="steps">
+    <div class="big-step">
+      <div class="big-num">1</div>
+      <div class="big-body">
+        <div class="step-title">LM Studio でサーバを起動する</div>
+        <p>モデルをロード →「Local Server」を Start．<strong>Server Settings で「Enable CORS」を ON</strong> にしておきます（ブラウザから接続するために必須）．</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">2</div>
+      <div class="big-body">
+        <div class="step-title">「🤖 AI生成」を押す</div>
+        <p>画面下部のコードバーにあります．設定パネルが開くので，エンドポイント（既定 <code>http://localhost:1234</code>）とモデル名を確認します．モデル名は <span class="ui">🔄 一覧取得</span> で選べます．設定は記憶されるので次回からは不要です．</p>
+      </div>
+    </div>
+    <div class="big-step">
+      <div class="big-num">3</div>
+      <div class="big-body">
+        <div class="step-title">「改変／新規作成」を選び，指示を書いて ▶ 送信</div>
+        <p>「✏️ 既存コードを改変」か「✨ 新規作成」を選び，やりたいことを書いて送信します．生成されたコードは<strong>自動でコード欄に入ります</strong>．内容を確認して <span class="ui">▶ 適用</span> で実行します．</p>
+      </div>
+    </div>
+  </div>
+  <div class="tip">
+    <span class="box-label">うまく繋がらないとき</span>
+    「Failed to fetch」はサーバ未起動・CORS 未設定・URL 違いが主な原因です．まずブラウザで <code>http://localhost:1234/v1/models</code> を直接開いて JSON が出るか確認してください．出れば LM Studio 側は正常です．モデル名は手入力でも送信できます．
+  </div>
+
+  <h3>クラウドの生成AIサービスを使う（OpenRouter・DeepInfra・OpenAI など）</h3>
+  <p>ローカルだけでなく，OpenAI 互換のクラウド API も<strong>同じパネルから</strong>使えます．自分でサーバを立てる必要はなく，「エンドポイント」に各サービスのベースURL，「API キー」に発行したキー，モデル名を入れるだけです．</p>
+  <table>
+    <tr><th>サービス</th><th>エンドポイント（Base URL）</th><th>モデル名の例</th></tr>
+    <tr><td>OpenRouter</td><td><code>https://openrouter.ai/api/v1</code></td><td><code>openai/gpt-4o-mini</code>，<code>deepseek/deepseek-chat</code> など</td></tr>
+    <tr><td>DeepInfra</td><td><code>https://api.deepinfra.com/v1/openai</code></td><td><code>meta-llama/Meta-Llama-3.1-8B-Instruct</code> など</td></tr>
+    <tr><td>OpenAI</td><td><code>https://api.openai.com/v1</code></td><td><code>gpt-4o-mini</code> など</td></tr>
+  </table>
+  <div class="tip">
+    <span class="box-label">クラウド利用の注意</span>
+    これらは <strong>API キーが必須</strong>で，多くは<strong>従量課金</strong>です．キーは各サービスのダッシュボードで発行し，コードに書かず「API キー」欄に入れてください．モデル名は <span class="ui">🔄 一覧取得</span> でも選べます（OpenRouter は数百種類出ます）．ブラウザから直接呼べるかは各サービスの CORS 対応によります（OpenRouter・DeepInfra は対応。サービスによっては <code>Failed to fetch</code> になり，その場合はブラウザからは使えません）．
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="ideas"><span class="sec-icon">💡</span> どんなものが作れる？ アイデア集</h2>
+  <p>「正解を式で書きにくいけれど，見れば良し悪しが分かる」ものは，たいてい IEC に向いています．</p>
+  <div class="idea-grid">
+    <div class="idea-card"><div class="ic-emoji">🎨</div><div class="ic-title">ロゴ・マーク</div><div class="ic-desc">図形・配色・配置を進化させ，好みのロゴを探す．</div></div>
+    <div class="idea-card"><div class="ic-emoji">🌸</div><div class="ic-title">花・植物の形</div><div class="ic-desc">花びらや枝の遺伝子から，好みの植物を育てる．</div></div>
+    <div class="idea-card"><div class="ic-emoji">🙂</div><div class="ic-title">アバター・似顔絵</div><div class="ic-desc">顔の特徴を選んで，理想の顔に近づける．</div></div>
+    <div class="idea-card"><div class="ic-emoji">🎛️</div><div class="ic-title">配色パレット</div><div class="ic-desc">色の組み合わせを進化．好みの配色を見つける．</div></div>
+    <div class="idea-card"><div class="ic-emoji">🏛️</div><div class="ic-title">建築ファサード</div><div class="ic-desc">窓・柱・比率を遺伝子にして外観を進化．</div></div>
+    <div class="idea-card"><div class="ic-emoji">🧩</div><div class="ic-title">パターン・テクスチャ</div><div class="ic-desc">繰り返し模様・布地の柄を好みで進化．</div></div>
+    <div class="idea-card"><div class="ic-emoji">👗</div><div class="ic-title">服・プロダクトの形</div><div class="ic-desc">形やシルエットのパラメータを進化．</div></div>
+    <div class="idea-card"><div class="ic-emoji">🔤</div><div class="ic-title">文字の装飾</div><div class="ic-desc">フォントの太さ・飾りを進化させてロゴ文字に．</div></div>
+    <div class="idea-card"><div class="ic-emoji">🎶</div><div class="ic-title">動く図形・アニメ</div><div class="ic-desc">動き方そのものを好みで進化（ANIMATED）．</div></div>
+  </div>
+  <div class="tip">
+    <span class="box-label">うまくいくコツ</span>
+    「<strong>遺伝子＝○○，見た目＝△△</strong>」を整理して 生成AI に頼みます．候補が似すぎるときは<strong>変異率を上げる</strong>，バラバラすぎるときは下げると，ちょうどよく探索できます．
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="trouble"><span class="sec-icon">🔧</span> うまくいかないときは</h2>
+  <table>
+    <tr><th>症状</th><th>対処法</th></tr>
+    <tr><td>エラーが出て動かない</td><td>原因の<strong>行番号とヒント</strong>が日本語で出ます．まず読む．直らなければ赤いエラー文をそのまま 生成AI に貼って「直して」と頼む．<span class="ui">❔ ヘルプ</span> に使えない書き方の一覧もあります．</td></tr>
+    <tr><td>9個が表示されない</td><td><span class="ui">▶ 適用</span> を押したか確認．貼り付け→適用の順です．</td></tr>
+    <tr><td>候補が全部同じに見える</td><td>「変異率」「変異幅」を上げると違いが大きくなります．2親モードで交叉も試す．</td></tr>
+    <tr><td>動くはずが静止している</td><td>アニメ用のモデルは <code>ANIMATED=true</code> が必要．生成AI に「動くアニメにして」と頼む．</td></tr>
+    <tr><td>速い／遅い</td><td>アニメ速度スライダー（0.05×〜8×）で調整．<span class="ui">🔍 拡大</span> でも個別に速度を変えられます．</td></tr>
+    <tr><td>生成AI のコードが動かない</td><td>「仕様書に従って修正してください．<code>document.*</code>・<code>import</code>・<code>class</code> は使わないでください」と再依頼．</td></tr>
+    <tr><td>無料版でコードが途中で切れる／説明文が混ざる</td><td><strong>コードブロックの中身だけ</strong>を貼る．途中で切れたら「続きを出して」と促す，または再依頼．プロンプトには「1ブロックだけ・省略せず全文出力」の指示が入っています．</td></tr>
+  </table>
+  <div class="warn">
+    <span class="box-label">コードを貼るときの注意</span>
+    生成AI の返答全体ではなく，<strong>コードブロック（```javascript ... ```）の中身だけ</strong>をコピーしてください．コードブロック右上の「コピー」ボタンを使うと自動的に中身だけになります．
+  </div>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="refs"><span class="sec-icon">📚</span> 参考文献・出典</h2>
+  <p>ビルトインの題材が依拠している代表的な原典です。コードはすべて本プロジェクトによる独自実装です（仮想生物は下記のとおり既存研究の着想を参考に、コードは独自に実装しています）。</p>
+  <ul>
+    <li><strong>対話型進化計算（IEC）全般</strong>：Takagi, H. (2001). Interactive evolutionary computation: Fusion of the capabilities of EC optimization and human evaluation. <em>Proceedings of the IEEE</em>, 89(9), 1275–1296.</li>
+    <li><strong>枝分かれ図形（Biomorphs）</strong>：Dawkins, R. (1986). <em>The Blind Watchmaker</em>. Longman Scientific &amp; Technical.</li>
+    <li><strong>画像の対話的進化</strong>：Sims, K. (1991). Artificial evolution for computer graphics. <em>Computer Graphics (SIGGRAPH '91)</em>, 25(4), 319–328.</li>
+    <li><strong>群れ（フロッキング／Boids）</strong>：Reynolds, C. W. (1987). Flocks, herds and schools: A distributed behavioral model. <em>Computer Graphics (SIGGRAPH '87)</em>, 21(4), 25–34.</li>
+    <li><strong>仮想生物（ソフトボディ・ボクセル）</strong>：Bhatia, J., Jackson, H., Tian, Y., Xu, J., &amp; Matusik, W. (2021). Evolution Gym: A large-scale benchmark for evolving soft robots. <em>NeurIPS 2021</em>. — 「ボクセルでソフトロボットを進化させる」という着想を Evolution Gym（<a href="https://github.com/EvolutionGym/evogym" target="_blank">github.com/EvolutionGym/evogym</a>, MIT License）から得たもので、コードは独自に実装しています（EvoGym のソースコードは未使用）。</li>
+    <li><strong>ステンドグラス</strong>：ボロノイ図（Voronoi diagram）にもとづく平面分割。</li>
+    <li><strong>顔・数式アート・音の進化</strong>：IEC の一般的な応用例で、特定の原典はありません。</li>
+  </ul>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <h2 id="thanks"><span class="sec-icon">🙏</span> 謝辞</h2>
+  <p>本ツールは <a href="https://www.netlogo.org/" target="_blank">NetLogo</a>（Wilensky, U., 1999, Center for Connected Learning and Computer-Based Modeling, Northwestern University）から大きな影響を受けています。著者はこれまで NetLogo を自身の理解や授業に活用しており、その経験が本ツールの着想と設計の土台になっています。ここに記して深く感謝します。</p>
+  <hr>
+</div>
+
+<div class="slide-section">
+  <div class="footer" style="border: none; padding-top: 2vh;">
+    <p>
+      <a href="IEC_Studio_ja.html">IEC Studio を開く</a>
+      &nbsp;|&nbsp;
+      <a href="IEC_Studio_Manual_ja.html">詳しいマニュアル（上級）</a>
+      &nbsp;|&nbsp;
+      <a href="ABM_Studio_FirstSteps_ja.html">ABM Studio ガイド</a>
+      &nbsp;|&nbsp;
+      <a href="Evo_Studio_FirstSteps_ja.html">EVO Studio ガイド</a>
+    </p>
+  </div>
+</div>
+
+<script>
+  let isSlideMode = false;
+  let currentSlide = 0;
+  let slides = [];
+
+  function initSlideMode() {
+    slides = document.querySelectorAll('.slide-section');
+  }
+
+  function toggleSlideMode() {
+    if (slides.length === 0) initSlideMode();
+    isSlideMode = !isSlideMode;
+    const body = document.body;
+    const controls = document.getElementById('slide-controls');
+    
+    if (isSlideMode) {
+      body.classList.add('is-slide-mode');
+      controls.style.display = 'flex';
+      // Reset all and show current
+      slides.forEach(s => s.classList.remove('active'));
+      currentSlide = 0;
+      updateSlideView();
+    } else {
+      body.classList.remove('is-slide-mode');
+      controls.style.display = 'none';
+      // Make all visible for standard web view
+      slides.forEach(s => s.classList.remove('active'));
+    }
+  }
+
+  function updateSlideView() {
+    if (!isSlideMode) return;
+    slides.forEach((slide, index) => {
+      if (index === currentSlide) {
+        slide.classList.add('active');
+        // Small delay to trigger animation
+        slide.style.animation = 'none';
+        slide.offsetHeight; /* trigger reflow */
+        slide.style.animation = null; 
+      } else {
+        slide.classList.remove('active');
+      }
+    });
+    document.getElementById('slide-counter').innerText = `${currentSlide + 1} / ${slides.length}`;
+  }
+
+  function nextSlide() {
+    if (currentSlide < slides.length - 1) {
+      currentSlide++;
+      updateSlideView();
+    }
+  }
+
+  function prevSlide() {
+    if (currentSlide > 0) {
+      currentSlide--;
+      updateSlideView();
+    }
+  }
+
+  // Keyboard navigation
+  window.addEventListener('keydown', (e) => {
+    if (!isSlideMode) return;
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault();
+      nextSlide();
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault();
+      prevSlide();
+    } else if (e.key === 'Escape') {
+      toggleSlideMode();
+    }
+  });
+
+  // Initialize on DOM load
+  window.addEventListener('DOMContentLoaded', initSlideMode);
+</script>
+
+</body>
+</html>

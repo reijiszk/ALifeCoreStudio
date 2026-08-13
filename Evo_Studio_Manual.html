@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EVO Studio v1.0: User Manual</title>
+<style>
+:root {
+  --bg:           #ffffff;
+  --sidebar-bg:   #f5f4f0;
+  --text:         #1a1a1a;
+  --muted:        #555;
+  --light:        #999;
+  --border:       #ddd;
+  --border-light: #eee;
+  --accent:       #1a4b8c;
+  --accent2:      #2a7a40;
+  --warn:         #7a4800;
+  --tip-bg:       #f0f7ff;
+  --tip-border:   #1a4b8c;
+  --warn-bg:      #fff8f0;
+  --warn-border:  #c97a00;
+  --step-bg:      #f5f4f0;
+  --code-bg:      #f0f2f6;
+  --tag-ca:       #1a4b8c;
+  --tag-abm:      #2a7a40;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.8;
+  font-size: 0.97rem;
+}
+
+/* ── Layout ── */
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 230px;
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 1.6rem 0 3rem;
+}
+.sidebar-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--muted);
+  padding: 0 1.2rem 0.7rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.6rem;
+  text-transform: uppercase;
+}
+.sidebar nav a {
+  display: block;
+  padding: 0.28rem 1.2rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: color .15s, border-color .15s, background .15s;
+  line-height: 1.5;
+}
+.sidebar nav a:hover { color: var(--accent); background: rgba(26,75,140,.05); }
+.sidebar nav a.active { color: var(--accent); border-left-color: var(--accent); font-weight: 600; background: rgba(26,75,140,.07); }
+.sidebar nav a.sub { padding-left: 2.0rem; font-size: 0.78rem; }
+.sidebar-section { margin-top: 1.2rem; }
+.sidebar-section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--light);
+  padding: 0.4rem 1.2rem 0.1rem;
+}
+
+.main {
+  flex: 1;
+  max-width: 860px;
+  padding: 3rem 3rem 8rem;
+  min-width: 0;
+}
+
+/* ── Header ── */
+.page-header {
+  border-bottom: 2px solid var(--text);
+  padding-bottom: 1.4rem;
+  margin-bottom: 3rem;
+}
+.page-header .breadcrumb {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+.page-header .breadcrumb a { color: var(--accent); text-decoration: none; }
+.page-header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -.01em; }
+.page-header .subtitle { font-size: 0.9rem; color: var(--muted); margin-top: 0.4rem; }
+.page-header .badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  background: var(--accent);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* ── Section headings ── */
+.section-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+  border-bottom: 1.5px solid var(--border);
+  padding-bottom: 0.5rem;
+  margin: 3.5rem 0 1.2rem;
+  scroll-margin-top: 24px;
+}
+.section-title .sec-num {
+  font-size: 0.8em;
+  color: var(--light);
+  font-weight: 400;
+  margin-right: 0.4em;
+}
+.subsection-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 2rem 0 0.8rem;
+  scroll-margin-top: 24px;
+}
+.subsection-title .sub-marker {
+  display: inline-block;
+  width: 4px; height: 1em;
+  background: var(--accent);
+  margin-right: 0.5em;
+  vertical-align: -0.1em;
+  border-radius: 2px;
+}
+
+/* ── Prose ── */
+p { margin-bottom: 1rem; }
+p + p { margin-top: 0; }
+
+/* ── Info boxes ── */
+.tip, .warn, .note {
+  border-left: 3px solid;
+  padding: 0.9rem 1.1rem;
+  margin: 1.4rem 0;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.92rem;
+}
+.tip  { background: var(--tip-bg);  border-color: var(--tip-border); }
+.warn { background: var(--warn-bg); border-color: var(--warn-border); }
+.note { background: #f9f7f4;        border-color: #888; }
+.tip .box-label, .warn .box-label, .note .box-label {
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.tip  .box-label { color: var(--accent); }
+.warn .box-label { color: var(--warn); }
+.note .box-label { color: #555; }
+
+/* ── Step boxes ── */
+.steps { margin: 1.4rem 0; }
+.step {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+  align-items: flex-start;
+}
+.step-num {
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 0.15rem;
+}
+.step-body { flex: 1; }
+.step-body strong { display: block; margin-bottom: 0.2rem; }
+
+/* ── Inline code ── */
+code {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 0.84em;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: #1e4070;
+}
+
+/* ── Code block ── */
+pre {
+  background: #0d1117;
+  color: #e6edf3;
+  border-radius: 6px;
+  padding: 1rem 1.2rem;
+  overflow-x: auto;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  margin: 1rem 0 1.4rem;
+}
+pre .cm { color: #8b949e; }     /* comment */
+pre .kw { color: #ff7b72; }     /* keyword */
+pre .str { color: #a5d6ff; }    /* string */
+pre .fn { color: #d2a8ff; }     /* function name */
+pre .num { color: #79c0ff; }    /* number */
+pre .prop { color: #ffa657; }   /* property */
+
+/* ── Screenshot frame ── */
+.screen-frame {
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 1.2rem 0 1.6rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.07);
+}
+.screen-title {
+  background: var(--sidebar-bg);
+  border-bottom: 1px solid var(--border);
+  padding: 0.4rem 1rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+}
+.screen-body {
+  background: #f4f6f9;
+  padding: 1rem 1.2rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+/* ── UI label ── */
+.ui { /* inline UI element reference */
+  display: inline-block;
+  background: #e8ecf4;
+  border: 1px solid #c0c8d8;
+  border-radius: 3px;
+  padding: 0px 6px;
+  font-size: 0.82em;
+  font-weight: 600;
+  color: #1e3a6e;
+  white-space: nowrap;
+}
+
+/* ── Keyboard keys ── */
+kbd {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 0.83em;
+  background: #fff;
+  border: 1.5px solid #b0b8cc;
+  border-bottom: 3px solid #8090aa;
+  border-radius: 4px;
+  padding: 1px 6px;
+  color: #1e3a6e;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0,0,0,.07);
+  vertical-align: middle;
+}
+.kb-badge {
+  display: inline-block;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  border-radius: 2px;
+  padding: 1px 4px;
+  vertical-align: middle;
+  margin-right: 2px;
+  font-family: sans-serif;
+}
+.kb-badge.win { background: #dde8f5; color: #1e4070; }
+.kb-badge.mac { background: #e8f5e8; color: #1a6a2a; }
+.kb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  vertical-align: middle;
+}
+.kb-divider { color: #bbb; margin: 0 0.25rem; font-size: 0.9em; }
+
+/* ── Shortcut reference box ── */
+.shortcut-box {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin: 1.4rem 0;
+  overflow: hidden;
+}
+.shortcut-box-title {
+  background: var(--sidebar-bg);
+  padding: 0.45rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+}
+.shortcut-box table {
+  margin: 0;
+  border: none;
+  font-size: 0.86rem;
+}
+.shortcut-box table th,
+.shortcut-box table td {
+  border: none;
+  border-bottom: 1px solid var(--border-light);
+  padding: 0.42rem 1rem;
+}
+.shortcut-box table tr:last-child td { border-bottom: none; }
+.shortcut-box table th {
+  background: transparent;
+  font-size: 0.74rem;
+  color: var(--muted);
+  padding-top: 0.6rem;
+  vertical-align: middle;
+}
+.shortcut-box table td:first-child {
+  color: var(--text);
+  font-family: inherit;
+  white-space: normal;
+  font-size: 0.86rem;
+  width: 38%;
+}
+.shortcut-box table td:nth-child(2),
+.shortcut-box table td:nth-child(3) { white-space: nowrap; }
+
+/* ── Model tag ── */
+.tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 3px;
+  color: #fff;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.tag-ca  { background: var(--tag-ca); }
+.tag-abm { background: var(--tag-abm); }
+
+/* ── Model card grid ── */
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  margin: 1.2rem 0 1.8rem;
+}
+.model-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.9rem 1.1rem;
+  background: #fafafa;
+}
+.model-card .mc-name { font-weight: 700; font-size: 0.92rem; margin-bottom: 0.25rem; }
+.model-card .mc-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+.model-card .mc-tips { margin-top: 0.5rem; font-size: 0.8rem; }
+.model-card .mc-tips li { margin-left: 1.2rem; color: var(--muted); margin-bottom: 0.1rem; }
+
+/* ── Error table ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin: 1.2rem 0 1.8rem;
+}
+th, td { border: 1px solid var(--border); padding: 0.55rem 0.9rem; text-align: left; vertical-align: top; }
+th { background: var(--sidebar-bg); font-weight: 700; }
+td:first-child { white-space: nowrap; color: #b91c1c; font-family: 'IBM Plex Mono',monospace; font-size: 0.82em; }
+tr:hover td { background: #fafafa; }
+
+/* ── Divider ── */
+.divider { border: none; border-top: 1px solid var(--border-light); margin: 2.5rem 0; }
+
+/* ── Scrollspy JS ── */
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-title">EVO Studio Manual</div>
+    <nav id="sideNav">
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Getting Started</div>
+        <a href="#overview">1. What is EVO Studio?</a>
+        <a href="#screen">2. Screen Layout</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Basic Operation</div>
+        <a href="#builtin">3. Using Built-in Models</a>
+        <a href="#controls">4. Evolution &amp; Observation Controls</a>
+        <a href="#view">5. Best-Only / All-Individuals View</a>
+        <a href="#params">6. Changing Parameters</a>
+        <a href="#export">7. Saving &amp; Comparing Results</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">GA &amp; Code Generation</div>
+        <a href="#ga">8. How the GA Engine Works</a>
+        <a href="#chatgpt">9. Building Code with a Generative AI</a>
+        <a href="#aigen" class="sub">🤖 AI Generate (Direct API)</a>
+        <a href="#paste">10. Paste and Run</a>
+        <a href="#modify">11. Modifying Code</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Model-by-Model Guide</div>
+        <a href="#model-func"  class="sub">① Function Optimization</a>
+        <a href="#model-massspring" class="sub">② Mass-Spring Creature</a>
+        <a href="#model-softbody" class="sub">③ Soft-Body Creature</a>
+        <a href="#model-knap"  class="sub">④ Knapsack</a>
+        <a href="#model-tsp"   class="sub">⑤ Traveling Salesman</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">If You Get Stuck</div>
+        <a href="#errors">12. Errors &amp; Solutions</a>
+        <a href="#faq">13. FAQ</a>
+        <a href="#refs">📚 References &amp; Sources</a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="breadcrumb"><a href="Evo_Studio_FirstSteps.html">EVO Studio First Steps</a> &rsaquo; EVO Studio Manual</div>
+      <h1><span class="badge">v1.0</span>EVO Studio User Manual</h1>
+      <p class="subtitle">A genetic algorithm (GA) experiment environment that runs in your browser</p>
+    </div>
+
+    <!-- ───────── 1 ───────── -->
+    <h2 class="section-title" id="overview"><span class="sec-num">1</span>What is EVO Studio?</h2>
+
+    <p>EVO Studio is <strong>a genetic algorithm (GA) experiment environment that runs entirely in your browser.</strong> No installation, no account registration: just double-click the file to launch it.</p>
+
+    <p>A GA is an optimization method that repeats "<strong>evaluate → select → crossover → mutate → next generation</strong> across a population of individuals to evolve better solutions." In EVO Studio, <strong>the engine handles</strong> this GA loop (selection, crossover, mutation, elitism). Users write only the following three things in JavaScript (a generative AI can write them for you, too).</p>
+
+    <div class="note">
+      <span class="box-label">The idea behind this tool</span>
+      Recent advances in generative AI are reshaping the "understanding by building" (constructive) style of modeling in complex systems and artificial life. By giving a prompt with just the skeleton of an idea, not a complete specification, you can auto-generate a wide variety of models, have the AI explain them when you want to understand them, and refine ideas through dialogue. Letting the AI generate everything, however, tends to produce wildly inconsistent results.<br>
+      ALifeCoreStudio (the three studios, ABM / EVO / IEC) keeps a <strong>common framework for model construction, visualization, and analysis fixed</strong> and lets generative AI produce only the <strong>essential parts</strong> of a model. It is intended for beginners with no programming experience giving free form to their ideas, students growing models together with AI, and researchers building prototypes quickly. By making it easy to <strong>generate possible models freely</strong> within a shared framework, it aims to accelerate the constructive approach to scientific understanding and to spread the joy of imagining and running "what worlds could be."
+    </div>
+
+    <div class="tip">
+      <span class="box-label">The 3 Things You Decide</span>
+      <strong>① GENE</strong> (the gene format), <strong>② fitness(genome, params)</strong> (the evaluation function, where higher is better), and <strong>③ draw(ctx, state, W, H, params)</strong> (rendering). For a quantity you want to minimize, flip the sign and return it (<code>return -f</code>).
+    </div>
+
+    <p><strong>What it can do:</strong> render the population's evolution in real time / record a chart of fitness (best/average) / <strong>tile-display the whole population (top individuals), not just the best</strong> / change parameters with sliders / save run results and overlay them on the chart for comparison / save field images and record video / export CSV / save and reload a model as <code>.js</code>, and more.</p>
+
+    <p><strong>What it can't do:</strong> internet access, loading large databases, 3D rendering, and similar are not supported.</p>
+
+    <hr class="divider">
+
+
+    <!-- ───────── 2 ───────── -->
+    <h2 class="section-title" id="screen"><span class="sec-num">2</span>Screen Layout</h2>
+
+    <p>The screen consists of the <strong>header</strong> at the top, the <strong>workspace</strong> in the middle (left = canvas / right = parameters, genes, and charts), and the <strong>code bar</strong> at the bottom.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Role of Each Part</h3>
+    <table>
+      <tr><th>Location</th><th>Contents</th></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Header</td><td>Title, <span class="ui">generation</span> display, <span class="ui">fps</span>, running/stopped status badges, <span class="ui">❔ Help</span>, <span class="ui">⟳ Reset</span>.</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Canvas (left)</td><td>Renders the best individual (or all individuals). Creature models show an animation of it walking.</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Right panel</td><td>Playback controls, sliders for speed/max generation, <span class="ui">Parameters</span>, <span class="ui">Genes (Definition &amp; Best Individual)</span>, fitness chart.</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Code bar (bottom)</td><td>Opens/closes with <span class="ui">▸ Code</span>. <span class="ui">▶ Apply</span>, various prompts, save/load, model selection. A line-numbered editor and error display.</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Help</td><td>Opens as an overlay via <span class="ui">❔ Help</span> (close with <kbd>Esc</kbd>).</td></tr>
+    </table>
+
+    <hr class="divider">
+
+    <!-- ───────── 3 ───────── -->
+    <h2 class="section-title" id="builtin"><span class="sec-num">3</span>Using Built-in Models</h2>
+
+    <p>Choosing one from the code bar's dropdown ("── Select a model ──") automatically sets and applies the code. Press <span class="ui">▶ Start Evolution</span> to begin evolving.</p>
+
+    <div class="model-grid">
+      <div class="model-card"><div class="mc-name">① Function Optimization (Bit-String GA)</div><div class="mc-desc">Decodes a 32-bit gene into real numbers x, y and optimizes a function. The basic form of a GA.</div></div>
+      <div class="model-card"><div class="mc-name">② Mass-Spring Creature (2D Virtual Creature)</div><div class="mc-desc">A spring system of 4 point masses + 6 muscles. Evolves to travel as far right as possible (animated).</div></div>
+      <div class="model-card"><div class="mc-name">③ Soft-Body Creature (Voxels)</div><div class="mc-desc">Evolves a 5×5 voxel morphology and actuator phase. Maximizes walking distance.</div></div>
+      <div class="model-card"><div class="mc-name">④ Knapsack Problem</div><div class="mc-desc">Inclusion/exclusion bit string. Maximizes total value within capacity (exceeding it is penalized).</div></div>
+      <div class="model-card"><div class="mc-name">⑤ Traveling Salesman Problem</div><div class="mc-desc">Represents a permutation via the random-key method. Evolves the shortest route visiting all cities.</div></div>
+    </div>
+
+    <div class="tip">
+      <span class="box-label">When You Want to Read the Code</span>
+      After applying a model, open <span class="ui">▸ Code</span> to see all of that model's code. Read or modify it freely. Use <span class="ui">📋 Copy Spec</span> to hand a generative AI the spec sheet plus the current code together.
+    </div>
+
+    <hr class="divider">
+
+    <!-- ───────── 4 ───────── -->
+    <h2 class="section-title" id="controls"><span class="sec-num">4</span>Evolution &amp; Observation Controls</h2>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Run Controls</h3>
+    <p><span class="ui">▶ Start Evolution</span> runs continuously / pauses. <span class="ui">⏭ 1 Gen</span> advances just one generation (handy for watching the mechanism closely). <span class="ui">⟳ Reset</span> rebuilds from a random initial population.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Run Speed (Generations/sec)</h3>
+    <p>The "Run speed" slider is <strong>generations advanced per second</strong>. Lower it to watch the improvement closely, raise it to speed through (fractional amounts accumulate internally too).</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Draw Skipping and FPS</h3>
+    <p>Raising "Draw skipping" speeds things up by skipping <strong>only the rendering</strong>, leaving computation untouched. Check the effect via the <span class="ui">fps</span> indicator in the header.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Max Generation and Behavior on Reaching It</h3>
+    <p>The selector next to "Max generation" lets you choose the behavior when it's reached. The default is <strong>⏹ Stop only</strong>, which stops at that generation without resetting (it does not go back to the start). Switch to <strong>🔁 Loop</strong> to automatically reset and start over at that generation, letting you repeatedly observe typical behavior.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Stop Condition (STOP_COND)</h3>
+    <p>If a model defines <code>STOP_COND</code>, it stops automatically once the condition (e.g., best fitness reaching a threshold) is met. Toggle the <span class="ui">Stop Condition</span> switch in the display to enable/disable it.</p>
+
+    <hr class="divider">
+
+    <!-- ───────── 5 ───────── -->
+    <h2 class="section-title" id="view"><span class="sec-num">5</span>Best-Only / All-Individuals View</h2>
+
+    <p>What's shown large on the canvas is the generation's <strong>best individual (the single one with the highest fitness)</strong>. Many individuals compete behind the scenes, and you're shown the winner (for creature models, <code>viewReset</code>/<code>viewStep</code> animate that individual every frame).</p>
+
+    <p>Switch this with the <span class="ui">View</span> toggle below the playback controls (default is <span class="ui">Best Only</span>).</p>
+
+    <table>
+      <tr><th>Mode</th><th>Details</th></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Best Only (default)</td><td>Shows only the best individual, enlarged. Animated models move.</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">All Individuals</td><td>Shows the population's <strong>top individuals as tiles, ordered by fitness</strong> (top-left ★ is the best; each tile shows rank and fitness). The adjacent <span class="ui">Count</span> slider (4–36) picks how many to show. For animated models, each tile moves independently.</td></tr>
+    </table>
+
+    <div class="tip">
+      <span class="box-label">Watching Diversity</span>
+      Occasionally switching to "All Individuals" reveals whether the population <strong>has converged to a single form or is still diverse</strong>. If the tiles feel too small, lowering <span class="ui">Count</span> to something like 9 makes them display bigger.
+    </div>
+
+    <hr class="divider">
+
+    <!-- ───────── 6 ───────── -->
+    <h2 class="section-title" id="params"><span class="sec-num">6</span>Changing Parameters</h2>
+
+    <p>You can tune the GA's behavior with sliders in the right panel's "Parameters." The engine automatically recognizes the following ids (each item's <span class="ui">ⓘ</span> shows a description).</p>
+
+    <table>
+      <tr><th>Parameter</th><th>Meaning</th></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Population size popSize</td><td>Individuals per generation. More gives a more stable search but is heavier (re-initializes on change).</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Mutation rate mutationRate</td><td>Probability each gene mutates. Too high makes the search random; too low makes it prone to local optima.</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Crossover rate crossoverRate</td><td>Probability of recombining two individuals.</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Elitism elitism</td><td>Number of top individuals carried over unconditionally to the next generation. Keeps the best from regressing.</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Selection pressure tournamentK</td><td>Number of participants in the tournament used to pick a parent. Larger favors stronger individuals.</td></tr>
+    </table>
+
+    <p>Beyond these, model-specific parameters (e.g., evaluation steps, gravity, capacity) appear in the same panel. The <span class="ui">live/reset</span> toggle controls whether a change takes effect immediately or requires re-initialization (structural ones like population size always re-initialize).</p>
+
+    <hr class="divider">
+
+    <!-- ───────── 7 ───────── -->
+    <h2 class="section-title" id="export"><span class="sec-num">7</span>Saving &amp; Comparing Results</h2>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Save &amp; Compare Experiments</h3>
+    <p>After evolving for a bit, press <span class="ui">📸 Save Current</span> to keep that run overlaid on the fitness chart. Change parameters and run again to see the difference from before (A/B comparison).</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Chart Saving / CSV</h3>
+    <p>Use the chart's <span class="ui">💾</span> / <span class="ui">⬇ Save CSV</span> to export per-generation fitness, etc. as CSV (includes a BOM, so it won't garble in Excel either).</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>📦 Download all data (ZIP, v1.0)</h3>
+    <p>Pressing <span class="ui">📦 Download ZIP</span> in the "Save/Compare Experiments" section exports <strong>all experiment data since initialization into a single ZIP</strong>, for later analysis or reproducing the same experiment. It contains:</p>
+    <table>
+      <tr><th style="width:32%">File</th><th>Contents</th></tr>
+      <tr><td><code>metadata.json</code></td><td>Model name, export timestamp, generation count, plus the <strong>experiment settings</strong>: parameters, initial-state preset, max generations, on-max behavior (stop / loop), draw-throttle, speed, stop condition, and the <strong>random seed</strong>.</td></tr>
+      <tr><td><code>model.js</code></td><td>The <strong>exact model code</strong> that produced this experiment. Paste it back into the code panel and press <span class="ui">▶ Apply</span> to reproduce it.</td></tr>
+      <tr><td><code>01_&lt;chart&gt;.csv</code>, …</td><td>Per-generation fitness, etc. (current run and saved experiments distinguished by a <code>run</code> column; with a BOM; the <code>tick</code> column is the generation number).</td></tr>
+      <tr><td><code>data.json</code></td><td>Structured JSON bundling the settings, current run, and saved experiments. For loading from a program.</td></tr>
+      <tr><td><code>frames.jsonl</code><br>(only when "Record states" is on)</td><td>The <strong>state at each generation</strong> (one JSON frame per line, <code>{"tick":&lt;gen&gt;, "state":…}</code>). The data the bundled viewer replays generation by generation.</td></tr>
+    </table>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Live and time-shift playback</h3>
+    <p><span class="ui">Record states</span> in "Save and compare experiments" is <strong>on by default on a computer</strong>, so a <strong>timeline</strong> sits under the run buttons from the start and anything you notice while the run is going can be revisited. On <strong>phones and tablets it starts off</strong>, because recording is the most memory-hungry part of a run and those devices have the least to spare; tick the box there whenever you do want the timeline. The run seed is drawn afresh on every initialization and cannot be typed back in, so a run that was not recorded cannot be recovered. Recording stops on its own at the limit set beside the box. <span class="ui">LIVE</span> is checked by default and the display follows the newest generation. Drag the bar, or uncheck <span class="ui">LIVE</span>, and you can go back to any recorded generation <strong>while the run continues in the background</strong>, the same idea as the seek bar on a live video.</p>
+    <ul>
+      <li><span class="ui">▶</span> plays the recorded generations back at 12 frames per second, and stops when it catches up with the run.</li>
+      <li>The <strong>position readout</strong> shows where you are within what has been recorded, as in "generation 45 / 120". The number on the right keeps growing as the run continues.</li>
+      <li>An <strong>amber marker</strong> on each chart shows where the frame you are viewing sits in the time series.</li>
+      <li>Re-checking <span class="ui">LIVE</span> returns the display to the newest generation.</li>
+    </ul>
+    <p>The granularity you can seek to is the <strong>recording interval</strong> (with "every 5 generations", you land on multiples of five). How far back you can go is set by the <span class="ui">limit</span> next to the interval: 500 MB by default, and <strong>no limit</strong> is available (recording then continues until the browser runs out of memory). The readout reports how much has been recorded, so the limit can be raised before it is reached.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Reproducing each generation, and viewer replay</h3>
+    <p>So you can <strong>reproduce the state at each generation</strong> later, the ZIP carries two mechanisms:</p>
+    <ul>
+      <li><strong>Method A (deterministic seed):</strong> during a run the engine <strong>seeds the randomness</strong> and records the seed in <code>settings.seed</code>. The exact run can be reproduced from <code>model.js</code> + settings + seed (this works for AI-modified or newly-created models too).</li>
+      <li><strong>Method B (recorded state):</strong> turn on <span class="ui">Record states (for replay)</span> in "Save/Compare Experiments" before running, and each generation's state is saved to <code>frames.jsonl</code> (you can also choose the interval). Leave it off when you are only observing; the run is faster that way.</li>
+    </ul>
+    <p>Drop the exported ZIP onto the bundled <strong><code>ALifeCoreStudio_Viewer.html</code></strong> to <strong>replay each recorded generation along a timeline</strong> (play/pause, scrub, speed), rendered by the model's own drawing code. It works for built-in models as well as modified or newly-created ones.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Images &amp; Video</h3>
+    <p>Besides copying/saving canvas images, the recording feature lets you choose <strong>MP4 or WebM</strong> (falls back automatically depending on the environment). Useful for building presentation materials.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Saving &amp; Loading Model Files</h3>
+    <p>Use the code bar's <span class="ui">💾 Save .js</span> to save the current model as <code>.js</code>, and <span class="ui">📂 Open</span> to load it. Be sure to save any model you build yourself.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>💾 HTML Export</h3>
+    <p>Pressing the code bar's <span class="ui">💾 HTML Export</span> exports <strong>a standalone HTML file that runs only the model currently running.</strong> It contains no code-editing area or generative-AI UI, leaving a simple screen with just the model's display, controls, and charts. Handy for distribution or as a submission for class or presentations.</p>
+
+    <hr class="divider">
+
+    <!-- ───────── 8 ───────── -->
+    <h2 class="section-title" id="ga"><span class="sec-num">8</span>How the GA Engine Works</h2>
+
+    <p>What the engine does every generation is as follows.</p>
+    <table>
+      <tr><th>Stage</th><th>Details</th></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Evaluate</td><td>Calls <code>fitness(genome, params)</code> on every individual to compute fitness (higher is better).</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Select</td><td>Tournament selection. Randomly picks tournamentK individuals and makes the best of them a parent.</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Crossover</td><td>One-point for the bit type, uniform for the real type (performed with probability crossoverRate).</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Mutation</td><td>Bit flip for the bit type, adds Gaussian noise for the real type (probability mutationRate, per gene).</td></tr>
+      <tr><td style="color:inherit;font-family:inherit;white-space:normal">Elitism</td><td>The top elitism individuals are copied to the next generation unconditionally.</td></tr>
+    </table>
+
+    <div class="note">
+      <span class="box-label">A Trick for Handling Permutations (TSP)</span>
+      Holding a "permutation," like a tour, directly as the gene breaks under uniform crossover or Gaussian mutation. EVO Studio's TSP uses the <strong>random-key method</strong>. Each city holds a real-valued "key" (0–1), interpreted as <strong>visiting in ascending key order</strong> = the permutation. This lets the standard real-valued GA operations work as-is, always yielding a valid tour.
+    </div>
+
+    <hr class="divider">
+
+    <!-- ───────── 9 ───────── -->
+    <h2 class="section-title" id="chatgpt"><span class="sec-num">9</span>Building Code with a Generative AI</h2>
+
+    <p>Pressing <span class="ui">✨ New Model Prompt</span> copies the spec sheet below to your clipboard. Paste it into a generative AI, write in [Model to implement], and send it, and you'll get back code that's ready to paste in.</p>
+
+    <h3 class="subsection-title"><span class="sub-marker"></span>Model Authoring Spec (Key Points)</h3>
+    <pre><span class="cm">// Must define</span>
+<span class="kw">const</span> <span class="prop">GENE</span> = { type:<span class="str">'bit'</span>|<span class="str">'real'</span>, length:<span class="num">integer</span>, min?, max? };
+<span class="kw">function</span> <span class="fn">fitness</span>(genome, params) { <span class="cm">/* return a number where higher is better */</span> }
+<span class="kw">function</span> <span class="fn">draw</span>(ctx, state, W, H, params) { <span class="cm">/* draw the current state to Canvas 2D */</span> }
+
+<span class="cm">// Optional to define</span>
+<span class="kw">function</span> <span class="fn">randomGenome</span>(params) { <span class="cm">/* how to create initial individuals */</span> }
+<span class="kw">function</span> <span class="fn">decode</span>(genome, params) { <span class="cm">/* gene → a meaningful value (coordinates, a design) */</span> }
+<span class="kw">const</span> <span class="prop">geneInfo</span> = <span class="str">'gene description'</span>;            <span class="cm">// a string, or params→string</span>
+<span class="kw">function</span> <span class="fn">geneView</span>(genome, params) { ... } <span class="cm">// split display of the best individual</span>
+<span class="kw">const</span> <span class="prop">PARAM_DEFS</span> = [ ... ];            <span class="cm">// sliders (GA ids are recognized)</span>
+<span class="kw">const</span> <span class="prop">PLOT_DEFS</span> = [ ... ];             <span class="cm">// per-generation chart</span>
+<span class="kw">const</span> <span class="prop">STOP_COND</span> = { label, fn };       <span class="cm">// auto-stop condition</span>
+<span class="kw">const</span> <span class="prop">MAX_GEN</span> = <span class="num">300</span>;
+<span class="kw">function</span> <span class="fn">viewReset</span>(best, params) { ... } <span class="cm">// animate the best individual every frame</span>
+<span class="kw">function</span> <span class="fn">viewStep</span>(view, params) { ... }</pre>
+
+    <div class="tip">
+      <span class="box-label">Tips for Describing What You Want</span>
+      Be clear about <strong>"what the gene is" and "what fitness should maximize."</strong> For a quantity you want to minimize (distance, cost), write "shortest" / "smallest" and the engine can handle it via sign-flipping. For a moving creature, adding "with an animation of the best individual too" gets you <code>viewReset</code>/<code>viewStep</code>.
+    </div>
+
+    <hr class="divider">
+
+    <!-- ───────── 10 ───────── -->
+    <h2 class="section-title" id="paste"><span class="sec-num">10</span>Paste and Run</h2>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Copy the code</strong>Use "Copy" in the top-right of the generative AI's code block to copy just the contents.</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Paste into the code field</strong>Open <span class="ui">▸ Code</span>, select all with <kbd>Ctrl</kbd>+<kbd>A</kbd> (Mac: <kbd>⌘</kbd>+<kbd>A</kbd>), then paste.</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><strong><span class="ui">▶ Apply</span> → <span class="ui">▶ Start Evolution</span></strong>If there's an error, the line number and a hint for the cause are shown. <code>class</code>, <code>document.*</code>, <code>fetch</code>, etc. are detected before applying.</div></div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- ───────── 11 ───────── -->
+    <h2 class="section-title" id="modify"><span class="sec-num">11</span>Modifying Code</h2>
+    <p>Pressing <span class="ui">✏️ Modify Prompt</span> copies a frame containing the current code and a modification instruction. Paste it into a generative AI, list what you want changed as bullet points, and you'll get the full modified code back. Select all in the code field, replace it, and press <span class="ui">▶ Apply</span>.</p>
+    <p>Pressing <span class="ui">📖 Explain Prompt</span> copies <strong>a prompt asking for an explanation of what kind of model the currently running code is</strong> (requesting an overview, algorithm description, and pseudocode). Pasting it into a generative AI gets you an explanation faithful to the implementation. Also, putting <code>const TITLE = 'model name'</code> in generated/modified code reflects it in the browser tab name, the "About This Model" heading, and the filename used by <span class="ui">💾 Save .js</span> (e.g., <code>Mass-Spring_Creature.js</code>).</p>
+    <div class="note">
+      <span class="box-label">Tricks That Reduce Failures Even on Free Tiers</span>
+      The prompt <strong>keeps to a minimal spec</strong> and strongly instructs, at both the start and end, "<strong>output exactly one code block, in full, without abbreviation</strong>" (to reduce truncated output or stray explanatory text on free-tier/small models). In <span class="ui">✏️ Modify Prompt</span>, <strong>[What you want changed] is placed at the end</strong>, so write your changes there as bullet points.
+    </div>
+    <div class="good">
+      <span class="box-label">Tips for Modifying</span>
+      Don't change too much at once: <strong>one or two small changes at a time</strong>. It's safer to keep a copy with <span class="ui">💾 Save .js</span> each time it works.
+    </div>
+
+    <h3 class="subsection-title" id="aigen"><span class="sub-marker"></span>🤖 AI Generate: Connecting Directly to a Generative AI's API (LM Studio / Cloud)</h3>
+    <p>Pressing the code bar's <span class="ui">🤖 AI Generate</span> lets you connect directly to an OpenAI-compatible API to modify or create code. The returned code is automatically inserted into the code field (it isn't run until you press <span class="ui">▶ Apply</span>). No copy-and-paste needed.</p>
+    <ul>
+      <li><strong>Local (LM Studio, etc.)</strong>: start the local server and turn on "Enable CORS" in the server settings. The endpoint is <code>http://localhost:1234</code> (no API key needed).</li>
+      <li><strong>Cloud (OpenAI-compatible)</strong>: e.g., OpenRouter <code>https://openrouter.ai/api/v1</code>, DeepInfra <code>https://api.deepinfra.com/v1/openai</code>, OpenAI <code>https://api.openai.com/v1</code>. Requires an API key (most are pay-as-you-go).</li>
+      <li>You can choose the model name via <span class="ui">🔄 Fetch List</span> (manual entry also works). Settings are remembered in the browser.</li>
+    </ul>
+    <div class="note">
+      <span class="box-label">If the Connection Fails</span>
+      "Failed to fetch" is usually caused by the server not running, CORS not being enabled, or a wrong URL. Try opening <code>http://localhost:1234/v1/models</code> directly in your browser to see if JSON comes back. For cloud services, the service itself must support CORS (OpenRouter and DeepInfra do).
+    </div>
+
+    <hr class="divider">
+
+    <!-- ───────── Model by model ───────── -->
+    <h2 class="section-title" id="model-func">① Function Optimization (Bit-String GA)</h2>
+    <p>Decodes a 32-bit gene into two real numbers x, y and optimizes an evaluation function (by default, minimizing the Rastrigin function). Simply rewriting the <code>return</code> of <code>fitness()</code> freely changes the function to maximize or the evaluation condition. Individuals are shown as points on the x–y plane, with the best point highlighted.</p>
+    <p><strong>What to observe:</strong> changing the mutation rate and selection pressure lets you compare how susceptibility to local optima and convergence speed change. A great entry point for learning the difference between bit and real-valued representations.</p>
+
+    <h2 class="section-title" id="model-massspring">② Mass-Spring Creature (2D Virtual Creature)</h2>
+    <p>Connects four point masses with springs (muscles) and rhythmically contracts the muscles to crawl along the ground. The gene is the layout of the point masses (8 values) and the amplitude/phase of each muscle (12 values). <strong>Distance traveled to the right</strong> is the fitness. The best individual's walk is shown animated.</p>
+    <p><strong>What to observe:</strong> diverse locomotion strategies such as "hopping" and "crawling" emerge as generations pass. Change <code>fitness</code> to height to evolve jumping instead. Use the <span class="ui">All Individuals</span> view to compare walking-style variations.</p>
+
+    <h2 class="section-title" id="model-softbody">③ Soft-Body Creature (Voxels)</h2>
+    <p>Builds a body from a 5×5 grid of voxels and walks it by contracting actuators. The gene is <strong>morphology (each cell's type: empty, rigid, soft, horizontal actuator, vertical actuator)</strong> and <strong>control (each cell's phase φ)</strong>, plus amplitude and frequency. All of it is normalized to 52 real numbers in 0–1, converted into morphology and phase by <code>decode()</code>. Only the largest connected component becomes the mass-spring body, and the distance traveled to the right is maximized.</p>
+    <p><strong>What to observe:</strong> the highlight is that shape and motion evolve <strong>simultaneously</strong>. Switching to the <span class="ui">All Individuals</span> view lets you compare various body shapes' walking side by side. If evaluation is heavy, lower "Evaluation steps" or "Population size."</p>
+
+    <h2 class="section-title" id="model-knap">④ Knapsack Problem</h2>
+    <p>Maximizes the total value of items packed without exceeding the weight limit (capacity). The gene is an inclusion bit per item. <code>fitness</code> is the total value if within capacity, with a penalty applied to the overage if it's exceeded. Item weights/values are fixed (generated at the top of the code).</p>
+    <p><strong>What to observe:</strong> moving the <span class="ui">Capacity</span> slider shows how the optimal packing changes. The capacity gauge and item grid (included = green) make the contents of the solution clear at a glance.</p>
+
+    <h2 class="section-title" id="model-tsp">⑤ Traveling Salesman Problem (TSP)</h2>
+    <p>Searches for the shortest tour that visits every city once and returns to the start. Because it's represented via the <strong>random-key method</strong> (each city holds a real-valued key, visited in ascending order = a permutation), standard uniform crossover and Gaussian mutation work as-is, always yielding a valid tour. <code>fitness</code> is −(tour length). The best tour is drawn on the map.</p>
+    <p><strong>What to observe:</strong> the initially tangled route straightens into a short, tidy one as generations pass. Increasing the number of cities makes it harder, changing how population size and selection pressure affect the outcome.</p>
+
+    <hr class="divider">
+
+    <!-- ───────── 12 ───────── -->
+    <h2 class="section-title" id="errors"><span class="sec-num">12</span>Errors &amp; Solutions</h2>
+    <p>If an error occurs when you press <span class="ui">▶ Apply</span> or while running, a red message appears in the code bar. The <strong>line number of the cause, that line's contents, and a beginner-friendly hint</strong> are shown, and the code field opens automatically. Unusable syntax such as <code>class</code>, <code>document.*</code>, <code>fetch</code>, etc. is detected before applying.</p>
+    <table>
+      <tr><th>Message / Symptom</th><th>What to Do</th></tr>
+      <tr><td>GENE is required</td><td>Define either <code>GENE = { type:'bit'|'real', length:… }</code> or <code>randomGenome()</code>.</td></tr>
+      <tr><td>fitness() error</td><td>Check the length of arrays referenced inside the evaluation function, and the return value of <code>decode</code>. Make sure it's not returning a non-number or NaN.</td></tr>
+      <tr><td>draw() error</td><td>Check for typos in the drawing function, or branches for when <code>state.best</code> is missing.</td></tr>
+      <tr><td>... is not defined</td><td>A typo in a variable name, or it's used before being defined.</td></tr>
+      <tr><td>Unexpected token …</td><td>Check that () {} [] are matched, and that no commas or semicolons are missing.</td></tr>
+      <tr><td>Fitness isn't improving</td><td>Raise the mutation rate to widen the search / adjust selection pressure and elitism / increase population size. Try reducing the problem's scale.</td></tr>
+    </table>
+
+    <hr class="divider">
+
+    <!-- ───────── 13 ───────── -->
+    <h2 class="section-title" id="faq"><span class="sec-num">13</span>FAQ</h2>
+
+    <p><strong>Q. The sliders aren't showing up.</strong><br>
+    A. They won't show without <code>PARAM_DEFS</code> in the code. Ask a generative AI: "Add PARAM_DEFS. Include the GA parameters too, such as population size and mutation rate."</p>
+
+    <p><strong>Q. No chart appears.</strong><br>
+    A. Without <code>PLOT_DEFS</code>, it defaults to a "best/average fitness" chart. If you want a custom chart, have it add <code>PLOT_DEFS</code>.</p>
+
+    <p><strong>Q. Is it OK for fitness to be negative?</strong><br>
+    A. Yes. The engine only treats it as "higher is better," so returning −(length), as in TSP, is fine. You can even do things like displaying <code>-bestFitness</code> on the chart as "length."</p>
+
+    <p><strong>Q. The best individual doesn't move (creature models).</strong><br>
+    A. Animation requires <code>viewReset(best, params)</code> and <code>viewStep(view, params)</code>. Tell a generative AI "I want to see the best individual move every frame" and it will add them.</p>
+
+    <p><strong>Q. In All Individuals mode, each individual is too small.</strong><br>
+    A. Lowering the <span class="ui">Count</span> slider to something like 9 makes them display larger (§5).</p>
+
+    <p><strong>Q. Evaluation is heavy and slow.</strong><br>
+    A. Combine lowering "Population size," lowering "Evaluation steps" for creature models, raising "Draw skipping," and lowering the run speed.</p>
+
+    <p><strong>Q. The code disappears when I close the browser.</strong><br>
+    A. There's no auto-save. Keep a file with <span class="ui">💾 Save .js</span>, and load it next time with <span class="ui">📂 Open</span> (keeping it in your generative AI's chat history also works).</p>
+
+    <hr class="divider">
+
+    <h2 class="section-title" id="refs"><span class="sec-num">📚</span>References &amp; Sources</h2>
+    <p>These are the key original sources the built-in models draw on as subject matter. All code is this project's own independent implementation (for the Soft-Body Creature, the code takes inspiration from the ideas noted below, but is implemented independently).</p>
+    <ul>
+      <li><strong>Genetic algorithms (GA)</strong>: Holland, J. H. (1975). <em>Adaptation in Natural and Artificial Systems</em>. University of Michigan Press. / Goldberg, D. E. (1989). <em>Genetic Algorithms in Search, Optimization, and Machine Learning</em>. Addison-Wesley.</li>
+      <li><strong>Mass-Spring Creature (evolving virtual creatures)</strong>: Sims, K. (1994). Evolving virtual creatures. <em>SIGGRAPH '94</em>, 15–22. The origin of evolving virtual creatures. Sims evolved <b>three-dimensional creatures made of articulated blocks</b>, together with their neural controllers; the model here is not a reimplementation of that work but a far simpler <b>two-dimensional mass-spring system</b>, written independently in the spirit of that line of research.</li>
+      <li><strong>Soft-Body Creature (voxels)</strong>: Bhatia, J., Jackson, H., Tian, Y., Xu, J., &amp; Matusik, W. (2021). Evolution Gym: A large-scale benchmark for evolving soft robots. <em>NeurIPS 2021</em>. The idea of "evolving soft robots made of voxels" is drawn from <a href="https://github.com/EvolutionGym/evogym" target="_blank">Evolution Gym</a> (MIT License); the code is independently implemented.</li>
+      <li><strong>Knapsack problem / traveling salesman problem (TSP)</strong>: Both are classic combinatorial optimization problems (see standard textbooks).</li>
+    </ul>
+
+    <hr class="divider">
+
+    <h2 class="section-title"><span class="sec-num">★</span>Acknowledgments</h2>
+    <p>This tool owes a great deal to <a href="https://www.netlogo.org/" target="_blank">NetLogo</a> (Wilensky, U., 1999, Center for Connected Learning and Computer-Based Modeling, Northwestern University). The author has long used NetLogo for their own learning and teaching, and that experience underlies the concept and design of this tool. We record our deep gratitude here.</p>
+
+    <hr class="divider">
+
+    <p style="font-size:.82rem;color:var(--light);text-align:center;padding-top:1rem">
+      EVO Studio v1.0 &nbsp;|&nbsp;
+      <a href="Evo_Studio.html" style="color:var(--accent)">Open EVO Studio</a>
+      &nbsp;|&nbsp;
+      <a href="Evo_Studio_FirstSteps.html" style="color:var(--accent)">First Steps</a>
+    </p>
+
+  </main>
+</div>
+
+<script>
+const links = document.querySelectorAll('#sideNav a');
+const sections = Array.from(links).map(l => document.getElementById(l.getAttribute('href').replace('#',''))).filter(Boolean);
+function onScroll(){
+  const y = window.scrollY + 80; let cur = null;
+  for (const s of sections) if (s.offsetTop <= y) cur = s.id;
+  links.forEach(l => l.classList.toggle('active', l.getAttribute('href').replace('#','') === cur));
+}
+window.addEventListener('scroll', onScroll, { passive:true });
+onScroll();
+</script>
+</body>
+</html>
