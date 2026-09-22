@@ -662,6 +662,7 @@ textarea{width:100%;height:100%;min-height:140px;background:transparent;border:n
     <button class="cbtn"         onclick="copyNewModelPrompt()">✨ 新規作成プロンプト</button>
     <button class="cbtn"         onclick="copyModPrompt()">✏️ 改変プロンプト</button>
     <button class="cbtn"         onclick="copyExplainPrompt()" title="現在のコードがどんなモデルかを説明させるプロンプトをコピー">📖 説明プロンプト</button>
+    <button class="cbtn"         onclick="savePromptFile()" title="直前にコピーしたプロンプトを .txt で保存します。生成AIに貼り付けると途中で切れる場合は、これを添付してください">📄 プロンプト保存</button>
     <button class="cbtn violet"  onclick="openAI()" title="OpenAI互換API（LM Studio等）で生成・改変">🤖 AI生成</button>
     <button class="cbtn green"   onclick="saveModelFile()" title="現在のコードを .js ファイルとして保存">💾 .js保存</button>
     <button class="cbtn"         onclick="document.getElementById('modelFileInput').click()" title="保存した .js / .txt を読み込む">📂 開く</button>
@@ -761,6 +762,7 @@ textarea{width:100%;height:100%;min-height:140px;background:transparent;border:n
       <div id="helpCodeSection">
       <h3>コードの書き方（ABM / EVO Studio と共通の作法）</h3>
       <p>下の<b>コード</b>欄でモデルを定義します。必須は <code>createInitialGenome()</code> / <code>mutateGenome(genome, params)</code> / <code>drawPhenotype(ctx, genome, W, H)</code> の3つ（アニメ時は draw の代わりに上記3つ）。<code>GENE_RANGES</code> と <code>PARAM_DEFS</code> は任意です。コードは <code>new Function()</code> で評価され、<code>class</code> / <code>document.*</code> / <code>window.*</code> / <code>fetch</code> / <code>setTimeout</code> / <code>import</code> 等は<b>使えません</b>（使うと行番号つきでエラー表示）。改変を AI に頼むときは <b>✏️ 改変プロンプト</b> / <b>✨ 新規作成プロンプト</b> を使ってください。<b>💾 .js保存</b> / <b>📂 開く</b> でモデルを保存・読み込みできます。<b>💾 HTML出力</b> を使うと、今動かしているモデルだけをそのまま実行できる独立した HTML ファイル（コード編集・AI生成 UI なし）を書き出せます。配布や授業での配布物に便利です。</p>
+      <p>📄 <b>プロンプト保存</b>：直前にコピーしたプロンプトを <code>.txt</code> ファイルとして保存します。生成AIの入力欄に貼り付けると長文が途中で切れてしまう場合（環境によって起こります）は、コピーの代わりにこのファイルを<b>添付</b>して渡してください。全文が確実に届きます。</p>
       </div>
       <p>🔊 <b>音</b>：ヘッダの 🔊 でオン/オフ。<code>Sound.beep(...)</code> / <code>Sound.note(...)</code> で発音できます。<code>playSound(genome)</code> を定義したモデル（例：<b>音の進化</b>）では各候補に <b>▶ 鳴らす</b> が出て，聴いてから選べます。</p>
     </div>
@@ -2603,20 +2605,80 @@ let toastTimer=null;
 function copyCurrentCode(){
   copyToClipboard(document.getElementById('codeArea').value, '現在のコードをコピーしました');
 }
+// ── クリップボード書き込み（環境差に強い多段フォールバック） ──
+// 貼り付け先（生成AIの入力欄など）が rich text エディタの場合、text/plain だけだと
+// 長文の取りこぼし・途中切れが起きる実装があるため、text/html も同時に書き込む。
+// 改行は CRLF に正規化する（Windows のクリップボード規約に合わせる）。
+let lastPromptText='';
+function clipNormalizeNewlines(s){ return String(s).replace(/\r\n?|\n/g,'\r\n'); }
+function clipEscapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function clipBuildHtml(text){
+  return '<div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap">'
+       + clipEscapeHtml(text).replace(/\r\n?|\n/g,'<br>') + '</div>';
+}
 function copyToClipboard(text, okMsg){
+  lastPromptText = text;
+  const plain = clipNormalizeNewlines(text);
   const ok=()=>showToast(okMsg||'コピーしました');
   const legacy=()=>{
     try{
       const ta=document.createElement('textarea');
-      ta.value=text; ta.style.position='fixed'; ta.style.top='-1000px'; ta.style.opacity='0';
+      ta.value=plain; ta.style.position='fixed'; ta.style.top='-1000px'; ta.style.opacity='0';
       document.body.appendChild(ta); ta.focus(); ta.select();
       const done=document.execCommand('copy'); document.body.removeChild(ta);
-      done ? ok() : showToast('コピーできませんでした。手動でコピーしてください', true);
-    }catch(e){ showToast('コピーできませんでした。手動でコピーしてください', true); }
+      done ? ok() : showManualCopyPanel(text);
+    }catch(e){ showManualCopyPanel(text); }
   };
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(text).then(ok).catch(legacy);
-  } else { legacy(); }
+  const writeTextPath=()=>{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(plain).then(ok).catch(legacy);
+    } else { legacy(); }
+  };
+  try{
+    if(navigator.clipboard && navigator.clipboard.write && typeof ClipboardItem!=='undefined'){
+      const item=new ClipboardItem({
+        'text/plain': new Blob([plain],{type:'text/plain'}),
+        'text/html' : new Blob([clipBuildHtml(text)],{type:'text/html'})
+      });
+      navigator.clipboard.write([item]).then(ok).catch(writeTextPath);
+      return;
+    }
+  }catch(e){}
+  writeTextPath();
+}
+// 直前にコピーしたプロンプトを .txt で保存（クリップボードを経由せず添付で渡す用）
+function savePromptFile(){
+  if(!lastPromptText){ showToast('先に ✨ / ✏️ / 📖 などのプロンプトボタンを押してください', true); return; }
+  const blob=new Blob([clipNormalizeNewlines(lastPromptText)],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=modelSlug('iec_model')+'_prompt.txt';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  showToast('プロンプトを .txt で保存しました（生成AIに添付してください）');
+}
+// クリップボードが一切使えない環境向け：手動コピー用パネル
+function showManualCopyPanel(text){
+  const old=document.getElementById('manualCopyPanel'); if(old) old.remove();
+  const wrap=document.createElement('div'); wrap.id='manualCopyPanel';
+  wrap.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  const box=document.createElement('div');
+  box.style.cssText='background:var(--surface,#fff);color:var(--text,#1e293b);border:1px solid var(--border,#d4d9e3);border-radius:10px;padding:14px;max-width:860px;width:100%;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 40px rgba(0,0,0,.25)';
+  const msg=document.createElement('div');
+  msg.textContent='自動コピーができませんでした。下の内容を全選択してコピーするか、📄 .txt で保存して生成AIに添付してください。';
+  msg.style.cssText='font-size:13px;line-height:1.6';
+  const ta=document.createElement('textarea'); ta.value=text; ta.readOnly=true;
+  ta.style.cssText='width:100%;height:46vh;box-sizing:border-box;background:var(--code-bg,#f8fafc);color:var(--text,#1e293b);border:1px solid var(--border,#d4d9e3);border-radius:6px;padding:8px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;white-space:pre';
+  const row=document.createElement('div'); row.style.cssText='display:flex;gap:8px;justify-content:flex-end';
+  const bSave=document.createElement('button'); bSave.textContent='📄 .txt で保存';
+  const bClose=document.createElement('button'); bClose.textContent='閉じる';
+  for(const b of [bSave,bClose]) b.style.cssText='background:var(--panel,#f0f2f6);color:var(--text,#1e293b);border:1px solid var(--border,#d4d9e3);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px';
+  bSave.onclick=()=>{ lastPromptText=text; savePromptFile(); };
+  bClose.onclick=()=>wrap.remove();
+  wrap.onclick=(e)=>{ if(e.target===wrap) wrap.remove(); };
+  row.appendChild(bSave); row.appendChild(bClose);
+  box.appendChild(msg); box.appendChild(ta); box.appendChild(row);
+  wrap.appendChild(box); document.body.appendChild(wrap);
+  ta.focus(); ta.select();
 }
 // テキスト（```コードブロック``` を含んでいてもよい）からコードを取り出してコード欄へ入れ、適用する
 function applyPastedText(text){

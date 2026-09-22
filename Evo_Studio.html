@@ -671,6 +671,7 @@ textarea{width:100%;height:100%;min-height:140px;background:transparent;border:n
     <button class="cbtn"         onclick="copyModPrompt()">✏️ Modify Prompt</button>
     <button class="cbtn"         onclick="copyExplainPrompt()" title="Copy a prompt asking the AI to explain what kind of model the current code is">📖 Explain Prompt</button>
     <button class="cbtn"         onclick="copyPythonPrompt()" title="Copy a prompt that converts the current code into a Python script + requirements.txt">🐍 Python Prompt</button>
+    <button class="cbtn"         onclick="savePromptFile()" title="Save the prompt you copied last as a .txt file. If pasting into a generative AI gets truncated, attach this file instead">📄 Save Prompt</button>
     <button class="cbtn violet"  onclick="openAI()" title="Generate/modify using an OpenAI-compatible API (LM Studio, etc.)">🤖 AI Generate</button>
     <button class="cbtn green"   onclick="saveModelFile()" title="Save the current code as a .js file">💾 Save .js</button>
     <button class="cbtn"         onclick="document.getElementById('modelFileInput').click()" title="Load a saved .js / .txt file">📂 Open</button>
@@ -776,6 +777,7 @@ textarea{width:100%;height:100%;min-height:140px;background:transparent;border:n
       <div id="helpCodeSection">
       <h3>Notes on Writing Code (Avoiding Errors)</h3>
       <p>Code is evaluated with <code>new Function()</code>. <code>class</code> / <code>document.*</code> / <code>window.*</code> / <code>addEventListener</code> / <code>fetch</code> / <code>setTimeout</code> / <code>import</code>, etc. <b>cannot be used</b>. Using them shows a line number and a hint when you apply the code. When asking an AI to make changes, copy the <b>✏️ Modify Prompt</b> / <b>✨ New Model Prompt</b> and use it.</p>
+      <p>📄 <b>Save Prompt</b>: saves the prompt you copied last as a <code>.txt</code> file. If pasting a long prompt into a generative AI's input box gets truncated (this happens in some environments), attach this file instead of pasting it — the whole prompt gets through.</p>
       <p>💾 <b>HTML Export</b>: Exports a standalone HTML file that runs only the model currently running (no code-editing / AI-generation UI). Handy for distribution or classroom handouts.</p>
       </div>
       <p>🔊 <b>Sound</b>: Use the 🔊 button in the header to toggle sound on/off. When a model calls <code>Sound.beep(...)</code> or <code>Sound.note(...)</code>, a sound plays (enabled after the first click).</p>
@@ -3184,20 +3186,80 @@ let toastTimer=null;
 function copyCurrentCode(){
   copyToClipboard(document.getElementById('codeArea').value, 'Copied the current code');
 }
+// ── クリップボード書き込み（環境差に強い多段フォールバック） ──
+// 貼り付け先（生成AIの入力欄など）が rich text エディタの場合、text/plain だけだと
+// 長文の取りこぼし・途中切れが起きる実装があるため、text/html も同時に書き込む。
+// 改行は CRLF に正規化する（Windows のクリップボード規約に合わせる）。
+let lastPromptText='';
+function clipNormalizeNewlines(s){ return String(s).replace(/\r\n?|\n/g,'\r\n'); }
+function clipEscapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function clipBuildHtml(text){
+  return '<div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap">'
+       + clipEscapeHtml(text).replace(/\r\n?|\n/g,'<br>') + '</div>';
+}
 function copyToClipboard(text, okMsg){
+  lastPromptText = text;
+  const plain = clipNormalizeNewlines(text);
   const ok=()=>showToast(okMsg||'Copied');
   const legacy=()=>{
     try{
       const ta=document.createElement('textarea');
-      ta.value=text; ta.style.position='fixed'; ta.style.top='-1000px'; ta.style.opacity='0';
+      ta.value=plain; ta.style.position='fixed'; ta.style.top='-1000px'; ta.style.opacity='0';
       document.body.appendChild(ta); ta.focus(); ta.select();
       const done=document.execCommand('copy'); document.body.removeChild(ta);
-      done ? ok() : showToast('Could not copy. Please copy it manually', true);
-    }catch(e){ showToast('Could not copy. Please copy it manually', true); }
+      done ? ok() : showManualCopyPanel(text);
+    }catch(e){ showManualCopyPanel(text); }
   };
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(text).then(ok).catch(legacy);
-  } else { legacy(); }
+  const writeTextPath=()=>{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(plain).then(ok).catch(legacy);
+    } else { legacy(); }
+  };
+  try{
+    if(navigator.clipboard && navigator.clipboard.write && typeof ClipboardItem!=='undefined'){
+      const item=new ClipboardItem({
+        'text/plain': new Blob([plain],{type:'text/plain'}),
+        'text/html' : new Blob([clipBuildHtml(text)],{type:'text/html'})
+      });
+      navigator.clipboard.write([item]).then(ok).catch(writeTextPath);
+      return;
+    }
+  }catch(e){}
+  writeTextPath();
+}
+// 直前にコピーしたプロンプトを .txt で保存（クリップボードを経由せず添付で渡す用）
+function savePromptFile(){
+  if(!lastPromptText){ showToast('Press one of the prompt buttons (✨ / ✏️ / 📖) first', true); return; }
+  const blob=new Blob([clipNormalizeNewlines(lastPromptText)],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=modelSlug('evo_model')+'_prompt.txt';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  showToast('Saved the prompt as a .txt file (attach it to your AI chat)');
+}
+// クリップボードが一切使えない環境向け：手動コピー用パネル
+function showManualCopyPanel(text){
+  const old=document.getElementById('manualCopyPanel'); if(old) old.remove();
+  const wrap=document.createElement('div'); wrap.id='manualCopyPanel';
+  wrap.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  const box=document.createElement('div');
+  box.style.cssText='background:var(--surface,#fff);color:var(--text,#1e293b);border:1px solid var(--border,#d4d9e3);border-radius:10px;padding:14px;max-width:860px;width:100%;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 40px rgba(0,0,0,.25)';
+  const msg=document.createElement('div');
+  msg.textContent='Automatic copy failed. Select all of the text below and copy it, or save it as a .txt file and attach it to your AI chat.';
+  msg.style.cssText='font-size:13px;line-height:1.6';
+  const ta=document.createElement('textarea'); ta.value=text; ta.readOnly=true;
+  ta.style.cssText='width:100%;height:46vh;box-sizing:border-box;background:var(--code-bg,#f8fafc);color:var(--text,#1e293b);border:1px solid var(--border,#d4d9e3);border-radius:6px;padding:8px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;white-space:pre';
+  const row=document.createElement('div'); row.style.cssText='display:flex;gap:8px;justify-content:flex-end';
+  const bSave=document.createElement('button'); bSave.textContent='📄 Save as .txt';
+  const bClose=document.createElement('button'); bClose.textContent='Close';
+  for(const b of [bSave,bClose]) b.style.cssText='background:var(--panel,#f0f2f6);color:var(--text,#1e293b);border:1px solid var(--border,#d4d9e3);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px';
+  bSave.onclick=()=>{ lastPromptText=text; savePromptFile(); };
+  bClose.onclick=()=>wrap.remove();
+  wrap.onclick=(e)=>{ if(e.target===wrap) wrap.remove(); };
+  row.appendChild(bSave); row.appendChild(bClose);
+  box.appendChild(msg); box.appendChild(ta); box.appendChild(row);
+  wrap.appendChild(box); document.body.appendChild(wrap);
+  ta.focus(); ta.select();
 }
 // Extract code from text (which may contain a ```code block```), put it in the field, and apply
 function applyPastedText(text){
