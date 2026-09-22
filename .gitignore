@@ -4,3 +4,6 @@ paper/
 
 # build artifacts
 *.zip
+
+# 作業用ローカルフォルダ（配布・公開には含めない）
+_local/
